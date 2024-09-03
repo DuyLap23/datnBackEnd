@@ -18,4 +18,8 @@ class Address extends Model
         'detail_address',
         'is_default',
     ];
+    public function user()
+    {
+       return  $this->belongsTo(User::class);
+    }
 }
