@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Category;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class CategoryController extends Controller
 {
@@ -13,11 +14,13 @@ class CategoryController extends Controller
     public function index()
     {
         $categories = Category::query()->with(['children'])->where('parent_id', null)->get();
+        $categoryParent = Category::query()->where('parent_id', null)->get();
         return response()->json([
             'status' => true,
             'message' => 'Category retrieved successfully',
-            'data' => $categories
+            'data' => ['categories' => $categories, 'categoryParen' => $categoryParent]
         ]);
+
     }
 
     /**
@@ -25,7 +28,7 @@ class CategoryController extends Controller
      */
     public function create()
     {
-        //
+//
     }
 
     /**
@@ -33,7 +36,7 @@ class CategoryController extends Controller
      */
     public function store(Request $request)
     {
-        //
+
     }
 
     /**
