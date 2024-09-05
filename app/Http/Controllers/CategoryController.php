@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Category;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 
 class CategoryController extends Controller
@@ -28,7 +29,7 @@ class CategoryController extends Controller
      */
     public function create()
     {
-//
+
     }
 
     /**
@@ -36,15 +37,42 @@ class CategoryController extends Controller
      */
     public function store(Request $request)
     {
+        try {
+            DB::beginTransaction();
+            $data = $request->all();
+            Category::query()->create($data);
+            DB::commit();
+            return response()->json(
+                [
+                    'success' => true,
+                    'message' => 'Category created successfully.',
+                    'data' => $data,
+                ],
+                201,
+            );
+        } catch (\Exception $exception) {
+            return response()->json(
+                [
+                    'success' => false,
+                    'message' => $exception->getMessage(),
 
+                ],500
+            );
+        }
     }
 
     /**
      * Display the specified resource.
      */
-    public function show(Category $category)
+    public function show(String $id)
     {
-        //
+        $category = Category::findOrFail($id);
+        return response()->json([
+            'status' => true,
+            'message' => "success ",
+            'data' => $category
+
+        ]);
     }
 
     /**
@@ -66,8 +94,12 @@ class CategoryController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Category $category)
+    public function destroy(String $id)
     {
-        //
+        $model = Category::query()->findOrFail($id);
+        
+        $model->delete();
+
+        return response()->json(['status' => true, 'message' => 'success']);
     }
 }
