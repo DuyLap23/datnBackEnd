@@ -163,7 +163,7 @@ class CategoryController extends Controller
             $model = Category::findOrFail($id);
 
             $model->delete();
-            
+
             if ($model->image && Storage::exists($model->image)) {
                 Storage::delete($model->image);
             }
