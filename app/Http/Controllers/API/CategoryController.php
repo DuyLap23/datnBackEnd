@@ -6,12 +6,14 @@ use App\Http\Controllers\Controller;
 use App\Models\Category;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 
 class CategoryController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
+    const PATH_UPLOAD = 'categories';
     public function index()
     {
         $categories = Category::query()->with(['children'])->where('parent_id', null)->get();
@@ -28,20 +30,31 @@ class CategoryController extends Controller
      */
     public function store(Request $request)
     {
+        
         try {
+       
+            $data = $request->validate([
+                'name' => ['require', 'max:255'],
+                'image' => ['require', 'mime:jpeg,jpg,png,svg,webp', 'max:1500'],
+                'parent_id'=> ['nullable', 'exists:categories,id'],
+            ]);
             DB::beginTransaction();
-            $data = $request->all();
+
+             if ($request->hasFile('image')) {
+                $data['image'] = Storage::put(self::PATH_UPLOAD, $request->file('image'));
+            }
+        
             Category::query()->create($data);
             DB::commit();
             return response()->json(
                 [
                     'success' => true,
                     'message' => 'Category created successfully.',
-                    'data' => $data,
                 ],
                 201,
             );
         } catch (\Exception $exception) {
+            DB::rollBack();
             return response()->json(
                 [
                     'success' => false,
