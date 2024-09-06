@@ -4,7 +4,7 @@ use App\Http\Controllers\API\CategoryController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\API\BrandController;
-use App\Http\Controllers\API\CategoryController;
+
 
 /*
 |--------------------------------------------------------------------------
