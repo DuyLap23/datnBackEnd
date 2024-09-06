@@ -1,9 +1,8 @@
 <?php
-
-use App\Http\Controllers\API\CategoryController;
-use App\Http\Controllers\AuthController;
-use Illuminate\Http\Request;
+use App\Http\Controllers\API\AuthController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\API\BrandController;
+use App\Http\Controllers\API\CategoryController;
 
 /*
 |--------------------------------------------------------------------------
@@ -26,17 +25,15 @@ Route::group(
         Route::post('refresh', [AuthController::class, 'refresh']);
         Route::get('profile', [AuthController::class, 'profile']);
     },
-    
+
 );
 Route::group(
     [
-        'middleware' => 'api',
+        // 'middleware' => 'api',
         'prefix' => 'admin',
     ],
     function ($router) {
         Route::apiResource('categories', CategoryController::class);
+        Route::apiResource('brands', BrandController::class);
     },
-    
 );
-
-
