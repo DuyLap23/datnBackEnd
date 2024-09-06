@@ -17,10 +17,10 @@ class CategoryController extends Controller
         $categories = Category::query()->with(['children'])->where('parent_id', null)->get();
         $categoryParent = Category::query()->where('parent_id', null)->get();
         return response()->json([
-            'status' => true,
+            'success' => true,
             'message' => 'Category retrieved successfully',
             'data' => ['categories' => $categories, 'categoryParen' => $categoryParent]
-        ]);
+        ],200);
     }
 
     /**
