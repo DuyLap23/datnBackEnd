@@ -1,12 +1,13 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\API;
 
+use App\Http\Controllers\Controller;
 use App\Models\Category;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
-class CateController extends Controller
+class CategoryController extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -27,18 +28,28 @@ class CateController extends Controller
      */
     public function store(Request $request)
     {
-      
-        $data = $request->all();
-        Category::query()->create($data);
+        try {
+            DB::beginTransaction();
+            $data = $request->all();
+            Category::query()->create($data);
+            DB::commit();
+            return response()->json(
+                [
+                    'success' => true,
+                    'message' => 'Category created successfully.',
+                    'data' => $data,
+                ],
+                201,
+            );
+        } catch (\Exception $exception) {
+            return response()->json(
+                [
+                    'success' => false,
+                    'message' => $exception->getMessage(),
 
-        return response()->json(
-            [
-                'success' => true,
-                'message' => 'Room created successfully.',
-                'data' => $data,
-            ],
-            201,
-        );
+                ],500
+            );
+        }
     }
 
     /**
