@@ -20,6 +20,7 @@ class UserSeeder extends Seeder
                 'name' => fake()->name(),
                 'email' => fake()->safeEmail(),
                 'password' => Hash::make('password'),
+                'avatar' => fake()->imageUrl(),
                 'link_fb' => fake()->url(),
                 'link_tt' => fake()->url(),
                 'role' => ['admin', 'staff','customer'][rand(0, 2)],
