@@ -1,5 +1,7 @@
 <?php
-use App\Http\Controllers\API\AuthController;
+
+use App\Http\Controllers\API\Auth\LoginController;
+use App\Http\Controllers\API\Auth\RegisterController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\API\BrandController;
 use App\Http\Controllers\API\CategoryController;
@@ -20,10 +22,12 @@ Route::group(
         'prefix' => 'auth',
     ],
     function ($router) {
-        Route::post('login', [AuthController::class, 'login']);
-        Route::post('logout', [AuthController::class, 'logout']);
-        Route::post('refresh', [AuthController::class, 'refresh']);
-        Route::get('profile', [AuthController::class, 'profile']);
+        Route::post('login', [LoginController::class, 'login']);
+        Route::post('logout', [LoginController::class, 'logout']);
+        Route::post('refresh', [LoginController::class, 'refresh']);
+        Route::get('profile', [LoginController::class, 'profile']);
+        Route::post('register', [RegisterController::class, 'register']);
+        Route::post('destroy', [RegisterController::class, 'register']);
     },
 
 );

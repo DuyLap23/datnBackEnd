@@ -14,7 +14,7 @@ class Address extends Model
         'phone_number',
         'city',
         'district',
-        'additional_address',
+        'ward',
         'detail_address',
         'is_default',
     ];
@@ -22,4 +22,9 @@ class Address extends Model
     {
        return  $this->belongsTo(User::class);
     }
+    protected $casts = [
+        'is_default' => 'boolean',
+    ];
+
+
 }

@@ -159,7 +159,7 @@ class CategoryController extends Controller
     public function destroy(string $id)
     {
         try {
-            
+
             $model = Category::findOrFail($id);
 
             $model->delete();
@@ -175,9 +175,9 @@ class CategoryController extends Controller
                 ],
                 200,
             );
-        
+
         } catch (\Exception $e) {
-           
+
             return response()->json(
                 [
                     'success' => false,
