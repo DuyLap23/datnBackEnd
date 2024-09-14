@@ -48,7 +48,7 @@ class CategoryController extends Controller
             if ($request->hasFile('image')) {
                 // Lưu ảnh và lấy đường dẫn URL
                 $path = $request->file('image')->store(self::PATH_UPLOAD, 'public');
-                $data['image'] = $path;
+                $data['image'] = asset('storage/' . $path);
             }
 
             $category = Category::query()->create($data);
@@ -61,7 +61,7 @@ class CategoryController extends Controller
                     'message' => 'Thêm danh mục thành công.',
                     'data' => [
                         'category' => $category,
-                        'image_url' => asset('storage/' . $data['image']) // Trả về URL ảnh
+//                        'image_url' => asset('storage/' . $data['image']) // Trả về URL ảnh
                     ],
                 ],
                 201,
