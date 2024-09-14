@@ -46,10 +46,12 @@ class CategoryController extends Controller
             ]);
 
             if ($request->hasFile('image')) {
-                $data['image'] = $request->file('image')->store(self::PATH_UPLOAD, 'public');
+                // Lưu ảnh và lấy đường dẫn URL
+                $path = $request->file('image')->store(self::PATH_UPLOAD, 'public');
+                $data['image'] = $path;
             }
 
-            Category::query()->create($data);
+            $category = Category::query()->create($data);
 
             DB::commit();
 
@@ -57,6 +59,10 @@ class CategoryController extends Controller
                 [
                     'success' => true,
                     'message' => 'Thêm danh mục thành công.',
+                    'data' => [
+                        'category' => $category,
+                        'image_url' => asset('storage/' . $data['image']) // Trả về URL ảnh
+                    ],
                 ],
                 201,
             );
@@ -72,6 +78,7 @@ class CategoryController extends Controller
             );
         }
     }
+
 
     /**
      * Display the specified resource.
