@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Category;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
 
 class CategoryController extends Controller
@@ -14,6 +15,7 @@ class CategoryController extends Controller
      * Display a listing of the resource.
      */
     const PATH_UPLOAD = 'categories';
+
     public function index()
     {
         $categories = Category::query()
@@ -42,15 +44,33 @@ class CategoryController extends Controller
             $data = $request->validate([
                 'name' => ['required', 'max:255'],
                 'image' => ['required', 'mimes:jpeg,jpg,png,svg,webp', 'max:1500'],
-                'parent_id' => ['nullable','exists:categories,id'],
+                'parent_id' => ['nullable', 'exists:categories,id'],
             ]);
 
+            $imageUrl = null;
+
             if ($request->hasFile('image')) {
-                // Lưu ảnh và lấy đường dẫn URL
-                $path = $request->file('image')->store(self::PATH_UPLOAD, 'public');
-                $data['image'] = asset('storage/' . $path);
+                // Lấy ảnh từ yêu cầu
+                $image = $request->file('image');
+
+                // Upload ảnh lên Imgur
+                $response = Http::withHeaders([
+                    'Authorization' => 'Client-ID b806999527d9d43',
+                ])->attach(
+                    'image', file_get_contents($image->getRealPath()), $image->getClientOriginalName()
+                )->post('https://api.imgur.com/3/image');
+
+                // Kiểm tra xem yêu cầu có thành công không
+                if ($response->successful()) {
+                    $imageUrl = $response->json()['data']['link'];
+                } else {
+                    throw new \Exception('Không thể upload ảnh lên Imgur');
+                }
             }
 
+            $data['image'] = $imageUrl;
+
+            // Tạo danh mục mới
             $category = Category::query()->create($data);
 
             DB::commit();
@@ -61,7 +81,7 @@ class CategoryController extends Controller
                     'message' => 'Thêm danh mục thành công.',
                     'data' => [
                         'category' => $category,
-//                        'image_url' => asset('storage/' . $data['image']) // Trả về URL ảnh
+                        'image_url' => $data['image'], // Trả về URL của ảnh từ Imgur
                     ],
                 ],
                 201,
@@ -78,7 +98,6 @@ class CategoryController extends Controller
             );
         }
     }
-
 
     /**
      * Display the specified resource.
@@ -118,7 +137,7 @@ class CategoryController extends Controller
             $data = $request->validate([
                 'name' => ['required', 'max:255'],
                 'image' => ['mimes:jpeg,jpg,png,svg,webp', 'max:1500'],
-                'parent_id' => ['nullable','exists:categories,id'],
+                'parent_id' => ['nullable', 'exists:categories,id'],
             ]);
 
             $model = Category::query()->findOrFail($id);

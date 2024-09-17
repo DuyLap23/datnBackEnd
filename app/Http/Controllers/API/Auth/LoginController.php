@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\API\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Models\User;
 use Tymon\JWTAuth\Facades\JWTAuth;
 
 class LoginController extends Controller
@@ -13,24 +14,39 @@ class LoginController extends Controller
     }
     public function login()
     {
+
+        $validatedData = request()->validate([
+            'email' => 'required|email',
+            'password' => 'required|min:6',
+        ]);
+
         $credentials = request(['email', 'password']);
 
-        if (!($token = auth('api')->attempt($credentials))) {
-            return response()->json(['error' => 'Unauthorized'], 401);
+        // Kiểm tra nếu email không tồn tại
+        if (!User::where('email', $credentials['email'])->exists()) {
+            return response()->json([
+                'error' => 'email_not_found',
+                'status' => false,
+                'message' => 'Email không tồn tại.'
+            ], 401);
         }
 
+        // Kiểm tra nếu thông tin đăng nhập không đúng
+        if (!($token = auth('api')->attempt($credentials))) {
+            return response()->json([
+                'error' => 'invalid_credentials',
+                'status' => false,
+                'message' => 'Mật khẩu không đúng.'
+            ], 401);
+        }
+
+        // Tạo refresh token
         $refreshToken = $this->getRefreshToken();
 
         return $this->respondWithToken($token, $refreshToken);
     }
-    public function profile()
-    {
-        try {
-            return response()->json(auth('api')->user());
-        } catch (\Throwable $th) {
-            return response()->json(['error' => $th->getMessage()], 500);
-        }
-    }
+
+
 
     public function logout()
     {

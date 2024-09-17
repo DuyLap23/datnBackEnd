@@ -2,6 +2,8 @@
 
 use App\Http\Controllers\API\Auth\LoginController;
 use App\Http\Controllers\API\Auth\RegisterController;
+use App\Http\Controllers\API\Auth\ResetPassword;
+use App\Http\Controllers\API\Auth\UserController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\API\BrandController;
 use App\Http\Controllers\API\CategoryController;
@@ -23,11 +25,17 @@ Route::group(
     ],
     function ($router) {
         Route::post('login', [LoginController::class, 'login']);
+        Route::post('register', [RegisterController::class, 'register']);
         Route::post('logout', [LoginController::class, 'logout']);
         Route::post('refresh', [LoginController::class, 'refresh']);
-        Route::get('profile', [LoginController::class, 'profile']);
-        Route::post('register', [RegisterController::class, 'register']);
-        Route::post('destroy', [RegisterController::class, 'register']);
+        Route::get('profile', [UserController::class, 'profile']);
+        Route::put('profile/update/{id}', [UserController::class, 'update']);
+//        Route::post('destroy', [UserController::class, 'destroy']);
+
+        Route::post('password/forgot', [ResetPassword::class, 'sendResetLinkEmail']);
+
+        // Route để xử lý khi người dùng nhấn vào link reset mật khẩu
+        Route::post('password/reset', [ResetPassword::class, 'reset'])->name('password.reset');
     },
 
 );
