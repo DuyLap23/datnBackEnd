@@ -38,7 +38,7 @@ class RegisterController extends Controller
                 'success' => false,
                 'message' => 'Không thể tạo tài khoản.',
                 'error' => $exception->getMessage(),
-            ], 500);
+            ], 400);
         }
     }
 }
