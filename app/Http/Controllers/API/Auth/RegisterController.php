@@ -8,7 +8,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Validation\ValidationException;
 
 class RegisterController extends Controller
 {
@@ -33,13 +32,14 @@ class RegisterController extends Controller
                 'data' => $user,
                 'message' => 'Tạo tài khoản thành công',
             ], 201);
-        } catch (ValidationException $e) {
+        }
+        catch
+        (\Exception $exception) {
             DB::rollBack();
-            return response()->json(['errors' => $e->errors()], 422);
-        } catch (\Exception $e) {
-            DB::rollBack();
-            Log::error($e->getMessage());
-            return response()->json(['error' => 'Lỗi tạo sản phẩm thất bại: ' . $e->getMessage()], 500);
+            Log::error($exception->getMessage());
+            return response()->json([
+                'message' =>  $exception->getMessage(),
+            ], 400);
         }
     }
 }
