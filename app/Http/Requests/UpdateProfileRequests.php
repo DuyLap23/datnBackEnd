@@ -26,14 +26,14 @@ class UpdateProfileRequests extends FormRequest
             'link_fb' => 'string|max:255',
             'link_tt' => 'string|max:255',
             'addresses' => 'array',
-            'addresses.*.id' => 'integer|exists:addresses,id',
-            'addresses.*.address_name' => 'string|max:255|nullable',
-            'addresses.*.phone_number' => 'required|string',
-            'addresses.*.city' => 'required|string|max:255',
-            'addresses.*.district' => 'required|string|max:255',
-            'addresses.*.ward' => 'required|string|max:255',
-            'addresses.*.detail_address' => 'required|string|max:255',
-            'addresses.*.is_default' => 'boolean|nullable',
+
+            'address_name' => 'string|max:255|nullable',
+            'phone_number' => 'required|string',
+            'city' => 'required|string|max:255',
+            'district' => 'required|string|max:255',
+            'ward' => 'required|string|max:255',
+            'detail_address' => 'required|string|max:255',
+            'is_default' => 'boolean|nullable',
         ];
     }
 }

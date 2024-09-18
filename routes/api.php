@@ -4,6 +4,7 @@ use App\Http\Controllers\API\Auth\LoginController;
 use App\Http\Controllers\API\Auth\RegisterController;
 use App\Http\Controllers\API\Auth\ResetPassword;
 use App\Http\Controllers\API\Auth\UserController;
+use App\Http\Controllers\API\TagController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\API\BrandController;
 use App\Http\Controllers\API\CategoryController;
@@ -72,5 +73,6 @@ Route::group(
     function ($router) {
         Route::apiResource('categories', CategoryController::class);
         Route::apiResource('brands', BrandController::class);
+        Route::apiResource('tags', TagController::class);
     },
 );
