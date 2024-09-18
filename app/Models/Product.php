@@ -4,10 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Product extends Model
 {
-    use HasFactory;
+    use HasFactory,softDeletes;
 
     protected $fillable = [
         'name',
@@ -31,6 +32,7 @@ class Product extends Model
         'is_new' => 'boolean',
         'is_show_home' => 'boolean',
     ];
+    public $date = ['deleted_at'];
 
     public function favoredByUsers()
     {
