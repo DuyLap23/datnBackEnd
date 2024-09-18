@@ -18,17 +18,81 @@ class CategoryController extends Controller
 
     /**
      * @OA\Get(
-     *     path="/api/admin/categories",
-     *     summary="Lấy danh sách danh mục",
-     *     tags={"Category"},
-     *     @OA\Response(
-     *         response=200,
-     *         description="Danh sách danh mục",
-     *         @OA\JsonContent(
-     *             type="array",
-     *             @OA\Items(ref="#/components/schemas/Category")
-     *         )
-     *     )
+     * path="/api/admin/categories",
+     * summary="",
+     * description="Danh sách danh mục.",
+     * tags={"Category"},
+     * @OA\RequestBody(
+     * required=true,
+     * @OA\MediaType(
+     * mediaType="application/json",
+     * @OA\Schema(
+     * @OA\Property(
+     * property="name",
+     * type="string",
+     * description="Tên danh mục",
+     * example="Danh mục 1",
+     * ),
+     * @OA\Property(
+     * property="image",
+     * type="string",
+     * description="Hình ảnh danh mục",
+     * example="image.png",
+     * ),
+     * @OA\Property(
+     * property="parent_id",
+     * type="bigint",
+     * description="Danh mục cha",
+     * example="1",
+     * ),
+     * ),
+     * ),
+     * ),
+     * @OA\Response(
+     * response=200,
+     * description="Thành công",
+     * @OA\JsonContent(
+     * @OA\Property(
+     * property="success",
+     * type="boolean",
+     * example=true,
+     * ),
+     * @OA\Property(
+     * property="message",
+     * type="string",
+     * example="Success",
+     * ),
+     * @OA\Property(
+     * property="status",
+     * type="string",
+     * example="200",
+     * ),
+     * @OA\Property(
+     * property="data",
+     * type="object",
+     * @OA\Property(
+     * property="id",
+     * type="integer",
+     * example=1,
+     * ),
+     * @OA\Property(
+     * property="name",
+     * type="string",
+     * example="Danh mục 1",
+     * ),
+     * @OA\Property(
+     * property="image",
+     * type="string",
+     * example="image.png",
+     * ),
+     *  @OA\Property(
+     *  property="parent_id",
+     *  type="string",
+     *  example="",
+     *  ),
+     * ),
+     * ),
+     * ),
      * )
      */
     public function index()
@@ -51,39 +115,117 @@ class CategoryController extends Controller
     /**
      * Store a newly created resource in storage.
      */
+    /**
+     * @OA\Post(
+     * path="/api/admin/categories",
+     * summary="Thêm danh mục mới",
+     * description="Thêm danh mục vào hệ thống.",
+     * tags={"Category"},
+     * @OA\RequestBody(
+     * required=true,
+     * @OA\MediaType(
+     * mediaType="application/json",
+     * @OA\Schema(
+     * @OA\Property(
+     * property="name",
+     * type="string",
+     * description="Tên danh mục",
+     * example="Danh mục 1",
+     * ),
+     * @OA\Property(
+     * property="image",
+     * type="string",
+     * description="Hình ảnh danh mục",
+     * example="image.png",
+     * ),
+     * @OA\Property(
+     * property="parent_id",
+     * type="bigint",
+     * description="ID danh mục cha",
+     * example="1",
+     * ),
+     * ),
+     * ),
+     * ),
+     * @OA\Response(
+     * response=201,
+     * description="Thành công",
+     * @OA\JsonContent(
+     * @OA\Property(
+     * property="success",
+     * type="boolean",
+     * example=true,
+     * ),
+     * @OA\Property(
+     * property="message",
+     * type="string",
+     * example="Thêm danh mục thành công.",
+     * ),
+     * @OA\Property(
+     * property="data",
+     * type="object",
+     * @OA\Property(
+     * property="category",
+     * type="object",
+     * @OA\Property(
+     * property="id",
+     * type="bigint",
+     * example=1,
+     * ),
+     * @OA\Property(
+     * property="name",
+     * type="string",
+     * example="Danh mục 1",
+     * ),
+     * @OA\Property(
+     * property="image_url",
+     * type="string",
+     * example="https://apitopdeal.shop/storage/categories/image.png",
+     * ),
+     * ),
+     * ),
+     * ),
+     * ),
+     * @OA\Response(
+     * response=500,
+     * description="Thêm danh mục thất bại",
+     * @OA\JsonContent(
+     * @OA\Property(
+     * property="success",
+     * type="boolean",
+     * example=false,
+     * ),
+     * @OA\Property(
+     * property="message",
+     * type="string",
+     * example="Thêm danh mục thất bại",
+     * ),
+     * @OA\Property(
+     * property="error",
+     * type="string",
+     * example="Error details...",
+     * ),
+     * ),
+     * ),
+     * )
+     */
     public function store(Request $request)
     {
         DB::beginTransaction();
 
         try {
+            // Validate dữ liệu đầu vào
             $data = $request->validate([
                 'name' => ['required', 'max:255'],
                 'image' => ['required', 'mimes:jpeg,jpg,png,svg,webp', 'max:1500'],
                 'parent_id' => ['nullable', 'exists:categories,id'],
             ]);
 
-            $imageUrl = null;
-
+            // Kiểm tra và lưu ảnh nếu có
             if ($request->hasFile('image')) {
-                // Lấy ảnh từ yêu cầu
-                $image = $request->file('image');
-
-                // Upload ảnh lên Imgur
-                $response = Http::withHeaders([
-                    'Authorization' => 'Client-ID b806999527d9d43',
-                ])->attach(
-                    'image', file_get_contents($image->getRealPath()), $image->getClientOriginalName()
-                )->post('https://api.imgur.com/3/image');
-
-                // Kiểm tra xem yêu cầu có thành công không
-                if ($response->successful()) {
-                    $imageUrl = $response->json()['data']['link'];
-                } else {
-                    throw new \Exception('Không thể upload ảnh lên Imgur');
-                }
+                $path = $request->file('image')->store(self::PATH_UPLOAD, 'public');
+                $data['image'] = $path;
             }
-
-            $data['image'] = $imageUrl;
 
             // Tạo danh mục mới
             $category = Category::query()->create($data);
@@ -96,10 +238,10 @@ class CategoryController extends Controller
                     'message' => 'Thêm danh mục thành công.',
                     'data' => [
                         'category' => $category,
-                        'image_url' => $data['image'], // Trả về URL của ảnh từ Imgur
+                        'image_url' => asset('storage/' . $data['image']), // Trả về URL ảnh
                     ],
                 ],
-                201,
+                201
             );
         } catch (\Exception $exception) {
             DB::rollBack();
@@ -109,10 +251,11 @@ class CategoryController extends Controller
                     'message' => 'Thêm danh mục thất bại',
                     'error' => $exception->getMessage()
                 ],
-                500,
+                500
             );
         }
     }
+
 
     /**
      * Display the specified resource.

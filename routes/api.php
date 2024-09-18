@@ -19,30 +19,6 @@ use App\Http\Controllers\API\CategoryController;
 | be assigned to the "api" middleware group. Make something great!
 |
 */
-/**
- * @OA\OpenApi(
- *     @OA\Info(
- *         title="API Quản Lý Sản Phẩm",
- *         version="1.0.0",
- *         description="API này cung cấp các dịch vụ để quản lý sản phẩm, danh mục và đơn hàng.",
- *         @OA\Contact(
- *             email="topdealshop2024@.gmail.com"
- *         ),
- *         @OA\License(
- *             name="Apache 2.0",
- *             url="https://www.apache.org/licenses/LICENSE-2.0.html"
- *         )
- *     ),
- *     @OA\Server(
- *         url="https://apitopdeal.shop/api",
- *         description="Production server"
- *     ),
- *     @OA\Server(
- *         url="http://localhost/api",
- *         description="Local development server"
- *     )
- * )
- */
 
 Route::group(
     [
