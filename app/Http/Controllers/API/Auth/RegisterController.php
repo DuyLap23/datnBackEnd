@@ -30,8 +30,8 @@ class RegisterController extends Controller
                 // Nếu có lỗi, trả về tất cả lỗi
                 return response()->json([
                     'success' => false,
-                    'message' => 'Validation failed',
-                    'errors' => $validator->errors(),
+                    'message' => $validator->errors(),
+
                 ], 400);
             }
 

@@ -14,8 +14,24 @@ class UserController extends Controller
 {
     public function index()
     {
-        $users = User::query()->with('address')->get();
-        return response()->json(['users' => $users], 200);
+        $users = User::query()->get();
+        return response()->json([
+            'message' => 'lấy danh sách người dùng',
+            'success' => true,
+            'users' => $users,
+
+        ], 200);
+    }
+
+    public function show(string $id)
+    {
+        $user = User::query()->findOrFail($id);
+        return response()->json([
+            'message' => 'Lấy thông tin thành công',
+            'success' => true,
+            'users' => $user,
+
+        ], 200);
     }
 
     public function profile()
@@ -33,7 +49,7 @@ class UserController extends Controller
         try {
             $user = User::query()->with('addresses')->findOrFail($id);
 
-          if ($user->role == 'admin') {
+            if ($user->role == 'admin') {
                 return response()->json(['message' => 'Không thể thay đổi admin'], 404);
             }
 
@@ -45,7 +61,7 @@ class UserController extends Controller
                 $validated['avatar'] = $request->file('avatar')->store('avatars', 'public');
                 $old_avatar = $user->avatar;
 
-            }else{
+            } else {
                 $validated['avatar'] = $user->avatar;
 
             }
@@ -82,7 +98,7 @@ class UserController extends Controller
                 'message' => 'Cập nhật thông tin thành công.',
                 'data' => $user
             ], 200);
-        } catch(Exception $e) {
+        } catch (Exception $e) {
             DB::rollBack();
             return response()->json([
                 'success' => false,

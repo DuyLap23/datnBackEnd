@@ -50,5 +50,7 @@ Route::group(
         Route::apiResource('categories', CategoryController::class);
         Route::apiResource('brands', BrandController::class);
         Route::apiResource('tags', TagController::class);
+        Route::get('users', [UserController::class, 'index']);
+        Route::get('users/{id}', [UserController::class, 'show']);
     },
 );
