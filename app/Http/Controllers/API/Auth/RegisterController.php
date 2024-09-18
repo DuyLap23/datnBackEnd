@@ -8,7 +8,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Validator;
 
 class RegisterController extends Controller
 {
@@ -16,49 +15,31 @@ class RegisterController extends Controller
     public function register(Request $request)
     {
         DB::beginTransaction();
-
         try {
-            // Sử dụng Validator để lấy tất cả lỗi cùng một lúc
-            $validator = Validator::make($request->all(), [
+            $validated = $request->validate([
                 'name' => 'required|string|max:255',
                 'email' => 'required|string|email|max:255|unique:users',
                 'password' => 'required|string|min:8',
             ]);
-
-            // Kiểm tra xem có lỗi validate nào không
-            if ($validator->fails()) {
-                // Nếu có lỗi, trả về tất cả lỗi
-                return response()->json([
-                    'success' => false,
-                    'message' => $validator->errors(),
-
-                ], 400);
-            }
-
-            // Tạo người dùng mới sau khi validate thành công
+            DB::commit();
             $user = User::query()->create([
-                'name' => $request->input('name'),
-                'email' => $request->input('email'),
-                'password' => Hash::make($request->input('password')),
+                'name' => $validated['name'],
+                'email' => $validated['email'],
+                'password' => Hash::make($validated['password']),
             ]);
 
-            DB::commit();
-
             return response()->json([
-                'success' => true,
                 'data' => $user,
                 'message' => 'Tạo tài khoản thành công',
             ], 201);
-
-        } catch (\Exception $exception) {
+        }
+        catch
+        (\Exception $exception) {
             DB::rollBack();
             Log::error($exception->getMessage());
-
             return response()->json([
-                'success' => false,
-                'message' => 'Đã xảy ra lỗi',
-                'error' => $exception->getMessage(),
-            ], 500);
+                'message' =>  $exception->getMessage(),
+            ], 400);
         }
     }
 }
