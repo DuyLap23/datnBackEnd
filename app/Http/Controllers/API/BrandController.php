@@ -18,7 +18,6 @@ class BrandController extends Controller
         $brands = Brand::all();
         return response()->json(
             [
-                'success' => true,
                 'message' => 'Lấy thành công danh sách thương hiệu',
                 'data' => $brands,
             ],
@@ -32,14 +31,14 @@ class BrandController extends Controller
     public function store(Request $request)
     {
         DB::beginTransaction();
-    
+
         try {
             $data = $request->validate([
                 'name' => [ 'max:255'],
                 'image' => [ 'nullable','mimes:jpeg,jpg,png,svg,webp', 'max:1500'],
                 'description' => [ 'nullable', 'max:255'],
             ]);
-    
+
             if ($request->hasFile('image')) {
                 $data['image'] = $request->file('image')->store('brands', 'public');
             }
@@ -48,7 +47,6 @@ class BrandController extends Controller
             DB::commit();
             return response()->json(
                 [
-                    'success' => true,
                     'message' => 'Thêm thương hiệu thành công.',
                 ],
                 201,
@@ -57,7 +55,6 @@ class BrandController extends Controller
             DB::rollBack();
             return response()->json(
                 [
-                    'success' => false,
                     'message' => 'Thêm thương hiệu thất bại',
                     'error' => $exception->getMessage()
                 ],
@@ -75,7 +72,6 @@ class BrandController extends Controller
             $brand = Brand::findOrFail($id);
             return response()->json(
                 [
-                    'success' => true,
                     'message' => 'Lấy thành công dữ liệu của thương hiệu ' . $id,
                     'data' => $brand,
                 ],
@@ -84,7 +80,6 @@ class BrandController extends Controller
         } catch (\Exception $exception) {
             return response()->json(
                 [
-                    'success' => false,
                     'message' => 'Lấy dữ liệu không thành công',
                     'error' => $exception->getMessage()
                 ],
@@ -127,7 +122,6 @@ class BrandController extends Controller
 
             return response()->json(
                 [
-                    'success' => true,
                     'message' => 'Cập nhật thương hiệu thành công.',
                     'data' => $brand,
                 ],
@@ -137,7 +131,6 @@ class BrandController extends Controller
             DB::rollBack();
             return response()->json(
                 [
-                    'success' => false,
                     'message' => 'Cập nhật thương hiệu thất bại',
                     'error' => $exception->getMessage(),
                 ],
@@ -162,7 +155,6 @@ class BrandController extends Controller
 
             return response()->json(
                 [
-                    'success' => true,
                     'message' => 'Xoá thương hiệu thành công.',
                 ],
                 200,
@@ -170,7 +162,6 @@ class BrandController extends Controller
         } catch (\Exception $e) {
             return response()->json(
                 [
-                    'success' => false,
                     'message' => 'Xoá thương hiệu không thành công.',
                     'error' => $e->getMessage()
                 ],

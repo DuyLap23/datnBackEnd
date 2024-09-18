@@ -31,12 +31,10 @@ class ResetPassword extends Controller
 
         if ($status === Password::RESET_LINK_SENT) {
             return response()->json([
-                'status' => 'success',
                 'message' => 'Link reset mật khẩu đã được gửi đến email của bạn'
             ], 200);
         } else {
             return response()->json([
-                'status' => 'error',
                 'message' => 'Không thể gửi link reset mật khẩu'
             ], 500);
         }

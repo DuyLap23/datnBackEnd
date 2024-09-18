@@ -25,8 +25,6 @@ class LoginController extends Controller
         // Kiểm tra nếu email không tồn tại
         if (!User::where('email', $credentials['email'])->exists()) {
             return response()->json([
-                'error' => 'email_not_found',
-                'status' => false,
                 'message' => 'Email không tồn tại.'
             ], 401);
         }
@@ -34,8 +32,6 @@ class LoginController extends Controller
         // Kiểm tra nếu thông tin đăng nhập không đúng
         if (!($token = auth('api')->attempt($credentials))) {
             return response()->json([
-                'error' => 'invalid_credentials',
-                'status' => false,
                 'message' => 'Mật khẩu không đúng.'
             ], 401);
         }
@@ -64,7 +60,7 @@ class LoginController extends Controller
 
             $user = auth('api')->user();
             if (!$user) {
-                throw new \Exception('User not authenticated');
+                throw new \Exception('Người dùng chưa được xác thực');
             }
 
             JWTAuth::invalidate(); // vô hiện hoá token hiện tại

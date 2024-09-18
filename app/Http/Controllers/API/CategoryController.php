@@ -16,6 +16,21 @@ class CategoryController extends Controller
      */
     const PATH_UPLOAD = 'categories';
 
+    /**
+     * @OA\Get(
+     *     path="/api/admin/categories",
+     *     summary="Lấy danh sách danh mục",
+     *     tags={"Category"},
+     *     @OA\Response(
+     *         response=200,
+     *         description="Danh sách danh mục",
+     *         @OA\JsonContent(
+     *             type="array",
+     *             @OA\Items(ref="#/components/schemas/Category")
+     *         )
+     *     )
+     * )
+     */
     public function index()
     {
         $categories = Category::query()
