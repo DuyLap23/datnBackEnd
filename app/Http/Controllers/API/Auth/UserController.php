@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\API\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\UpdateProfileRequests;
+use App\Models\Address;
 use App\Models\User;
 use Exception;
 use Illuminate\Http\Request;
@@ -14,7 +16,7 @@ class UserController extends Controller
 {
     public function index()
     {
-        $users = User::query()->get();
+        $users = User::query()->with('addresses')->latest('id')->get();
         return response()->json([
             'message' => 'lấy danh sách người dùng',
             'success' => true,
@@ -37,66 +39,80 @@ class UserController extends Controller
     public function profile()
     {
         try {
-            return response()->json(auth('api')->user());
+            $user = auth('api')->user();
+            if ($user) {
+                // Load the address relationship
+                $user->load('addresses');
+                return response()->json($user, 200);
+            } else {
+                return response()->json(['error' => 'User not found'], 404);
+            }
         } catch (\Throwable $th) {
             return response()->json(['error' => $th->getMessage()], 500);
         }
     }
 
-    public function update(Request $request, $id)
+
+    public function update(UpdateProfileRequests $request, $id)
     {
         DB::beginTransaction();
         try {
+            // Lấy người dùng và địa chỉ
             $user = User::query()->with('addresses')->findOrFail($id);
 
+            // Kiểm tra nếu người dùng là admin
             if ($user->role == 'admin') {
                 return response()->json(['message' => 'Không thể thay đổi admin'], 404);
             }
 
-            $validated = $request->validate([
+            // Lấy dữ liệu từ request ngoại trừ avatar
+            $data = $request->except('avatar');
 
-            ]);
-
-            if (isset($validated['avatar'])) {
-                $validated['avatar'] = $request->file('avatar')->store('avatars', 'public');
+            // Xử lý avatar
+            if ($request->hasFile('avatar')) {
+                $data['avatar'] = $request->file('avatar')->store('avatars', 'public');
                 $old_avatar = $user->avatar;
-
             } else {
-                $validated['avatar'] = $user->avatar;
-
+                $data['avatar'] = $user->avatar;
             }
 
             // Cập nhật thông tin người dùng
-            $user->fill($validated);
-            $user->save(); // Lưu thông tin người dùng trước
+            $user->fill($data);
+            $user->save();
 
-//            Xoá aảnh cũ
+            // Xóa avatar cũ nếu có
             if (isset($old_avatar)) {
                 Storage::disk('public')->delete($old_avatar);
             }
 
-            // Cập nhật hoặc tạo địa chỉ
-            if (isset($validated['addresses'])) {
-                foreach ($validated['addresses'] as $addressData) {
-                    if (isset($addressData['id'])) {
-                        // Cập nhật địa chỉ nếu có id
-                        $address = $user->addresses()->find($addressData['id']);
-                        if ($address) {
-                            $address->update($addressData);
-                        }
-                    } else {
-                        // Tạo mới địa chỉ nếu không có id
-                        $user->addresses()->create($addressData);
-                    }
-                }
+            // Kiểm tra nếu `is_default` là true, cập nhật các địa chỉ khác thành không mặc định
+            if ($request->is_default) {
+                Address::query()->where('user_id', $user->id)->update(['is_default' => false]);
             }
 
+            // Cập nhật hoặc tạo mới địa chỉ
+            Address::updateOrCreate(
+                [
+                    'user_id' => $user->id,
+                    'ward' => $request->ward,
+                    'detail_address' => $request->detail_address,
+                ],
+                [
+                    'address_name' => $request->address_name,
+                    'phone_number' => $request->phone_number,
+                    'city' => $request->city,
+                    'district' => $request->district,
+                    'ward' => $request->ward,
+                    'is_default' => $request->is_default,
+                ]
+            );
+            $user->load('addresses');
             DB::commit();
 
             return response()->json([
                 'success' => true,
                 'message' => 'Cập nhật thông tin thành công.',
-                'data' => $user
+                'data' => [$user]
             ], 200);
         } catch (Exception $e) {
             DB::rollBack();
@@ -107,6 +123,7 @@ class UserController extends Controller
             ], 500);
         }
     }
+
 
 
     public function destroy($id)
