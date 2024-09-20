@@ -31,6 +31,7 @@ class User extends Authenticatable implements JWTSubject
     const TYPE_ADMIN = 'admin';
     const TYPE_STAFF = 'staff';
     const TYPE_CUSTOMER = 'customer';
+
     protected $fillable = [
         'name',
         'email',
