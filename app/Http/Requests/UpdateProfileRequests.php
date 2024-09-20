@@ -22,13 +22,12 @@ class UpdateProfileRequests extends FormRequest
     public function rules(): array
     {
         return [
+            'name' => 'required|string|max:255',
             'avatar' => ['image', 'mimes:jpeg,png,jpg,gif,svg', 'max:2048'],
             'link_fb' => 'string|max:255',
             'link_tt' => 'string|max:255',
-            'addresses' => 'array',
-
             'address_name' => 'string|max:255|nullable',
-            'phone_number' => 'required|string',
+            'phone_number' => 'required|string|max:10',
             'city' => 'required|string|max:255',
             'district' => 'required|string|max:255',
             'ward' => 'required|string|max:255',
