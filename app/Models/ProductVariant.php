@@ -17,13 +17,23 @@ class ProductVariant extends Model
         'image'
     ];
 
+    public function product()
+    {
+        return $this->belongsTo(Product::class);
+    }
+    
+    public function productColor()
+    {
+        return $this->belongsTo(ProductColor::class);
+    }
+    
     public function productSize()
     {
         return $this->belongsTo(ProductSize::class);
     }
-
-    public function productColor()
+    
+    public function productImages()
     {
-        return $this->belongsTo(ProductColor::class);
+        return $this->hasMany(ProductImage::class);
     }
 }

@@ -10,9 +10,7 @@ use Illuminate\Support\Facades\Storage;
 
 class CategoryController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
+
     const PATH_UPLOAD = 'categories';
     public function index()
     {
@@ -126,29 +124,29 @@ class CategoryController extends Controller
 
             $model->update($data);
 
-            if ($image_old && Storage::exists($image_old)) {
-                Storage::delete($image_old);
+            if ($image_old && Storage::exists(path: $image_old)) {
+                Storage::delete(paths: $image_old);
             }
 
             DB::commit();
 
             return response()->json(
-                [
+                data: [
                     'success' => true,
                     'message' => 'Cập nhật danh mục thành công.',
                     'data' => $model,
                 ],
-                201,
+                status: 201,
             );
         } catch (\Exception $exception) {
             DB::rollBack();
             return response()->json(
-                [
+                data: [
                     'success' => false,
                     'message' => 'Cập nhật danh mục thất bại',
                     'error' => $exception->getMessage(),
                 ],
-                500,
+                status: 500,
             );
         }
     }
@@ -164,27 +162,27 @@ class CategoryController extends Controller
 
             $model->delete();
 
-            if ($model->image && Storage::exists($model->image)) {
-                Storage::delete($model->image);
+            if ($model->image && Storage::exists(path: $model->image)) {
+                Storage::delete(paths: $model->image);
             }
 
             return response()->json(
-                [
+                data: [
                     'success' => true,
                     'message' => 'Xoá danh mục thành công.',
                 ],
-                200,
+                status: 200,
             );
         
         } catch (\Exception $e) {
            
             return response()->json(
-                [
+                data: [
                     'success' => false,
                     'message' => 'Xoá danh mục không thành công.',
                     'error' => $e->getMessage()
                 ],
-                500,
+                status: 500,
             );
         }
     }
