@@ -33,14 +33,21 @@ class BrandRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'ten_thuong_hieu' => 'required|max:255',
+            'name' => ['required', 'max:255'],
+            'image' => ['nullable', 'mimes:jpeg,jpg,png,svg,webp', 'max:1500'],
+            'description' => ['nullable', 'max:255'],
         ];
     }
     public function messages()
     {
         return [
-            'ten_thuong_hieu.required' => 'Vui lòng nhập thương hiệu',
-            'ten_thuong_hieu.max' => 'Vui lòng nhập thương hiệu < 255 ký tự',
+            'name.required' => 'Vui lòng nhập thương hiệu',
+            'name.max' => 'Vui lòng nhập thương hiệu < 255 ký tự',
+            'image.mimes' => 'Hình ảnh phải là định dạng jpeg, jpg, png, svg, webp',
+            'image.max' => 'Hình ảnh phải nhỏ hơn 1500KB',
+            'description.max' => 'Mô tả thương hiệu phải nhiều hơn 255 ký tự',
+            
+
         ];
     }
 }

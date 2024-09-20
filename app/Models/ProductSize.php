@@ -16,5 +16,14 @@ class ProductSize extends Model
             'name',
             'type',
         ];
-
+       
+        public function variants()
+        {
+            return $this->hasMany(ProductVariant::class);
+        }
+        public function productVariants()
+{
+    return $this->hasMany(ProductVariant::class, 'size_id', 'id');
+}
+       
 }
