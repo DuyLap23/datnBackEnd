@@ -14,6 +14,24 @@ use Illuminate\Support\Facades\Storage;
 
 class UserController extends Controller
 {
+    /**
+     * @OA\Get(
+     *     path="/api/admin/users",
+     *     summary="Lấy danh sách người dùng",
+     *     tags={"User"},
+     *     @OA\Response(
+     *         response=200,
+     *         description="Danh sách người dùng được lấy thành công",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="lấy danh sách người dùng"),
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="users", type="array",
+     *                 @OA\Items(ref="#/components/schemas/User")
+     *             )
+     *         )
+     *     )
+     * )
+     */
     public function index()
     {
         $users = User::query()->with('addresses')->latest('id')->get();
@@ -25,6 +43,36 @@ class UserController extends Controller
         ], 200);
     }
 
+    /**
+     * @OA\Get(
+     *     path="/api/admin/users/{id}",
+     *     summary="Lấy thông tin người dùng",
+     *     tags={"User"},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         description="ID của người dùng",
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Thông tin người dùng được lấy thành công",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="Lấy thông tin thành công"),
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="users", ref="#/components/schemas/User")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Người dùng không tìm thấy",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="Người dùng không tìm thấy")
+     *         )
+     *     )
+     * )
+     */
     public function show(string $id)
     {
         $user = User::query()->findOrFail($id);
@@ -36,6 +84,33 @@ class UserController extends Controller
         ], 200);
     }
 
+    /**
+     * @OA\Get(
+     *     path="/api/auth/profile",
+     *     summary="Lấy thông tin hồ sơ người dùng hiện tại",
+     *     tags={"User"},
+     *     security={{"Bearer": {}}},
+     *     @OA\Response(
+     *         response=200,
+     *         description="Thông tin hồ sơ người dùng hiện tại được lấy thành công",
+     *         @OA\JsonContent(ref="#/components/schemas/User")
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Người dùng không tìm thấy",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="error", type="string", example="User not found")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=500,
+     *         description="Có lỗi xảy ra",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="error", type="string", example="Error message")
+     *         )
+     *     )
+     * )
+     */
     public function profile()
     {
         try {
@@ -52,6 +127,53 @@ class UserController extends Controller
         }
     }
 
+    /**
+     * @OA\Put(
+     *     path="/api/admin/users/{id}",
+     *     summary="Cập nhật thông tin người dùng",
+     *     tags={"User"},
+     *     security={{"Bearer": {}}},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         description="ID của người dùng",
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\MediaType(
+     *             mediaType="application/json",
+     *             @OA\Schema(ref="#/components/schemas/UpdateProfileRequest")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Cập nhật thông tin thành công",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="message", type="string", example="Cập nhật thông tin thành công."),
+     *             @OA\Property(property="data", ref="#/components/schemas/User")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Không thể thay đổi admin",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="Không thể thay đổi admin")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=500,
+     *         description="Có lỗi xảy ra",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=false),
+     *             @OA\Property(property="message", type="string", example="Cập nhật thông tin thất bại"),
+     *             @OA\Property(property="error", type="string", example="Error message")
+     *         )
+     *     )
+     * )
+     */
 
     public function update(UpdateProfileRequests $request, $id)
     {
@@ -125,7 +247,35 @@ class UserController extends Controller
     }
 
 
-
+    /**
+     * @OA\Delete(
+     *     path="/api/users/{id}",
+     *     summary="Xóa người dùng",
+     *     tags={"User"},
+     *     security={{"Bearer": {}}},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         description="ID của người dùng",
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Xóa tài khoản thành công",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="Xoá tài khoản thành công")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Người dùng không được tìm thấy",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="Người dùng không được tìm thấy")
+     *         )
+     *     )
+     * )
+     */
     public function destroy($id)
     {
         $user = User::findOrFail($id);

@@ -10,8 +10,9 @@ use Illuminate\Routing\Controller as BaseController;
  * @OA\Info(
  *    title="Top deal shop dự án tốt nghiệp.",
  *    version="1.0.0",
+ *
  * ),
- * @OA\SecurityScheme(
+ *   @OA\SecurityScheme(
  *       securityScheme="bearerAuth",
  *       in="header",
  *       name="bearerAuth",
@@ -23,5 +24,4 @@ use Illuminate\Routing\Controller as BaseController;
 class Controller extends BaseController
 {
     use AuthorizesRequests, ValidatesRequests;
-
 }
