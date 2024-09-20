@@ -40,22 +40,25 @@ Route::group(
     function ($router) {
         Route::post('login', [LoginController::class, 'login']);
         Route::post('register', [RegisterController::class, 'register']);
-        Route::post('logout', [LoginController::class, 'logout']);
-        Route::post('refresh', [LoginController::class, 'refresh']);
-        Route::get('profile', [UserController::class, 'profile']);
-        Route::put('profile/update/{id}', [UserController::class, 'update']);
-//        Route::post('destroy', [UserController::class, 'destroy']);
+
+        // Cần middleware auth:api để chỉ người dùng đăng nhập mới có thể đăng xuất
+        Route::post('logout', [LoginController::class, 'logout'])->middleware('auth:api');
+
+        // Làm mới token, cần kiểm tra đã đăng nhập
+        Route::post('refresh', [LoginController::class, 'refresh'])->middleware('auth:api');
+
+
+        Route::get('profile', [UserController::class, 'profile'])->middleware('auth:api');
+        Route::put('profile/update/{id}', [UserController::class, 'update'])->middleware('auth:api');
 
         Route::post('password/forgot', [ResetPassword::class, 'sendResetLinkEmail']);
-
-        // Route để xử lý khi người dùng nhấn vào link reset mật khẩu
         Route::post('password/reset', [ResetPassword::class, 'reset'])->name('password.reset');
-    },
-
+    }
 );
+
 Route::group(
     [
-        'middleware' => ['api', 'role:admin'],
+        'middleware' => ['auth:api', 'role:admin'],
         'prefix' => 'admin',
     ],
     function ($router) {
@@ -75,7 +78,7 @@ Route::group(
 );
 Route::group(
     [
-        'middleware' => ['api', 'role:staff'],
+        'middleware' => ['auth:api', 'role:staff'],
         'prefix' => 'staff',
     ],
     function ($router) {
@@ -89,7 +92,7 @@ Route::group(
 
 Route::group(
     [
-        'middleware' => ['api', 'role:customer'],
+        'middleware' => ['auth:api', 'role:customer'],
         'prefix' => 'customer',
     ],
     function ($router) {

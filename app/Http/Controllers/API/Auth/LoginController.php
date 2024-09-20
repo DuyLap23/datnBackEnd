@@ -12,6 +12,38 @@ class LoginController extends Controller
     {
         $this->middleware('auth:api', ['except' => ['login', 'refresh']]);
     }
+    /**
+     * @OA\Post(
+     *     path="/api/auth/login",
+     *     summary="Đăng nhập người dùng",
+     *     tags={"Auth"},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"email", "password"},
+     *             @OA\Property(property="email", type="string", format="email", example="user@example.com"),
+     *             @OA\Property(property="password", type="string", format="password", example="password123"),
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Đăng nhập thành công",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="access_token", type="string", example="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."),
+     *             @OA\Property(property="refresh_token", type="string", example="refresh_token_here"),
+     *             @OA\Property(property="token_type", type="string", example="bearer"),
+     *             @OA\Property(property="expires_in", type="integer", example=3600),
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=401,
+     *         description="Email không tồn tại hoặc mật khẩu không đúng",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="Mật khẩu không đúng."),
+     *         )
+     *     )
+     * )
+     */
     public function login()
     {
 
