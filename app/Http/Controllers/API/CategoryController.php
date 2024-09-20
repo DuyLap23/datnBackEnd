@@ -528,7 +528,7 @@ class CategoryController extends Controller
             }
 
             // Ghi log thành công (nếu cần)
-            \Log::info("Danh mục với ID {$id} đã được xóa.");
+            Log::info("Danh mục với ID {$id} đã được xóa.");
 
             return response()->json(
                 [
