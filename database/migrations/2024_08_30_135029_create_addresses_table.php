@@ -15,12 +15,13 @@ return new class extends Migration
         Schema::create('addresses', function (Blueprint $table) {
             $table->unsignedBigInteger('id')->autoIncrement();
             $table->foreignIdFor(User::class)->constrained();
+            $table->string('address_name')->nullable();
             $table->integer('phone_number');
             $table->string('city');
-            $table->string('district');
-            $table->string('additional_address');
+            $table->string('district')->comment('Huyện');
+            $table->string('Ward')->comment('Xã/Phường');
             $table->string('detail_address')->nullable();
-            $table->tinyInteger('is_default')->default(1);
+            $table->tinyInteger('is_default')->default(0)->nullable();
             $table->timestamps();
         });
     }

@@ -1,0 +1,145 @@
+openapi: 3.0.0
+info:
+  title: 'Top deal shop dự án tốt nghiệp.'
+  version: 1.0.0
+paths:
+  /api/admin/categories:
+    get:
+      tags:
+        - Category
+      summary: ''
+      description: 'Danh sách danh mục.'
+      operationId: d89b639efbf71be315d56faeac8bcaf5
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              properties:
+                name:
+                  description: 'Tên danh mục'
+                  type: string
+                  example: 'Danh mục 1'
+                image:
+                  description: 'Hình ảnh danh mục'
+                  type: string
+                  example: image.png
+                parent_id:
+                  description: 'Danh mục cha'
+                  type: bigint
+                  example: '1'
+              type: object
+      responses:
+        200:
+          description: 'Thành công'
+          content:
+            application/json:
+              schema:
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Success
+                  status:
+                    type: string
+                    example: '200'
+                  data:
+                    properties:
+                      id:
+                        type: integer
+                        example: 1
+                      name:
+                        type: string
+                        example: 'Danh mục 1'
+                      image:
+                        type: string
+                        example: image.png
+                      parent_id:
+                        type: string
+                        example: ''
+                    type: object
+                type: object
+    post:
+      tags:
+        - Category
+      summary: 'Thêm danh mục mới'
+      description: 'Thêm danh mục vào hệ thống.'
+      operationId: d2b35462e503ce58ae15900db673ef51
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              properties:
+                name:
+                  description: 'Tên danh mục'
+                  type: string
+                  example: 'Danh mục 1'
+                image:
+                  description: 'Hình ảnh danh mục'
+                  type: string
+                  example: image.png
+                parent_id:
+                  description: 'ID danh mục cha'
+                  type: bigint
+                  example: '1'
+              type: object
+      responses:
+        201:
+          description: 'Thành công'
+          content:
+            application/json:
+              schema:
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: 'Thêm danh mục thành công.'
+                  data:
+                    properties:
+                      category:
+                        properties:
+                          id:
+                            type: bigint
+                            example: 1
+                          name:
+                            type: string
+                            example: 'Danh mục 1'
+                          image_url:
+                            type: string
+                            example: 'https://apitopdeal.shop/storage/categories/image.png'
+                        type: object
+                    type: object
+                type: object
+        500:
+          description: 'Thêm danh mục thất bại'
+          content:
+            application/json:
+              schema:
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: 'Thêm danh mục thất bại'
+                  error:
+                    type: string
+                    example: 'Error details...'
+                type: object
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      name: bearerAuth
+      in: header
+      bearerFormat: JWT
+      scheme: bearer
+tags:
+  -
+    name: Category
+    description: Category
