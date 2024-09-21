@@ -255,7 +255,7 @@ class CategoryController extends Controller
             // Kiểm tra và lưu ảnh nếu có
             if ($request->hasFile('image')) {
                 $path = $request->file('image')->store(self::PATH_UPLOAD, 'public');
-                $data['image'] = $path;
+                $data['image'] =  asset('storage/' . $path);
             }
 
             // Tạo danh mục mới
@@ -269,7 +269,7 @@ class CategoryController extends Controller
                     'message' => 'Thêm danh mục thành công.',
                     'data' => [
                         'category' => $category,
-                        'image_url' => asset('storage/' . $data['image']), // Trả về URL ảnh
+
                     ],
                 ],
                 201
