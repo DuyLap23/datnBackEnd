@@ -15,14 +15,14 @@ class LoginController extends Controller
     /**
      * @OA\Post(
      *     path="/api/auth/login",
-     *     summary="Đăng nhập người dùng",
+     *     summary="Đăng nhập người dùng email và pass trong ví dụ là đúng chỉ cần nhấn đăng nhập!",
      *     tags={"Auth"},
      *     @OA\RequestBody(
      *         required=true,
      *         @OA\JsonContent(
      *             required={"email", "password"},
-     *             @OA\Property(property="email", type="string", format="email", example="user@example.com"),
-     *             @OA\Property(property="password", type="string", format="password", example="password123"),
+     *             @OA\Property(property="email", type="string", format="email", example="crawford.kunze@example.com"),
+     *             @OA\Property(property="password", type="string", format="password", example="password"),
      *         )
      *     ),
      *     @OA\Response(
