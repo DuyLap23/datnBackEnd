@@ -24,6 +24,16 @@ class CategoryController extends Controller
      *     description="Trả về danh sách tất cả các danh mục chính và danh mục cha.",
      *     tags={"Category"},
      *     security={{"Bearer": {}}},
+     *     @OA\Parameter(
+     *         name="page",
+     *         in="query",
+     *         description="Số trang hiện tại",
+     *         required=false,
+     *         @OA\Schema(
+     *             type="integer",
+     *             example=1
+     *         )
+     *     ),
      *     @OA\Response(
      *         response=200,
      *         description="Thành công",
@@ -43,28 +53,89 @@ class CategoryController extends Controller
      *                 type="object",
      *                 @OA\Property(
      *                     property="categories",
-     *                     type="array",
-     *                     @OA\Items(
-     *                         @OA\Property(
-     *                             property="id",
-     *                             type="integer",
-     *                             example=1,
-     *                         ),
-     *                         @OA\Property(
-     *                             property="name",
-     *                             type="string",
-     *                             example="Danh mục 1",
-     *                         ),
-     *                         @OA\Property(
-     *                             property="image",
-     *                             type="string",
-     *                             example="image.png",
-     *                         ),
-     *                         @OA\Property(
-     *                             property="parent_id",
-     *                             type="string",
-     *                             example="",
-     *                         ),
+     *                     type="object",
+     *                     @OA\Property(
+     *                         property="current_page",
+     *                         type="integer",
+     *                         example=1
+     *                     ),
+     *                     @OA\Property(
+     *                         property="data",
+     *                         type="array",
+     *                         @OA\Items(
+     *                             @OA\Property(
+     *                                 property="id",
+     *                                 type="integer",
+     *                                 example=1,
+     *                             ),
+     *                             @OA\Property(
+     *                                 property="name",
+     *                                 type="string",
+     *                                 example="Danh mục 1",
+     *                             ),
+     *                             @OA\Property(
+     *                                 property="image",
+     *                                 type="string",
+     *                                 example="image.png",
+     *                             ),
+     *                             @OA\Property(
+     *                                 property="parent_id",
+     *                                 type="integer",
+     *                                 nullable=true,
+     *                                 example=null,
+     *                             ),
+     *                             @OA\Property(
+     *                                 property="children",
+     *                                 type="array",
+     *                                 @OA\Items(
+     *                                     @OA\Property(
+     *                                         property="id",
+     *                                         type="integer",
+     *                                         example=2,
+     *                                     ),
+     *                                     @OA\Property(
+     *                                         property="name",
+     *                                         type="string",
+     *                                         example="Danh mục con 1",
+     *                                     ),
+     *                                     @OA\Property(
+     *                                         property="image",
+     *                                         type="string",
+     *                                         example="child_image.png",
+     *                                     ),
+     *                                     @OA\Property(
+     *                                         property="parent_id",
+     *                                         type="integer",
+     *                                         example=1,
+     *                                     ),
+     *                                 )
+     *                             )
+     *                         )
+     *                     ),
+     *                     @OA\Property(
+     *                         property="total",
+     *                         type="integer",
+     *                         example=10
+     *                     ),
+     *                     @OA\Property(
+     *                         property="last_page",
+     *                         type="integer",
+     *                         example=1
+     *                     ),
+     *                     @OA\Property(
+     *                         property="per_page",
+     *                         type="integer",
+     *                         example=10
+     *                     ),
+     *                     @OA\Property(
+     *                         property="from",
+     *                         type="integer",
+     *                         example=1
+     *                     ),
+     *                     @OA\Property(
+     *                         property="to",
+     *                         type="integer",
+     *                         example=10
      *                     )
      *                 ),
      *                 @OA\Property(
@@ -88,13 +159,14 @@ class CategoryController extends Controller
      *                         ),
      *                         @OA\Property(
      *                             property="parent_id",
-     *                             type="string",
-     *                             example="",
+     *                             type="integer",
+     *                             nullable=true,
+     *                             example=null,
      *                         ),
      *                     )
      *                 ),
      *             ),
-     *         )
+     *         ),
      *     ),
      *     @OA\Response(
      *         response=500,
@@ -124,9 +196,9 @@ class CategoryController extends Controller
         $categories = Category::query()
             ->with(['children'])
             ->where('parent_id', null)
-            ->get();
+            ->latest('id')
+            ->paginate(10);
 
-        $categoryParent = Category::query()->where('parent_id', null)->get();
 
         return response()->json(
             [
@@ -134,12 +206,12 @@ class CategoryController extends Controller
                 'message' => 'Lấy thành công danh mục',
                 'data' => [
                     'categories' => $categories,
-                    'categoryParent' => $categoryParent,
                 ],
             ],
             200,
         );
     }
+
 
 
     /**
