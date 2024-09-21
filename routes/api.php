@@ -76,6 +76,7 @@ Route::group(
         Route::get('users/{id}', [UserController::class, 'show']);
     }
 );
+Route::apiResource('category', CategoryController::class);
 Route::group(
     [
         'middleware' => ['auth:api', 'role:staff'],
