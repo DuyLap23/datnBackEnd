@@ -247,7 +247,7 @@ class CategoryController extends Controller
         try {
             // Validate dữ liệu đầu vào
             $data = $request->validate([
-                'name' => ['required', 'max:255'],
+                'name' => ['required', 'max:255','unique:categories'],
                 'image' => ['required', 'mimes:jpeg,jpg,png,svg,webp', 'max:1500'],
                 'parent_id' => ['nullable', 'exists:categories,id'],
             ]);

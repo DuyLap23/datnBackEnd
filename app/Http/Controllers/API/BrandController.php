@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\BrandRequest;
 use App\Models\Brand;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -10,9 +11,64 @@ use Illuminate\Support\Facades\Storage;
 
 class BrandController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
+   /**
+ * @OA\Post(
+ * path="/api/create-store",
+ * summary="",
+ * description="Tạo mới cửa hàng",
+ * tags={"Create Store"},
+ * @OA\RequestBody(
+ * required=true,
+ * @OA\MediaType(
+ * mediaType="application/json",
+ * @OA\Schema(
+ * @OA\Property(
+ * property="name",
+ * type="string",
+ * description="Tên cửa hàng",
+ * example="Cửa hàng 1",
+ * ),
+ * ),
+ * ),
+ * ),
+ * @OA\Response(
+ * response=200,
+ * description="Thành công",
+ * @OA\JsonContent(
+ * @OA\Property(
+ * property="success",
+ * type="boolean",
+ * example=true,
+ * ),
+ * @OA\Property(
+ * property="message",
+ * type="string",
+ * example="Success",
+ * ),
+ * @OA\Property(
+ * property="status",
+ * type="string",
+ * example="200",
+ * ),
+ * @OA\Property(
+ * property="data",
+ * type="object",
+ * @OA\Property(
+ * property="id",
+ * type="integer",
+ * example=1,
+ * ),
+ * @OA\Property(
+ * property="name",
+ * type="string",
+ * example="Cửa hàng 1",
+ * ),
+ * ),
+ * ),
+ * ),
+ * )
+ */
+    private const PATH_UPLOAD = 'brands';
     public function index()
     {
         $brands = Brand::all();
@@ -28,40 +84,46 @@ class BrandController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(BrandRequest $request)
     {
         DB::beginTransaction();
-
+    
         try {
             $data = $request->validate([
                 'name' => [ 'max:255'],
                 'image' => [ 'nullable','mimes:jpeg,jpg,png,svg,webp', 'max:1500'],
                 'description' => [ 'nullable', 'max:255'],
             ]);
-
+    
+            // Xử lý hình ảnh nếu có
             if ($request->hasFile('image')) {
-                $data['image'] = $request->file('image')->store('brands', 'public');
+                $data['image'] = $request->file('image')->store(self::PATH_UPLOAD, 'public');
             }
-            // dump($data);
+    
+            // Tạo mới thương hiệu
             Brand::query()->create($data);
             DB::commit();
+    
             return response()->json(
                 [
+                    'success' => true,
                     'message' => 'Thêm thương hiệu thành công.',
                 ],
-                201,
+                201
             );
         } catch (\Exception $exception) {
             DB::rollBack();
             return response()->json(
                 [
+                    'success' => false,
                     'message' => 'Thêm thương hiệu thất bại',
-                    'error' => $exception->getMessage()
+                    'error' => $exception->getMessage(),
                 ],
-                500,
+                500
             );
         }
     }
+    
 
     /**
      * Display the specified resource.
@@ -105,7 +167,7 @@ class BrandController extends Controller
             $brand = Brand::query()->findOrFail($id);
 
             if ($request->hasFile('image')) {
-                $data['image'] = $request->file('image')->store('brands', 'public');
+                $data['image'] = $request->file('image')->store(self::PATH_UPLOAD, 'public');
 
                 $image_old = $brand->image;
             } else {
