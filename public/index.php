@@ -2,7 +2,7 @@
 
 use Illuminate\Contracts\Http\Kernel;
 use Illuminate\Http\Request;
-
+require __DIR__.'/datnBackEnd/bootstrap/app.php';
 define('LARAVEL_START', microtime(true));
 
 /*
