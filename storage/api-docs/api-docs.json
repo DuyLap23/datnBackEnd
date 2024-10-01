@@ -501,10 +501,10 @@
                 }
             }
         },
-        "/api/users/{id}": {
+        "/api/auth/users/{id}": {
             "get": {
                 "tags": [
-                    "Users"
+                    "User"
                 ],
                 "summary": "Lấy thông tin người dùng",
                 "description": "Lấy thông tin chi tiết của người dùng, bao gồm cả địa chỉ liên kết. Chỉ admin hoặc chính người dùng có thể xem thông tin của họ.",
@@ -2443,10 +2443,6 @@
         {
             "name": "User",
             "description": "User"
-        },
-        {
-            "name": "Users",
-            "description": "Users"
         },
         {
             "name": "Banners",

@@ -48,11 +48,11 @@ class UserController extends Controller
 
     /**
      * @OA\Get(
-     *     path="/api/users/{id}",
+     *     path="/api/auth/users/{id}",
      *     summary="Lấy thông tin người dùng",
      *     description="Lấy thông tin chi tiết của người dùng, bao gồm cả địa chỉ liên kết. Chỉ admin hoặc chính người dùng có thể xem thông tin của họ.",
      *     operationId="getUser",
-     *     tags={"Users"},
+     *     tags={"User"},
      *     security={{"bearerAuth":{}}},
      *
      *     @OA\Parameter(
