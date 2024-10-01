@@ -34,7 +34,9 @@ class UserController extends Controller
      */
     public function index()
     {
-        $users = User::query()->with('addresses')->latest('id')->get();
+        $users = User::query()->with(['addresses' => function ($query) {
+            $query->latest('id');
+        }])->latest('id')->get();
         return response()->json([
             'message' => 'lấy danh sách người dùng',
             'success' => true,
@@ -45,7 +47,7 @@ class UserController extends Controller
 
     /**
      * @OA\Get(
-     *     path="/api/admin/users/{id}",
+     *     path="/api/auth/users/{id}",
      *     summary="Lấy thông tin người dùng",
      *     tags={"User"},
      *     @OA\Parameter(
@@ -75,7 +77,19 @@ class UserController extends Controller
      */
     public function show(string $id)
     {
-        $user = User::query()->findOrFail($id);
+        // Lấy người dùng hiện tại từ token Bearer
+        $currentUser = auth('api')->user();
+
+        // Kiểm tra xem người dùng hiện tại có phải là người được yêu cầu cập nhật không
+        if ($currentUser->id != $id) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Bạn không có quyền xem thông tin của người dùng khác.'
+            ], 403); // 403 Forbidden
+        }
+        $user = User::query()->with(['addresses' => function ($query) {
+            $query->latest('id');
+        }])->findOrFail($id);
         return response()->json([
             'message' => 'Lấy thông tin thành công',
             'success' => true,
@@ -117,7 +131,9 @@ class UserController extends Controller
             $user = auth('api')->user();
             if ($user) {
                 // Load the address relationship
-                $user->load('addresses');
+                $user->load(['addresses' => function ($query) {
+                    $query->latest('id');
+                }]);
                 return response()->json($user, 200);
             } else {
                 return response()->json(['error' => 'User not found'], 404);
@@ -129,7 +145,7 @@ class UserController extends Controller
 
     /**
      * @OA\Put(
-     *     path="/api/admin/users/{id}",
+     *     path="/api/auth/profile/update/{id}",
      *     summary="Cập nhật thông tin người dùng",
      *     tags={"User"},
      *     security={{"Bearer": {}}},
@@ -177,6 +193,17 @@ class UserController extends Controller
 
     public function update(UpdateProfileRequests $request, $id)
     {
+        // Lấy người dùng hiện tại từ token Bearer
+        $currentUser = auth('api')->user();
+
+        // Kiểm tra xem người dùng hiện tại có phải là người được yêu cầu cập nhật không
+        if ($currentUser->id != $id) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Bạn không có quyền chỉnh sửa thông tin của người dùng khác.'
+            ], 403); // 403 Forbidden
+        }
+
         DB::beginTransaction();
         try {
             // Lấy người dùng và địa chỉ
@@ -212,6 +239,20 @@ class UserController extends Controller
                 Address::query()->where('user_id', $user->id)->update(['is_default' => false]);
             }
 
+            // Kiểm tra xem địa chỉ đã tồn tại chưa
+            $existingAddress = Address::where([
+                ['user_id', '=', $user->id],
+                ['ward', '=', $request->ward],
+                ['detail_address', '=', $request->detail_address],
+            ])->first();
+
+            if ($existingAddress) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Địa chỉ này đã tồn tại.',
+                ], 409); // 409 Conflict
+            }
+
             // Cập nhật hoặc tạo mới địa chỉ
             Address::updateOrCreate(
                 [
@@ -228,7 +269,9 @@ class UserController extends Controller
                     'is_default' => $request->is_default,
                 ]
             );
-            $user->load('addresses');
+            $user->load(['addresses' => function ($query) {
+                $query->latest('id');
+            }]);
             DB::commit();
 
             return response()->json([
@@ -249,7 +292,7 @@ class UserController extends Controller
 
     /**
      * @OA\Delete(
-     *     path="/api/users/{id}",
+     *     path="/api/admin/users/destroy/{id}",
      *     summary="Xóa người dùng",
      *     tags={"User"},
      *     security={{"Bearer": {}}},
@@ -276,16 +319,87 @@ class UserController extends Controller
      *     )
      * )
      */
-    public function destroy($id)
+//    public function destroy($id)
+//    {
+//        $user = User::findOrFail($id);
+//
+//        if (!$user) {
+//            return response()->json(['message' => 'Người dùng không được tìm thấy'], 404);
+//        }
+//
+//        $user->delete();
+//
+//        return response()->json(['message' => 'Xoá tài khoản thành công'], 204);
+//    }
+
+    /**
+     * @OA\Delete(
+     *     path="/api/auth/addresses/destroy/{id}",
+     *     summary="Xóa địa chỉ của người dùng",
+     *     tags={"User"},
+     *     security={{"Bearer": {}}},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         description="ID của địa chỉ cần xóa",
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\Response(
+     *         response=204,
+     *         description="Xóa địa chỉ thành công"
+     *     ),
+     *     @OA\Response(
+     *         response=403,
+     *         description="Không thể xóa địa chỉ mặc định"
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Người dùng không tồn tại hoặc địa chỉ không tồn tại"
+     *     ),
+     *     @OA\Response(
+     *         response=500,
+     *         description="Có lỗi xảy ra"
+     *     ),
+     * )
+     */
+    public function destroyAddress($id)
     {
-        $user = User::findOrFail($id);
+        try {
+            // Lấy thông tin người dùng hiện tại
+            $user = auth('api')->user();
 
-        if (!$user) {
-            return response()->json(['message' => 'Người dùng không được tìm thấy'], 404);
+            // Kiểm tra xem người dùng có tồn tại không
+            if (!$user) {
+                return response()->json(['message' => 'Người dùng không tồn tại!'], 404);
+            }
+
+            // Tìm địa chỉ theo ID và kiểm tra thuộc về người dùng
+            $address = Address::where('id', $id)
+                ->where('user_id', $user->id)
+                ->first();
+
+            // Kiểm tra nếu địa chỉ không tồn tại
+            if (!$address) {
+                return response()->json(['message' => 'Địa chỉ không tồn tại!'], 404);
+            }
+
+            // Kiểm tra nếu địa chỉ là mặc định
+            if ($address->is_default) {
+                return response()->json(['message' => 'Không thể xoá địa chỉ mặc định'], 403);
+            }
+
+            // Xóa địa chỉ
+            $address->delete();
+
+            return response()->json(null, 204);
+        } catch (Exception $e) {
+            return response()->json(['message' => 'Có lỗi xảy ra', 'error' => $e->getMessage()], 500);
         }
-
-        $user->delete();
-
-        return response()->json(['message' => 'Xoá tài khoản thành công'], 200);
     }
+
+
+
+
+
 }

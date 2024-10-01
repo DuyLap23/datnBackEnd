@@ -607,7 +607,7 @@ class CategoryController extends Controller
                     'success' => true,
                     'message' => 'Xóa danh mục thành công.',
                 ],
-                200,
+                204,
             );
 
         } catch (\Exception $e) {

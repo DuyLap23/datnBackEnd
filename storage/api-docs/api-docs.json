@@ -30,12 +30,12 @@
                                     "email": {
                                         "type": "string",
                                         "format": "email",
-                                        "example": "crawford.kunze@example.com"
+                                        "example": "hoangduylap124@gmail.com"
                                     },
                                     "password": {
                                         "type": "string",
                                         "format": "password",
-                                        "example": "password"
+                                        "example": "newpassword"
                                     }
                                 },
                                 "type": "object"
@@ -91,14 +91,110 @@
                 }
             }
         },
-        "/api/register": {
+        "/api/auth/refresh": {
+            "post": {
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Refresh token",
+                "operationId": "81c8da7ecf34b62b0604d835d0ab1c04",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "refresh_token"
+                                ],
+                                "properties": {
+                                    "refresh_token": {
+                                        "description": "JWT refresh token",
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Token refreshed successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "access_token": {
+                                            "description": "New JWT access token",
+                                            "type": "string"
+                                        },
+                                        "refresh_token": {
+                                            "description": "New JWT refresh token",
+                                            "type": "string"
+                                        },
+                                        "token_type": {
+                                            "description": "Type of the token",
+                                            "type": "string",
+                                            "example": "bearer"
+                                        },
+                                        "expires_in": {
+                                            "description": "Time in seconds before the token expires",
+                                            "type": "integer"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized, user not authenticated",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "error": {
+                                            "description": "Error message",
+                                            "type": "string"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "error": {
+                                            "description": "Error message",
+                                            "type": "string"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/auth/register": {
             "post": {
                 "tags": [
                     "Auth"
                 ],
                 "summary": "Đăng ký người dùng mới",
                 "description": "Tạo một tài khoản người dùng mới.",
-                "operationId": "97cd8d12c6b5cf0267b29ff739a126f8",
+                "operationId": "de84cda3271107bdf3d3ae044d8afcf1",
                 "requestBody": {
                     "required": true,
                     "content": {
@@ -184,6 +280,190 @@
                 }
             }
         },
+        "/api/auth/password/forgot": {
+            "post": {
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Gửi link reset mật khẩu đến email",
+                "description": "API để gửi email chứa link reset mật khẩu cho người dùng dựa trên địa chỉ email đã cung cấp.",
+                "operationId": "032e1d2f1ee87d25991e6cfbd433468b",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "email"
+                                ],
+                                "properties": {
+                                    "email": {
+                                        "type": "string",
+                                        "format": "email",
+                                        "example": "user@example.com"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Link reset mật khẩu đã được gửi đến email của bạn",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Link reset mật khẩu đã được gửi đến email của bạn"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Email không hợp lệ",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "string",
+                                            "example": "error"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Email không hợp lệ"
+                                        },
+                                        "errors": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Không thể gửi link reset mật khẩu",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Không thể gửi link reset mật khẩu"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/auth/password/reset": {
+            "post": {
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Đặt lại mật khẩu",
+                "description": "API cho phép người dùng đặt lại mật khẩu mới bằng cách cung cấp token, email, và mật khẩu mới.",
+                "operationId": "a1a0b93d598b907b0af3baa7be08852e",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "token",
+                                    "email",
+                                    "password",
+                                    "password_confirmation"
+                                ],
+                                "properties": {
+                                    "token": {
+                                        "type": "string",
+                                        "example": "abcdef123456"
+                                    },
+                                    "email": {
+                                        "type": "string",
+                                        "format": "email",
+                                        "example": "user@example.com"
+                                    },
+                                    "password": {
+                                        "type": "string",
+                                        "format": "password",
+                                        "example": "newpassword"
+                                    },
+                                    "password_confirmation": {
+                                        "type": "string",
+                                        "format": "password",
+                                        "example": "newpassword"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Mật khẩu đã được đặt lại thành công",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Mật khẩu đã được đặt lại thành công!"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Dữ liệu không hợp lệ",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Dữ liệu không hợp lệ"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Có lỗi xảy ra khi reset mật khẩu",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Có lỗi xảy ra khi reset mật khẩu."
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/api/admin/users": {
             "get": {
                 "tags": [
@@ -221,13 +501,13 @@
                 }
             }
         },
-        "/api/admin/users/{id}": {
+        "/api/auth/users/{id}": {
             "get": {
                 "tags": [
                     "User"
                 ],
                 "summary": "Lấy thông tin người dùng",
-                "operationId": "446d78481472e02655fae66451507750",
+                "operationId": "be226427721ecdba434bf32d75d8702e",
                 "parameters": [
                     {
                         "name": "id",
@@ -280,13 +560,73 @@
                         }
                     }
                 }
-            },
+            }
+        },
+        "/api/auth/profile": {
+            "get": {
+                "tags": [
+                    "User"
+                ],
+                "summary": "Lấy thông tin hồ sơ người dùng hiện tại",
+                "operationId": "c65ebd108ed135fde20b650a5a5b676e",
+                "responses": {
+                    "200": {
+                        "description": "Thông tin hồ sơ người dùng hiện tại được lấy thành công",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/User"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Người dùng không tìm thấy",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "error": {
+                                            "type": "string",
+                                            "example": "User not found"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Có lỗi xảy ra",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "error": {
+                                            "type": "string",
+                                            "example": "Error message"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ]
+            }
+        },
+        "/api/auth/profile/update/{id}": {
             "put": {
                 "tags": [
                     "User"
                 ],
                 "summary": "Cập nhật thông tin người dùng",
-                "operationId": "fefd8767c242e6ddd08124c60fb12cd3",
+                "operationId": "38045b28c1494391ea90eca9c9eae139",
                 "parameters": [
                     {
                         "name": "id",
@@ -380,76 +720,18 @@
                 ]
             }
         },
-        "/api/auth/profile": {
-            "get": {
-                "tags": [
-                    "User"
-                ],
-                "summary": "Lấy thông tin hồ sơ người dùng hiện tại",
-                "operationId": "c65ebd108ed135fde20b650a5a5b676e",
-                "responses": {
-                    "200": {
-                        "description": "Thông tin hồ sơ người dùng hiện tại được lấy thành công",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/User"
-                                }
-                            }
-                        }
-                    },
-                    "404": {
-                        "description": "Người dùng không tìm thấy",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "properties": {
-                                        "error": {
-                                            "type": "string",
-                                            "example": "User not found"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "Có lỗi xảy ra",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "properties": {
-                                        "error": {
-                                            "type": "string",
-                                            "example": "Error message"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            }
-                        }
-                    }
-                },
-                "security": [
-                    {
-                        "Bearer": []
-                    }
-                ]
-            }
-        },
-        "/api/users/{id}": {
+        "/api/auth/addresses/destroy/{id}": {
             "delete": {
                 "tags": [
                     "User"
                 ],
-                "summary": "Xóa người dùng",
-                "operationId": "f76256c7d6f7eb6c155c7938efbff281",
+                "summary": "Xóa địa chỉ của người dùng",
+                "operationId": "4ef2adb52525298a3361f1fcf1534748",
                 "parameters": [
                     {
                         "name": "id",
                         "in": "path",
-                        "description": "ID của người dùng",
+                        "description": "ID của địa chỉ cần xóa",
                         "required": true,
                         "schema": {
                             "type": "integer"
@@ -457,37 +739,17 @@
                     }
                 ],
                 "responses": {
-                    "200": {
-                        "description": "Xóa tài khoản thành công",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "properties": {
-                                        "message": {
-                                            "type": "string",
-                                            "example": "Xoá tài khoản thành công"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            }
-                        }
+                    "204": {
+                        "description": "Xóa địa chỉ thành công"
+                    },
+                    "403": {
+                        "description": "Không thể xóa địa chỉ mặc định"
                     },
                     "404": {
-                        "description": "Người dùng không được tìm thấy",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "properties": {
-                                        "message": {
-                                            "type": "string",
-                                            "example": "Người dùng không được tìm thấy"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            }
-                        }
+                        "description": "Người dùng không tồn tại hoặc địa chỉ không tồn tại"
+                    },
+                    "500": {
+                        "description": "Có lỗi xảy ra"
                     }
                 },
                 "security": [
@@ -893,6 +1155,72 @@
                                         "error": {
                                             "type": "string",
                                             "example": "Lý do lỗi"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/create-store": {
+            "post": {
+                "tags": [
+                    "Create Cart"
+                ],
+                "summary": "",
+                "description": "Tạo mới cửa hàng",
+                "operationId": "1fbe2dd02bb99e9b1f935bfdb64b1d24",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "name": {
+                                        "description": "Giỏ hàng",
+                                        "type": "string",
+                                        "example": "Cửa hàng 1"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Thành công",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Success"
+                                        },
+                                        "status": {
+                                            "type": "string",
+                                            "example": "200"
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "id": {
+                                                    "type": "integer",
+                                                    "example": 1
+                                                },
+                                                "name": {
+                                                    "type": "string",
+                                                    "example": "Cửa hàng 1"
+                                                }
+                                            },
+                                            "type": "object"
                                         }
                                     },
                                     "type": "object"
@@ -1537,6 +1865,316 @@
                     }
                 ]
             }
+        },
+        "/api/comments": {
+            "get": {
+                "tags": [
+                    "Comments"
+                ],
+                "summary": "Lấy danh sách tất cả bình luận",
+                "description": "Trả về danh sách tất cả các bình luận trong hệ thống.",
+                "operationId": "529f046f80a683fd05fd9b78f7f25288",
+                "responses": {
+                    "200": {
+                        "description": "Danh sách bình luận",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/Comment"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Lỗi khi lấy danh sách bình luận",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Lỗi không xác định."
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "Comments"
+                ],
+                "summary": "Tạo một bình luận mới",
+                "description": "Tạo một bình luận mới với nội dung, ID người dùng và ID bài viết đã cung cấp.",
+                "operationId": "c5026a090c828afeeb788745a32f43e1",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "content",
+                                    "user_id",
+                                    "post_id"
+                                ],
+                                "properties": {
+                                    "content": {
+                                        "type": "string",
+                                        "example": "Nội dung bình luận"
+                                    },
+                                    "user_id": {
+                                        "type": "integer",
+                                        "example": 123
+                                    },
+                                    "post_id": {
+                                        "type": "integer",
+                                        "example": 456
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Bình luận được tạo thành công",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Comment"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Dữ liệu đầu vào không hợp lệ",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Dữ liệu không hợp lệ."
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Lỗi khi tạo bình luận",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Tạo bình luận không thành công."
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/comments/{id}": {
+            "get": {
+                "tags": [
+                    "Comments"
+                ],
+                "summary": "Lấy bình luận theo ID",
+                "description": "Lấy thông tin chi tiết của một bình luận dựa trên ID được cung cấp.",
+                "operationId": "4ae27c344a43fd0fa0c7d1d58017ec07",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID của bình luận cần lấy",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Phản hồi thành công",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Comment"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Không tìm thấy bình luận",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Bình luận không tồn tại."
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "put": {
+                "tags": [
+                    "Comments"
+                ],
+                "summary": "Cập nhật một bình luận",
+                "description": "Cập nhật nội dung của một bình luận dựa trên ID được cung cấp.",
+                "operationId": "6c84b6f2b00ca72a544d423647bb4042",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID của bình luận cần cập nhật",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "content"
+                                ],
+                                "properties": {
+                                    "content": {
+                                        "type": "string",
+                                        "example": "Nội dung bình luận đã cập nhật"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Bình luận đã được cập nhật thành công",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Comment"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Không tìm thấy bình luận",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Bình luận không tồn tại."
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "Comments"
+                ],
+                "summary": "Xóa một bình luận",
+                "description": "Xóa một bình luận dựa trên ID được cung cấp.",
+                "operationId": "746d9385c0a8b30190b506df03b3fafc",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID của bình luận cần xóa",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Bình luận đã được xóa thành công"
+                    },
+                    "404": {
+                        "description": "Không tìm thấy bình luận",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Bình luận không tồn tại."
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
     },
     "components": {
@@ -1677,6 +2315,43 @@
                         "type": "object"
                     }
                 ]
+            },
+            "Comment": {
+                "type": "object",
+                "allOf": [
+                    {
+                        "$ref": "#/components/schemas/ResetPasswordRequest"
+                    },
+                    {
+                        "properties": {
+                            "id": {
+                                "type": "integer",
+                                "example": 1
+                            },
+                            "content": {
+                                "type": "string",
+                                "example": "Nội dung bình luận"
+                            },
+                            "user_id": {
+                                "type": "integer",
+                                "example": 123
+                            },
+                            "post_id": {
+                                "type": "integer",
+                                "example": 456
+                            },
+                            "created_at": {
+                                "type": "string",
+                                "format": "date-time"
+                            },
+                            "updated_at": {
+                                "type": "string",
+                                "format": "date-time"
+                            }
+                        },
+                        "type": "object"
+                    }
+                ]
             }
         },
         "securitySchemes": {
@@ -1702,8 +2377,16 @@
             "description": "Banners"
         },
         {
+            "name": "Create Cart",
+            "description": "Create Cart"
+        },
+        {
             "name": "Category",
             "description": "Category"
+        },
+        {
+            "name": "Comments",
+            "description": "Comments"
         }
     ]
 }

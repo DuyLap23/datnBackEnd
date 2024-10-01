@@ -87,23 +87,23 @@ class BrandController extends Controller
     public function store(BrandRequest $request)
     {
         DB::beginTransaction();
-    
+
         try {
             $data = $request->validate([
                 'name' => [ 'max:255'],
                 'image' => [ 'nullable','mimes:jpeg,jpg,png,svg,webp', 'max:1500'],
                 'description' => [ 'nullable', 'max:255'],
             ]);
-    
+
             // Xử lý hình ảnh nếu có
             if ($request->hasFile('image')) {
                 $data['image'] = $request->file('image')->store(self::PATH_UPLOAD, 'public');
             }
-    
+
             // Tạo mới thương hiệu
             Brand::query()->create($data);
             DB::commit();
-    
+
             return response()->json(
                 [
                     'success' => true,
@@ -123,7 +123,7 @@ class BrandController extends Controller
             );
         }
     }
-    
+
 
     /**
      * Display the specified resource.
@@ -219,7 +219,7 @@ class BrandController extends Controller
                 [
                     'message' => 'Xoá thương hiệu thành công.',
                 ],
-                200,
+                204,
             );
         } catch (\Exception $e) {
             return response()->json(

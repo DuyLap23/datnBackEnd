@@ -14,7 +14,7 @@ class RegisterController extends Controller
 
     /**
      * @OA\Post(
-     *     path="/api/register",
+     *     path="/api/auth/register",
      *     summary="Đăng ký người dùng mới",
      *     description="Tạo một tài khoản người dùng mới.",
      *     tags={"Auth"},

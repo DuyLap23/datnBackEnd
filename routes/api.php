@@ -52,7 +52,11 @@ Route::group(
         Route::put('profile/update/{id}', [UserController::class, 'update'])->middleware('auth:api');
 
         Route::post('password/forgot', [ResetPassword::class, 'sendResetLinkEmail']);
-        Route::post('password/reset', [ResetPassword::class, 'reset'])->name('password.reset');
+        Route::post('password/reset', [ResetPassword::class, 'reset']);
+
+        Route::get('users/{id}', [UserController::class, 'show']);
+        Route::delete('addresses/destroy/{id}', [UserController::class, 'destroyAddress']);
+
     }
 );
 
@@ -65,7 +69,7 @@ Route::group(
         Route::apiResource('categories', CategoryController::class);
         Route::apiResource('brands', BrandController::class);
         Route::apiResource('tags', TagController::class);
-        Route::apiResource('addresses', AddressController::class);
+
         Route::apiResource('banners', BannerMktController::class);
         Route::apiResource('products', ProductController::class);
         Route::apiResource('product/colors', ProductColorController::class);
@@ -73,10 +77,10 @@ Route::group(
         Route::apiResource('product/sizes', ProductSizeController::class);
         Route::apiResource('product/variants', ProductVariantController::class);
         Route::get('users', [UserController::class, 'index']);
-        Route::get('users/{id}', [UserController::class, 'show']);
+        Route::delete('users/destroy/{id}', [UserController::class, 'destroy']);
+
     }
 );
-Route::apiResource('category', CategoryController::class);
 Route::group(
     [
         'middleware' => ['auth:api', 'role:staff'],
@@ -105,3 +109,4 @@ Route::group(
         Route::get('orders/{id}', [OrderController::class, 'show']);
     }
 );
+
