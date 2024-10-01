@@ -60,16 +60,23 @@ Route::group(
     }
 );
 
+Route::get('categories', [CategoryController::class, 'index']);
+
+
+
 Route::group(
     [
-        'middleware' => ['auth:api', 'role:admin'],
+        'middleware' => ['auth:api', 'role:admin','admin'],
         'prefix' => 'admin',
     ],
     function ($router) {
-        Route::apiResource('categories', CategoryController::class);
+        Route::post('categories', [CategoryController::class, 'store']);
+        Route::put('categories/{id}', [CategoryController::class, 'update']);
+        Route::get('categories/{id}', [CategoryController::class, 'show']);
+        Route::delete('categories/{id}', [CategoryController::class, 'destroy']);
+//        Route::apiResource('categories', CategoryController::class);
         Route::apiResource('brands', BrandController::class);
         Route::apiResource('tags', TagController::class);
-
         Route::apiResource('banners', BannerMktController::class);
         Route::apiResource('products', ProductController::class);
         Route::apiResource('product/colors', ProductColorController::class);
@@ -97,8 +104,8 @@ Route::group(
 
 Route::group(
     [
-        'middleware' => ['auth:api', 'role:customer'],
-        'prefix' => 'customer',
+        'middleware' => ['auth:api', 'role:customer,admin,staff'],
+
     ],
     function ($router) {
         Route::get('products', [ProductController::class, 'index']);

@@ -501,13 +501,14 @@
                 }
             }
         },
-        "/api/auth/users/{id}": {
+        "/api/users/{id}": {
             "get": {
                 "tags": [
-                    "User"
+                    "Users"
                 ],
                 "summary": "Lấy thông tin người dùng",
-                "operationId": "be226427721ecdba434bf32d75d8702e",
+                "description": "Lấy thông tin chi tiết của người dùng, bao gồm cả địa chỉ liên kết. Chỉ admin hoặc chính người dùng có thể xem thông tin của họ.",
+                "operationId": "getUser",
                 "parameters": [
                     {
                         "name": "id",
@@ -515,24 +516,24 @@
                         "description": "ID của người dùng",
                         "required": true,
                         "schema": {
-                            "type": "integer"
+                            "type": "string"
                         }
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "Thông tin người dùng được lấy thành công",
+                        "description": "Lấy thông tin thành công",
                         "content": {
                             "application/json": {
                                 "schema": {
                                     "properties": {
-                                        "message": {
-                                            "type": "string",
-                                            "example": "Lấy thông tin thành công"
-                                        },
                                         "success": {
                                             "type": "boolean",
                                             "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Lấy thông tin thành công"
                                         },
                                         "users": {
                                             "$ref": "#/components/schemas/User"
@@ -543,15 +544,79 @@
                             }
                         }
                     },
-                    "404": {
-                        "description": "Người dùng không tìm thấy",
+                    "403": {
+                        "description": "Người dùng không có quyền truy cập",
                         "content": {
                             "application/json": {
                                 "schema": {
                                     "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
                                         "message": {
                                             "type": "string",
-                                            "example": "Người dùng không tìm thấy"
+                                            "example": "Bạn không có quyền xem thông tin của người dùng khác."
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Chưa đăng nhập",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Bạn cần đăng nhập để xem thông tin."
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Không tìm thấy người dùng",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Không tồn tại người dùng này."
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Lỗi máy chủ",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Đã xảy ra lỗi không mong muốn."
                                         }
                                     },
                                     "type": "object"
@@ -559,7 +624,12 @@
                             }
                         }
                     }
-                }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
             }
         },
         "/api/auth/profile": {
@@ -1231,14 +1301,14 @@
                 }
             }
         },
-        "/api/admin/categories": {
+        "/api/categories": {
             "get": {
                 "tags": [
                     "Category"
                 ],
                 "summary": "Lấy danh sách danh mục",
                 "description": "Trả về danh sách tất cả các danh mục chính và danh mục cha.",
-                "operationId": "d89b639efbf71be315d56faeac8bcaf5",
+                "operationId": "8e17a9627dbed245cf032f867569cf11",
                 "parameters": [
                     {
                         "name": "page",
@@ -1410,7 +1480,9 @@
                         "Bearer": []
                     }
                 ]
-            },
+            }
+        },
+        "/api/admin/categories": {
             "post": {
                 "tags": [
                     "Category"
@@ -2371,6 +2443,10 @@
         {
             "name": "User",
             "description": "User"
+        },
+        {
+            "name": "Users",
+            "description": "Users"
         },
         {
             "name": "Banners",

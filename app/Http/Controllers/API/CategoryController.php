@@ -19,7 +19,7 @@ class CategoryController extends Controller
 
     /**
      * @OA\Get(
-     *     path="/api/admin/categories",
+     *     path="/api/categories",
      *     summary="Lấy danh sách danh mục",
      *     description="Trả về danh sách tất cả các danh mục chính và danh mục cha.",
      *     tags={"Category"},
@@ -204,9 +204,7 @@ class CategoryController extends Controller
             [
                 'success' => true,
                 'message' => 'Lấy thành công danh mục',
-                'data' => [
-                    'categories' => $categories,
-                ],
+                'categories' =>  $categories,
             ],
             200,
         );

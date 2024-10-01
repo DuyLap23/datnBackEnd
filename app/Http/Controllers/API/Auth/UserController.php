@@ -7,6 +7,7 @@ use App\Http\Requests\UpdateProfileRequests;
 use App\Models\Address;
 use App\Models\User;
 use Exception;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -47,56 +48,122 @@ class UserController extends Controller
 
     /**
      * @OA\Get(
-     *     path="/api/auth/users/{id}",
+     *     path="/api/users/{id}",
      *     summary="Lấy thông tin người dùng",
-     *     tags={"User"},
+     *     description="Lấy thông tin chi tiết của người dùng, bao gồm cả địa chỉ liên kết. Chỉ admin hoặc chính người dùng có thể xem thông tin của họ.",
+     *     operationId="getUser",
+     *     tags={"Users"},
+     *     security={{"bearerAuth":{}}},
+     *
      *     @OA\Parameter(
      *         name="id",
      *         in="path",
      *         required=true,
      *         description="ID của người dùng",
-     *         @OA\Schema(type="integer")
+     *         @OA\Schema(type="string")
      *     ),
+     *
      *     @OA\Response(
      *         response=200,
-     *         description="Thông tin người dùng được lấy thành công",
+     *         description="Lấy thông tin thành công",
      *         @OA\JsonContent(
-     *             @OA\Property(property="message", type="string", example="Lấy thông tin thành công"),
+     *             type="object",
      *             @OA\Property(property="success", type="boolean", example=true),
-     *             @OA\Property(property="users", ref="#/components/schemas/User")
+     *             @OA\Property(property="message", type="string", example="Lấy thông tin thành công"),
+     *             @OA\Property(property="users", type="object", ref="#/components/schemas/User")
      *         )
      *     ),
+     *
+     *     @OA\Response(
+     *         response=403,
+     *         description="Người dùng không có quyền truy cập",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(property="success", type="boolean", example=false),
+     *             @OA\Property(property="message", type="string", example="Bạn không có quyền xem thông tin của người dùng khác.")
+     *         )
+     *     ),
+     *
+     *     @OA\Response(
+     *         response=401,
+     *         description="Chưa đăng nhập",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(property="success", type="boolean", example=false),
+     *             @OA\Property(property="message", type="string", example="Bạn cần đăng nhập để xem thông tin.")
+     *         )
+     *     ),
+     *
      *     @OA\Response(
      *         response=404,
-     *         description="Người dùng không tìm thấy",
+     *         description="Không tìm thấy người dùng",
      *         @OA\JsonContent(
-     *             @OA\Property(property="message", type="string", example="Người dùng không tìm thấy")
+     *             type="object",
+     *             @OA\Property(property="success", type="boolean", example=false),
+     *             @OA\Property(property="message", type="string", example="Không tồn tại người dùng này.")
+     *         )
+     *     ),
+     *
+     *     @OA\Response(
+     *         response=500,
+     *         description="Lỗi máy chủ",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(property="success", type="boolean", example=false),
+     *             @OA\Property(property="message", type="string", example="Đã xảy ra lỗi không mong muốn.")
      *         )
      *     )
      * )
      */
     public function show(string $id)
     {
-        // Lấy người dùng hiện tại từ token Bearer
-        $currentUser = auth('api')->user();
+        try {
+            // Kiểm tra nếu người dùng chưa đăng nhập
+            $currentUser = auth('api')->user();
+            if (!$currentUser) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Bạn cần đăng nhập để xem thông tin.'
+                ], 401); // 401 Unauthorized
+            }
 
-        // Kiểm tra xem người dùng hiện tại có phải là người được yêu cầu cập nhật không
-        if ($currentUser->id != $id) {
+            // Kiểm tra nếu người dùng hiện tại là admin hoặc đang xem thông tin của chính mình
+            if ($currentUser->id != $id && !$currentUser->isAdmin()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Bạn không có quyền xem thông tin của người dùng khác.'
+                ], 403); // 403 Forbidden
+            }
+
+            // Lấy thông tin người dùng và các địa chỉ liên kết, sắp xếp theo id giảm dần
+            $user = User::with(['addresses' => function ($query) {
+                $query->latest('id');
+            }])->findOrFail($id);
+
+            // Trả về phản hồi JSON chứa thông tin người dùng
+            return response()->json([
+                'message' => 'Lấy thông tin thành công',
+                'success' => true,
+                'users' => $user,
+            ], 200);
+
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            // Nếu không tìm thấy người dùng, trả về lỗi 404
             return response()->json([
                 'success' => false,
-                'message' => 'Bạn không có quyền xem thông tin của người dùng khác.'
-            ], 403); // 403 Forbidden
+                'message' => 'Không tồn tại người dùng này.'
+            ], 404);
+        } catch (\Exception $e) {
+            // Nếu có lỗi không mong muốn khác, trả về lỗi 500
+            return response()->json([
+                'success' => false,
+                'message' => 'Đã xảy ra lỗi không mong muốn.'
+            ], 500);
         }
-        $user = User::query()->with(['addresses' => function ($query) {
-            $query->latest('id');
-        }])->findOrFail($id);
-        return response()->json([
-            'message' => 'Lấy thông tin thành công',
-            'success' => true,
-            'users' => $user,
-
-        ], 200);
     }
+
+
+
 
     /**
      * @OA\Get(
