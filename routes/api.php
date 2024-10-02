@@ -52,20 +52,31 @@ Route::group(
         Route::put('profile/update/{id}', [UserController::class, 'update'])->middleware('auth:api');
 
         Route::post('password/forgot', [ResetPassword::class, 'sendResetLinkEmail']);
-        Route::post('password/reset', [ResetPassword::class, 'reset'])->name('password.reset');
+        Route::post('password/reset', [ResetPassword::class, 'reset']);
+
+        Route::get('users/{id}', [UserController::class, 'show']);
+        Route::delete('addresses/destroy/{id}', [UserController::class, 'destroyAddress']);
+
     }
 );
 
+Route::get('categories', [CategoryController::class, 'index']);
+
+
+
 Route::group(
     [
-        'middleware' => ['auth:api', 'role:admin'],
+        'middleware' => ['auth:api', 'role:admin','admin'],
         'prefix' => 'admin',
     ],
     function ($router) {
-        Route::apiResource('categories', CategoryController::class);
+        Route::post('categories', [CategoryController::class, 'store']);
+        Route::put('categories/{id}', [CategoryController::class, 'update']);
+        Route::get('categories/{id}', [CategoryController::class, 'show']);
+        Route::delete('categories/{id}', [CategoryController::class, 'destroy']);
+//        Route::apiResource('categories', CategoryController::class);
         Route::apiResource('brands', BrandController::class);
         Route::apiResource('tags', TagController::class);
-        Route::apiResource('addresses', AddressController::class);
         Route::apiResource('banners', BannerMktController::class);
         Route::apiResource('products', ProductController::class);
         Route::apiResource('product/colors', ProductColorController::class);
@@ -73,10 +84,10 @@ Route::group(
         Route::apiResource('product/sizes', ProductSizeController::class);
         Route::apiResource('product/variants', ProductVariantController::class);
         Route::get('users', [UserController::class, 'index']);
-        Route::get('users/{id}', [UserController::class, 'show']);
+        Route::delete('users/destroy/{id}', [UserController::class, 'destroy']);
+
     }
 );
-Route::apiResource('category', CategoryController::class);
 Route::group(
     [
         'middleware' => ['auth:api', 'role:staff'],
@@ -93,8 +104,8 @@ Route::group(
 
 Route::group(
     [
-        'middleware' => ['auth:api', 'role:customer'],
-        'prefix' => 'customer',
+        'middleware' => ['auth:api', 'role:customer,admin,staff'],
+
     ],
     function ($router) {
         Route::get('products', [ProductController::class, 'index']);
@@ -105,3 +116,4 @@ Route::group(
         Route::get('orders/{id}', [OrderController::class, 'show']);
     }
 );
+

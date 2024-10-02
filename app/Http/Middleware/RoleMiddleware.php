@@ -27,7 +27,7 @@ class RoleMiddleware
 
         // Kiểm tra vai trò
         if ($user->role !== $role) {
-            return response()->json(['message' => 'Tài khoản này không có quyền truy cập vào đây.'], 403);
+            return response()->json(['message' => 'Bạn không có quyền truy cập vào đây.'], 403);
         }
 
         return $next($request);
