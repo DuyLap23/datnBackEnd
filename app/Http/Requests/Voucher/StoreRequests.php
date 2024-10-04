@@ -11,7 +11,8 @@ class StoreRequests extends FormRequest
      */
     public function authorize(): bool
     {
-        return false;
+//        return auth()->check() && auth()->user()->isAdmin();
+        return true;
     }
 
     /**
@@ -22,7 +23,22 @@ class StoreRequests extends FormRequest
     public function rules(): array
     {
         return [
-            //
+            'name' => ['required', 'string', 'max:255'],
+            'minimum_order_value' => ['required', 'numeric', 'min:0'],
+            'discount_type' => ['required', 'in:fixed,percent'],
+            'discount_value' => [
+                'required',
+                'numeric',
+                'min:1',
+                function ($attribute, $value, $fail) {
+                    if ($this->input('discount_type') === 'percent' && $value > 100) {
+                        $fail('Giá trị giảm giá không được vượt quá 100%.');
+                    }
+                }
+            ],
+            'start_date' => ['required', 'date', 'after_or_equal:today'],
+            'end_date' => ['required', 'date', 'after:start_date'],
         ];
     }
+
 }

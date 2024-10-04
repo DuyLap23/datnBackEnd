@@ -12,6 +12,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\ValidationException;
 
 class UserController extends Controller
 {
@@ -163,8 +164,6 @@ class UserController extends Controller
     }
 
 
-
-
     /**
      * @OA\Get(
      *     path="/api/auth/profile",
@@ -220,7 +219,7 @@ class UserController extends Controller
      *         name="id",
      *         in="path",
      *         required=true,
-     *         description="ID của người dùng",
+     *         description="ID của người dùng cần cập nhật",
      *         @OA\Schema(type="integer")
      *     ),
      *     @OA\RequestBody(
@@ -247,8 +246,24 @@ class UserController extends Controller
      *         )
      *     ),
      *     @OA\Response(
+     *         response=409,
+     *         description="Địa chỉ này đã tồn tại",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="Địa chỉ này đã tồn tại.")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=422,
+     *         description="Dữ liệu không hợp lệ",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=false),
+     *             @OA\Property(property="message", type="string", example="Dữ liệu không hợp lệ."),
+     *             @OA\Property(property="errors", type="object")
+     *         )
+     *     ),
+     *     @OA\Response(
      *         response=500,
-     *         description="Có lỗi xảy ra",
+     *         description="Cập nhật thông tin thất bại",
      *         @OA\JsonContent(
      *             @OA\Property(property="success", type="boolean", example=false),
      *             @OA\Property(property="message", type="string", example="Cập nhật thông tin thất bại"),
@@ -257,6 +272,7 @@ class UserController extends Controller
      *     )
      * )
      */
+
 
     public function update(UpdateProfileRequests $request, $id)
     {
@@ -346,14 +362,27 @@ class UserController extends Controller
                 'message' => 'Cập nhật thông tin thành công.',
                 'data' => [$user]
             ], 200);
+        } catch (ModelNotFoundException $e) {
+            DB::rollBack();
+            return response()->json(['success' => false,
+                'message' => 'Không tìm thấy người dùng.',], 404);
+        } catch
+        (ValidationException $e) {
+            DB::rollBack();
+            return response()->json([
+                'success' => false,
+                'message' => 'Dữ liệu không hợp lệ.',
+                'errors' => $e->errors(),
+            ], 422);
         } catch (Exception $e) {
             DB::rollBack();
             return response()->json([
                 'success' => false,
                 'message' => 'Cập nhật thông tin thất bại',
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ], 500);
         }
+
     }
 
 
@@ -464,9 +493,6 @@ class UserController extends Controller
             return response()->json(['message' => 'Có lỗi xảy ra', 'error' => $e->getMessage()], 500);
         }
     }
-
-
-
 
 
 }
