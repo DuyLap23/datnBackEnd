@@ -52,6 +52,7 @@ use Illuminate\Routing\Controller as BaseController;
  *             @OA\Property(property="id", type="integer", example=1),
  *             @OA\Property(property="user_id", type="integer", example=1),
  *             @OA\Property(property="address_name", type="string", example="Số 1, Đường ABC"),
+ *             @OA\Property(property="phone_number", type="string", example="0123456789"),
  *             @OA\Property(property="city", type="string", example="Hà Nội"),
  *             @OA\Property(property="district", type="string", example="Quận Hoàn Kiếm"),
  *             @OA\Property(property="ward", type="string", example="Phường Tràng Tiền"),

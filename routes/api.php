@@ -7,6 +7,7 @@ use App\Http\Controllers\API\Auth\ResetPassword;
 use App\Http\Controllers\API\Auth\UserController;
 use App\Http\Controllers\API\BannerMktController;
 use App\Http\Controllers\API\TagController;
+use App\Http\Controllers\API\VouCherController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\API\BrandController;
 use App\Http\Controllers\API\CartController;
@@ -83,11 +84,22 @@ Route::group(
         Route::apiResource('product/images', ProductImageController::class);
         Route::apiResource('product/sizes', ProductSizeController::class);
         Route::apiResource('product/variants', ProductVariantController::class);
+
         Route::get('users', [UserController::class, 'index']);
         Route::delete('users/destroy/{id}', [UserController::class, 'destroy']);
 
+//      Voucher
+
     }
 );
+
+Route::get('voucher', [VouCherController::class, 'index']);
+Route::post('voucher', [VouCherController::class, 'store']);
+Route::put('voucher/{id}', [VouCherController::class, 'update']);
+Route::get('voucher/{id}', [VouCherController::class, 'show']);
+Route::delete('voucher/{id}', [VouCherController::class, 'destroy']);
+
+
 Route::group(
     [
         'middleware' => ['auth:api', 'role:staff'],

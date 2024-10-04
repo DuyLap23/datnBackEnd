@@ -701,7 +701,7 @@
                     {
                         "name": "id",
                         "in": "path",
-                        "description": "ID của người dùng",
+                        "description": "ID của người dùng cần cập nhật",
                         "required": true,
                         "schema": {
                             "type": "integer"
@@ -758,8 +758,47 @@
                             }
                         }
                     },
+                    "409": {
+                        "description": "Địa chỉ này đã tồn tại",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Địa chỉ này đã tồn tại."
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Dữ liệu không hợp lệ",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Dữ liệu không hợp lệ."
+                                        },
+                                        "errors": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
                     "500": {
-                        "description": "Có lỗi xảy ra",
+                        "description": "Cập nhật thông tin thất bại",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -2314,6 +2353,10 @@
                     "address_name": {
                         "type": "string",
                         "example": "Số 1, Đường ABC"
+                    },
+                    "phone_number": {
+                        "type": "string",
+                        "example": "0123456789"
                     },
                     "city": {
                         "type": "string",
