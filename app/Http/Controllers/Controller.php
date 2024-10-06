@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Foundation\Validation\ValidatesRequests;
 use Illuminate\Routing\Controller as BaseController;
-
 /**
  * @OA\OpenApi(
  *     @OA\Info(
@@ -32,19 +31,9 @@ use Illuminate\Routing\Controller as BaseController;
  *             @OA\Property(property="name", type="string", example="Nguyễn Văn A"),
  *             @OA\Property(property="email", type="string", example="email@example.com"),
  *             @OA\Property(property="avatar", type="string", example="path/to/avatar.png"),
- *             @OA\Property(property="addresses", type="array",
- *                 @OA\Items(ref="#/components/schemas/Address")
- *             )
- *         ),
- *         @OA\Schema(
- *             schema="UpdateProfileRequest",
- *             type="object",
- *             @OA\Property(property="name", type="string", example="Nguyễn Văn A"),
- *             @OA\Property(property="email", type="string", example="email@example.com"),
- *             @OA\Property(property="avatar", type="string", example="path/to/avatar.png"),
- *             @OA\Property(property="addresses", type="array",
- *                 @OA\Items(ref="#/components/schemas/Address")
- *             )
+ *             @OA\Property(property="link_fb", type="string", example="https://github.com/DuyLap23/datnBackEnd"),
+ *             @OA\Property(property="link_tiktok", type="string", example="https://github.com/DuyLap23/datnBackEnd"),
+ *             @OA\Property(property="role", type="string", example="customer")
  *         ),
  *         @OA\Schema(
  *             schema="Address",
@@ -68,6 +57,7 @@ use Illuminate\Routing\Controller as BaseController;
  *     )
  * )
  */
+
 class Controller extends BaseController
 {
     use AuthorizesRequests, ValidatesRequests;

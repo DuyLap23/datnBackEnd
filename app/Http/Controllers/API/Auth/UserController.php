@@ -320,9 +320,6 @@ class UserController extends Controller
      *     )
      * )
      */
-
-
-
     public function update(UpdateProfileRequests $request, $id)
     {
         // Lấy người dùng hiện tại từ token Bearer

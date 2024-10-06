@@ -477,7 +477,7 @@ class AddressController extends Controller
 
             return response()->json(null, 204);
         } catch (Exception $e) {
-            return response()->json(['message' => 'Có lỗi xảy ra', 'error' => $e->getMessage()], 500, [], JSON_UNESCAPED_UNICODE);
+            return response()->json(['message' => 'Có lỗi xảy ra', 'error' => $e->getMessage()], 500, [], JSON_UNESCAPED_UNICOD);
         }
     }
 
