@@ -77,7 +77,6 @@ Route::group(
 //        Route::apiResource('categories', CategoryController::class);
         Route::apiResource('brands', BrandController::class);
         Route::apiResource('tags', TagController::class);
-        Route::apiResource('banners', BannerMktController::class);
         Route::apiResource('products', ProductController::class);
         Route::apiResource('product/colors', ProductColorController::class);
         Route::apiResource('product/images', ProductImageController::class);
@@ -85,6 +84,20 @@ Route::group(
         Route::apiResource('product/variants', ProductVariantController::class);
         Route::get('users', [UserController::class, 'index']);
         Route::delete('users/destroy/{id}', [UserController::class, 'destroy']);
+
+         // Comments routes
+        Route::get('comments', [CommentController::class, 'index']);  
+        Route::post('comments', [CommentController::class, 'store']); 
+        Route::get('comments/{id}', [CommentController::class, 'show']); 
+        Route::put('comments/{id}', [CommentController::class, 'update']); 
+        Route::delete('comments/{id}', [CommentController::class, 'destroy']);
+
+        Route::get('banners', [BannerMktController::class, 'index']);
+        Route::post('banners', [BannerMktController::class, 'store']);
+        Route::put('banners/{id}', [BannerMktController::class, 'update']);
+        Route::get('banners/{id}', [BannerMktController::class, 'show']);
+        Route::delete('banners/{id}', [BannerMktController::class, 'destroy']);
+
 
     }
 );
@@ -97,7 +110,6 @@ Route::group(
         Route::apiResource('orders', OrderController::class);
         Route::apiResource('order/items', OrderItemController::class);
         Route::apiResource('favourites', FavouriteListController::class);
-        Route::apiResource('comments', CommentController::class);
         Route::apiResource('carts', CartController::class);
     }
 );
