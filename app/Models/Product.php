@@ -26,6 +26,7 @@ class Product extends Model
         'is_show_home',
         'category_id',
         'brand_id',
+        
     ];
     protected $casts = [
         'is_active' => 'boolean',

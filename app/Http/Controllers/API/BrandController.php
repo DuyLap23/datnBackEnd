@@ -312,10 +312,8 @@ class BrandController extends Controller
      *                 @OA\Property(property="name", type="string", example="brand Name"),
      *                 @OA\Property(property="image", type="string", example="image.png"),
      *                 @OA\Property(property="description", type="string", example=""),
-     *                  @OA\Property(property="	deleted_at", type="string", example=""),
-     *                 @OA\Property(property="deleted_at", type="string", format="date-time", example="2024-09-19T12:34:56Z"),
-     *                 @OA\Property(property="created_at", type="string", format="date-time", example="2024-09-19T12:34:56Z"),
-     *                 @OA\Property(property="updated_at", type="string", format="date-time", example="2024-09-19T12:34:56Z"),
+     *                
+     *                
      *             ),
      *         )
      *     ),
@@ -368,7 +366,7 @@ class BrandController extends Controller
      * @OA\Put(
      *     path="/api/admin/brand/{id}",
      *     summary="Cập nhật thương hiệu",
-     *     tags={"Brands"},
+     *     tags={"Brand"},
      *     security={{"Bearer": {}}},
      *     @OA\Parameter(
      *         name="id",
@@ -398,10 +396,7 @@ class BrandController extends Controller
      *                 @OA\Property(property="name", type="string", example="brand Name"),
      *                 @OA\Property(property="image", type="string", example="image.png"),
      *                 @OA\Property(property="description", type="string", example=""),
-     *                  @OA\Property(property="	deleted_at", type="string", example=""),
-     *                 @OA\Property(property="deleted_at", type="string", format="date-time", example="2024-09-19T12:34:56Z"),
-     *                 @OA\Property(property="created_at", type="string", format="date-time", example="2024-09-19T12:34:56Z"),
-     *                 @OA\Property(property="updated_at", type="string", format="date-time", example="2024-09-19T12:34:56Z"),
+     *                 
      *             ),
      *         )
      *     ),
@@ -480,7 +475,7 @@ class BrandController extends Controller
      * @OA\Delete(
      *     path="api/admin/brands/{id}",
      *     summary="Xóa danh mục",
-     *     tags={"brands"},
+     *     tags={"Brand"},
      *     security={{"Bearer": {}}},
      *     @OA\Parameter(
      *         name="id",
