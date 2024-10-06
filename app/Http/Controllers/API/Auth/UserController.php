@@ -235,7 +235,7 @@ class UserController extends Controller
      *         in="path",
      *         required=true,
      *         description="ID của người dùng cần cập nhật",
-     *         @OA\Schema(type="integer")
+     *         @OA\Schema(type="bigint")
      *     ),
      *     @OA\RequestBody(
      *         required=true,
@@ -248,20 +248,20 @@ class UserController extends Controller
      *                     description="Tên người dùng"
      *                 ),
      *                 @OA\Property(
-     *                     property="email",
-     *                     type="string",
-     *                     description="Email của người dùng"
-     *                 ),
-     *                 @OA\Property(
-     *                     property="phone",
-     *                     type="string",
-     *                     description="Số điện thoại của người dùng"
-     *                 ),
-     *                 @OA\Property(
      *                     property="avatar",
      *                     type="file",
      *                     description="Ảnh đại diện của người dùng"
-     *                 )
+     *                 ),
+     *                  @OA\Property(
+     *                      property="link_fb",
+     *                      type="string",
+     *                      description="link facebook"
+     *                  ),
+     *                  @OA\Property(
+     *                      property="link_tt",
+     *                      type="string",
+     *                      description="link tiktok"
+     *                  ),
      *             )
      *         )
      *     ),

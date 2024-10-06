@@ -1053,17 +1053,17 @@
                                         "description": "Tên người dùng",
                                         "type": "string"
                                     },
-                                    "email": {
-                                        "description": "Email của người dùng",
-                                        "type": "string"
-                                    },
-                                    "phone": {
-                                        "description": "Số điện thoại của người dùng",
-                                        "type": "string"
-                                    },
                                     "avatar": {
                                         "description": "Ảnh đại diện của người dùng",
                                         "type": "file"
+                                    },
+                                    "link_fb": {
+                                        "description": "link facebook",
+                                        "type": "string"
+                                    },
+                                    "link_tt": {
+                                        "description": "link tiktok",
+                                        "type": "string"
                                     }
                                 },
                                 "type": "object"
@@ -1619,6 +1619,475 @@
                         }
                     }
                 }
+            }
+        },
+        "/api/admin/brands/": {
+            "post": {
+                "tags": [
+                    "Brand"
+                ],
+                "summary": "Thêm thương hiệu",
+                "description": "Thêm thương hiệu vào hệ thống.",
+                "operationId": "0431b484f632b967655ba778a12bd945",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "name": {
+                                        "description": "Tên thương hiệu",
+                                        "type": "string",
+                                        "example": "Thương hiệu 1"
+                                    },
+                                    "image": {
+                                        "description": "Hình ảnh thương hiệu",
+                                        "type": "string",
+                                        "example": "image.png"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Thành công",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Thêm thương hiệu thành công."
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "brand": {
+                                                    "properties": {
+                                                        "id": {
+                                                            "type": "bigint",
+                                                            "example": 1
+                                                        },
+                                                        "name": {
+                                                            "type": "string",
+                                                            "example": "Thương hiệu 1"
+                                                        },
+                                                        "image_url": {
+                                                            "type": "string",
+                                                            "example": "https://apitopdeal.shop/storage/brand/image.png"
+                                                        }
+                                                    },
+                                                    "type": "object"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Thêm thương hiệu thất bại",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Thêm thương hiệu thất bại"
+                                        },
+                                        "error": {
+                                            "type": "string",
+                                            "example": "Error details..."
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ]
+            }
+        },
+        "/api/admin/brand/{id}": {
+            "get": {
+                "tags": [
+                    "Brand"
+                ],
+                "summary": "Lấy chi tiết thương hiệu",
+                "operationId": "03efc00bb90c06be9d8b0081dd66509e",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID của thương hiệu",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Lấy thành công dữ liệu của thương hiệu",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Lấy thành công dữ liệu của bản ghi {id}"
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "id": {
+                                                    "type": "integer",
+                                                    "example": 1
+                                                },
+                                                "name": {
+                                                    "type": "string",
+                                                    "example": "brand Name"
+                                                },
+                                                "image": {
+                                                    "type": "string",
+                                                    "example": "image.png"
+                                                },
+                                                "description": {
+                                                    "type": "string",
+                                                    "example": ""
+                                                },
+                                                "\tdeleted_at": {
+                                                    "type": "string",
+                                                    "example": ""
+                                                },
+                                                "deleted_at": {
+                                                    "type": "string",
+                                                    "format": "date-time",
+                                                    "example": "2024-09-19T12:34:56Z"
+                                                },
+                                                "created_at": {
+                                                    "type": "string",
+                                                    "format": "date-time",
+                                                    "example": "2024-09-19T12:34:56Z"
+                                                },
+                                                "updated_at": {
+                                                    "type": "string",
+                                                    "format": "date-time",
+                                                    "example": "2024-09-19T12:34:56Z"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Thương hiệu không tìm thấy",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Lấy dữ liệu không thành công"
+                                        },
+                                        "error": {
+                                            "type": "string",
+                                            "example": "No query results for model [Brand]"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Lỗi server",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Lấy dữ liệu không thành công"
+                                        },
+                                        "error": {
+                                            "type": "string",
+                                            "example": "Server Error Message"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ]
+            },
+            "put": {
+                "tags": [
+                    "Brands"
+                ],
+                "summary": "Cập nhật thương hiệu",
+                "operationId": "5d525a2a0d9844327611ddfdda66d375",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID của danh mục",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "example": "Category Name"
+                                    },
+                                    "image": {
+                                        "type": "string",
+                                        "format": "binary",
+                                        "example": "image.jpg"
+                                    },
+                                    "parent_id": {
+                                        "type": "string",
+                                        "example": "1"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Cập nhật thành công",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Lấy thành công dữ liệu của bản ghi {id}"
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "id": {
+                                                    "type": "integer",
+                                                    "example": 1
+                                                },
+                                                "name": {
+                                                    "type": "string",
+                                                    "example": "brand Name"
+                                                },
+                                                "image": {
+                                                    "type": "string",
+                                                    "example": "image.png"
+                                                },
+                                                "description": {
+                                                    "type": "string",
+                                                    "example": ""
+                                                },
+                                                "\tdeleted_at": {
+                                                    "type": "string",
+                                                    "example": ""
+                                                },
+                                                "deleted_at": {
+                                                    "type": "string",
+                                                    "format": "date-time",
+                                                    "example": "2024-09-19T12:34:56Z"
+                                                },
+                                                "created_at": {
+                                                    "type": "string",
+                                                    "format": "date-time",
+                                                    "example": "2024-09-19T12:34:56Z"
+                                                },
+                                                "updated_at": {
+                                                    "type": "string",
+                                                    "format": "date-time",
+                                                    "example": "2024-09-19T12:34:56Z"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Danh mục không tìm thấy",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Cập nhật danh mục thất bại"
+                                        },
+                                        "error": {
+                                            "type": "string",
+                                            "example": "No query results for model [Category]"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Lỗi server",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Cập nhật danh mục thất bại"
+                                        },
+                                        "error": {
+                                            "type": "string",
+                                            "example": "Server Error Message"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ]
+            }
+        },
+        "api/admin/brands/{id}": {
+            "delete": {
+                "tags": [
+                    "brands"
+                ],
+                "summary": "Xóa danh mục",
+                "operationId": "a9976bff6784e806d6fe488811b3991b",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID của thương hiệu cần xóa",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Xóa thương hiệu thành công",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Xóa thương hiệu thành công."
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Lỗi khi xóa thương hiệu",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Xóa thương hiệu không thành công."
+                                        },
+                                        "error": {
+                                            "type": "string",
+                                            "example": "Lý do lỗi"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ]
             }
         },
         "/api/create-store": {
@@ -2647,10 +3116,6 @@
                         "type": "string",
                         "example": "Nguyễn Văn A"
                     },
-                    "email": {
-                        "type": "string",
-                        "example": "email@example.com"
-                    },
                     "avatar": {
                         "type": "string",
                         "example": "path/to/avatar.png"
@@ -2662,10 +3127,6 @@
                     "link_tiktok": {
                         "type": "string",
                         "example": "https://github.com/DuyLap23/datnBackEnd"
-                    },
-                    "role": {
-                        "type": "string",
-                        "example": "customer"
                     }
                 },
                 "type": "object"
@@ -2824,6 +3285,18 @@
         {
             "name": "Banners",
             "description": "Banners"
+        },
+        {
+            "name": "Brand",
+            "description": "Brand"
+        },
+        {
+            "name": "Brands",
+            "description": "Brands"
+        },
+        {
+            "name": "brands",
+            "description": "brands"
         },
         {
             "name": "Create Cart",
