@@ -1039,7 +1039,7 @@
                         "description": "ID của người dùng cần cập nhật",
                         "required": true,
                         "schema": {
-                            "type": "integer"
+                            "type": "bigint"
                         }
                     }
                 ],
@@ -1059,19 +1059,11 @@
                                     },
                                     "link_fb": {
                                         "description": "link facebook",
-<<<<<<< HEAD
                                         "type": "string"
                                     },
                                     "link_tt": {
                                         "description": "link tiktok",
                                         "type": "string"
-=======
-                                        "type": "file"
-                                    },
-                                    "link_tt": {
-                                        "description": "Link tiktok",
-                                        "type": "file"
->>>>>>> 854841b5463a83738440d949196c28dfbaafc58c
                                     }
                                 },
                                 "type": "object"

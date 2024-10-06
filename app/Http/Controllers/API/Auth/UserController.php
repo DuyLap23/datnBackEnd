@@ -377,7 +377,6 @@ class UserController extends Controller
                 Storage::disk('public')->delete($old_avatar);
             }
 
-//
             DB::commit();
 
             $avatarUrl = Storage::disk('public')->url($user->avatar);
