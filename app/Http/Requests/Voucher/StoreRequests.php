@@ -38,6 +38,8 @@ class StoreRequests extends FormRequest
             ],
             'start_date' => ['required', 'date', 'after_or_equal:today'],
             'end_date' => ['required', 'date', 'after:start_date'],
+            'category_ids' => 'sometimes|array',
+            'category_ids.*' => 'exists:categories,id',
         ];
     }
 

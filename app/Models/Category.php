@@ -33,6 +33,6 @@ class Category extends Model
     }
     public function vouchers()
     {
-        return $this->belongsToMany(Voucher::class, 'category_voucher');
+        return $this->belongsToMany(Voucher::class, 'category_vouchers');
     }
 }

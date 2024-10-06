@@ -5,7 +5,6 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use mysql_xdevapi\Table;
 
 class VouCher extends Model
 {
@@ -25,6 +24,7 @@ class VouCher extends Model
 
     public function categories()
     {
-        return $this->belongsToMany(Category::class, 'category_voucher');
+        return $this->belongsToMany(Category::class, 'category_vouchers', 'voucher_id', 'category_id');
     }
+
 }
