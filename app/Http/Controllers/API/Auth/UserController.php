@@ -248,19 +248,17 @@ class UserController extends Controller
      *                     description="Tên người dùng"
      *                 ),
      *                 @OA\Property(
-     *                     property="email",
-     *                     type="string",
-     *                     description="Email của người dùng"
-     *                 ),
-     *                 @OA\Property(
-     *                     property="phone",
-     *                     type="string",
-     *                     description="Số điện thoại của người dùng"
-     *                 ),
-     *                 @OA\Property(
      *                     property="avatar",
      *                     type="file",
      *                     description="Ảnh đại diện của người dùng"
+     *                 ), @OA\Property(
+     *                     property="link_fb",
+     *                     type="file",
+     *                     description="link facebook"
+     *                 ), @OA\Property(
+     *                     property="link_tt",
+     *                     type="file",
+     *                     description="Link tiktok"
      *                 )
      *             )
      *         )
@@ -275,6 +273,14 @@ class UserController extends Controller
      *                 @OA\Property(property="user", ref="#/components/schemas/User"),
      *                 @OA\Property(property="avatar_url", type="string", example="http://example.com/storage/avatars/avatar.jpg")
      *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=401,
+     *         description="Chưa đăng nhập",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=false),
+     *             @OA\Property(property="message", type="string", example="Bạn cần đăng nhập để xem thông tin.")
      *         )
      *     ),
      *     @OA\Response(
@@ -320,6 +326,7 @@ class UserController extends Controller
      *     )
      * )
      */
+
     public function update(UpdateProfileRequests $request, $id)
     {
         // Lấy người dùng hiện tại từ token Bearer

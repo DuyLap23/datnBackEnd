@@ -1053,16 +1053,16 @@
                                         "description": "Tên người dùng",
                                         "type": "string"
                                     },
-                                    "email": {
-                                        "description": "Email của người dùng",
-                                        "type": "string"
-                                    },
-                                    "phone": {
-                                        "description": "Số điện thoại của người dùng",
-                                        "type": "string"
-                                    },
                                     "avatar": {
                                         "description": "Ảnh đại diện của người dùng",
+                                        "type": "file"
+                                    },
+                                    "link_fb": {
+                                        "description": "link facebook",
+                                        "type": "file"
+                                    },
+                                    "link_tt": {
+                                        "description": "Link tiktok",
                                         "type": "file"
                                     }
                                 },
@@ -1097,6 +1097,26 @@
                                                 }
                                             },
                                             "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Chưa đăng nhập",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Bạn cần đăng nhập để xem thông tin."
                                         }
                                     },
                                     "type": "object"
@@ -2647,10 +2667,6 @@
                         "type": "string",
                         "example": "Nguyễn Văn A"
                     },
-                    "email": {
-                        "type": "string",
-                        "example": "email@example.com"
-                    },
                     "avatar": {
                         "type": "string",
                         "example": "path/to/avatar.png"
@@ -2662,10 +2678,6 @@
                     "link_tiktok": {
                         "type": "string",
                         "example": "https://github.com/DuyLap23/datnBackEnd"
-                    },
-                    "role": {
-                        "type": "string",
-                        "example": "customer"
                     }
                 },
                 "type": "object"

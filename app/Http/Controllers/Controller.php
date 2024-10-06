@@ -29,11 +29,9 @@ use Illuminate\Routing\Controller as BaseController;
  *             type="object",
  *             @OA\Property(property="id", type="integer", example=1),
  *             @OA\Property(property="name", type="string", example="Nguyễn Văn A"),
- *             @OA\Property(property="email", type="string", example="email@example.com"),
  *             @OA\Property(property="avatar", type="string", example="path/to/avatar.png"),
  *             @OA\Property(property="link_fb", type="string", example="https://github.com/DuyLap23/datnBackEnd"),
  *             @OA\Property(property="link_tiktok", type="string", example="https://github.com/DuyLap23/datnBackEnd"),
- *             @OA\Property(property="role", type="string", example="customer")
  *         ),
  *         @OA\Schema(
  *             schema="Address",
