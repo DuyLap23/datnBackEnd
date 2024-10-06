@@ -324,7 +324,12 @@ class UserController extends Controller
     {
         // Lấy người dùng hiện tại từ token Bearer
         $currentUser = auth('api')->user();
-
+        if (!$currentUser) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Bạn cần đăng nhập để xem thông tin.'
+            ], 401); // 401 Unauthorized
+        }
         // Kiểm tra xem người dùng hiện tại có phải là người được yêu cầu cập nhật không
         if ($currentUser->id != $id) {
             return response()->json([
