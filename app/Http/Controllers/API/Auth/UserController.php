@@ -261,7 +261,7 @@ class UserController extends Controller
      *                      property="link_tt",
      *                      type="string",
      *                      description="link tiktok"
-     *                  ),
+     *                  )
      *             )
      *         )
      *     ),
@@ -275,6 +275,14 @@ class UserController extends Controller
      *                 @OA\Property(property="user", ref="#/components/schemas/User"),
      *                 @OA\Property(property="avatar_url", type="string", example="http://example.com/storage/avatars/avatar.jpg")
      *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=401,
+     *         description="Chưa đăng nhập",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=false),
+     *             @OA\Property(property="message", type="string", example="Bạn cần đăng nhập để xem thông tin.")
      *         )
      *     ),
      *     @OA\Response(
@@ -320,11 +328,17 @@ class UserController extends Controller
      *     )
      * )
      */
+
     public function update(UpdateProfileRequests $request, $id)
     {
         // Lấy người dùng hiện tại từ token Bearer
         $currentUser = auth('api')->user();
-
+        if (!$currentUser) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Bạn cần đăng nhập để xem thông tin.'
+            ], 401); // 401 Unauthorized
+        }
         // Kiểm tra xem người dùng hiện tại có phải là người được yêu cầu cập nhật không
         if ($currentUser->id != $id) {
             return response()->json([

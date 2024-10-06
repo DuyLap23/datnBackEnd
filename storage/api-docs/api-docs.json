@@ -1059,11 +1059,19 @@
                                     },
                                     "link_fb": {
                                         "description": "link facebook",
+<<<<<<< HEAD
                                         "type": "string"
                                     },
                                     "link_tt": {
                                         "description": "link tiktok",
                                         "type": "string"
+=======
+                                        "type": "file"
+                                    },
+                                    "link_tt": {
+                                        "description": "Link tiktok",
+                                        "type": "file"
+>>>>>>> 854841b5463a83738440d949196c28dfbaafc58c
                                     }
                                 },
                                 "type": "object"
@@ -1097,6 +1105,26 @@
                                                 }
                                             },
                                             "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Chưa đăng nhập",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Bạn cần đăng nhập để xem thông tin."
                                         }
                                     },
                                     "type": "object"
