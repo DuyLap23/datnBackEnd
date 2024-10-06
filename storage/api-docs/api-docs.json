@@ -2655,34 +2655,17 @@
                         "type": "string",
                         "example": "path/to/avatar.png"
                     },
-                    "addresses": {
-                        "type": "array",
-                        "items": {
-                            "$ref": "#/components/schemas/Address"
-                        }
-                    }
-                },
-                "type": "object"
-            },
-            "UpdateProfileRequest": {
-                "properties": {
-                    "name": {
+                    "link_fb": {
                         "type": "string",
-                        "example": "Nguyễn Văn A"
+                        "example": "https://github.com/DuyLap23/datnBackEnd"
                     },
-                    "email": {
+                    "link_tiktok": {
                         "type": "string",
-                        "example": "email@example.com"
+                        "example": "https://github.com/DuyLap23/datnBackEnd"
                     },
-                    "avatar": {
+                    "role": {
                         "type": "string",
-                        "example": "path/to/avatar.png"
-                    },
-                    "addresses": {
-                        "type": "array",
-                        "items": {
-                            "$ref": "#/components/schemas/Address"
-                        }
+                        "example": "customer"
                     }
                 },
                 "type": "object"
