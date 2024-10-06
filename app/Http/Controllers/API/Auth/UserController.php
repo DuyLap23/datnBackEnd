@@ -4,13 +4,10 @@ namespace App\Http\Controllers\API\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\UpdateProfileRequests;
-use App\Models\Address;
 use App\Models\User;
 use Exception;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
 
@@ -176,6 +173,14 @@ class UserController extends Controller
      *         @OA\JsonContent(ref="#/components/schemas/User")
      *     ),
      *     @OA\Response(
+     *         response=401,
+     *         description="Người dùng chưa đăng nhập",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=false),
+     *             @OA\Property(property="message", type="string", example="Bạn cần đăng nhập để xem thông tin.")
+     *         )
+     *     ),
+     *     @OA\Response(
      *         response=404,
      *         description="Người dùng không tìm thấy",
      *         @OA\JsonContent(
@@ -191,10 +196,20 @@ class UserController extends Controller
      *     )
      * )
      */
+
     public function profile()
     {
         try {
+
+
             $user = auth('api')->user();
+            if (!$user) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Bạn cần đăng nhập để xem thông tin.'
+                ], 401); // 401 Unauthorized
+            }
+
             if ($user) {
                 // Load the address relationship
                 $user->load(['addresses' => function ($query) {
@@ -205,7 +220,7 @@ class UserController extends Controller
                 return response()->json(['error' => 'User not found'], 404);
             }
         } catch (\Throwable $th) {
-            return response()->json(['error' => $th->getMessage()], 500);
+            return response()->json(['error' => $th->getMessage()], 400);
         }
     }
 
@@ -225,8 +240,29 @@ class UserController extends Controller
      *     @OA\RequestBody(
      *         required=true,
      *         @OA\MediaType(
-     *             mediaType="application/json",
-     *             @OA\Schema(ref="#/components/schemas/UpdateProfileRequest")
+     *             mediaType="multipart/form-data",
+     *             @OA\Schema(
+     *                 @OA\Property(
+     *                     property="name",
+     *                     type="string",
+     *                     description="Tên người dùng"
+     *                 ),
+     *                 @OA\Property(
+     *                     property="email",
+     *                     type="string",
+     *                     description="Email của người dùng"
+     *                 ),
+     *                 @OA\Property(
+     *                     property="phone",
+     *                     type="string",
+     *                     description="Số điện thoại của người dùng"
+     *                 ),
+     *                 @OA\Property(
+     *                     property="avatar",
+     *                     type="file",
+     *                     description="Ảnh đại diện của người dùng"
+     *                 )
+     *             )
      *         )
      *     ),
      *     @OA\Response(
@@ -235,13 +271,25 @@ class UserController extends Controller
      *         @OA\JsonContent(
      *             @OA\Property(property="success", type="boolean", example=true),
      *             @OA\Property(property="message", type="string", example="Cập nhật thông tin thành công."),
-     *             @OA\Property(property="data", ref="#/components/schemas/User")
+     *             @OA\Property(property="data", type="object",
+     *                 @OA\Property(property="user", ref="#/components/schemas/User"),
+     *                 @OA\Property(property="avatar_url", type="string", example="http://example.com/storage/avatars/avatar.jpg")
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=403,
+     *         description="Người dùng không có quyền chỉnh sửa thông tin người khác",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=false),
+     *             @OA\Property(property="message", type="string", example="Bạn không có quyền chỉnh sửa thông tin của người dùng khác.")
      *         )
      *     ),
      *     @OA\Response(
      *         response=404,
-     *         description="Không thể thay đổi admin",
+     *         description="Không thể thay đổi admin hoặc người dùng không tồn tại",
      *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=false),
      *             @OA\Property(property="message", type="string", example="Không thể thay đổi admin")
      *         )
      *     ),
@@ -274,6 +322,7 @@ class UserController extends Controller
      */
 
 
+
     public function update(UpdateProfileRequests $request, $id)
     {
         // Lấy người dùng hiện tại từ token Bearer
@@ -290,7 +339,7 @@ class UserController extends Controller
         DB::beginTransaction();
         try {
             // Lấy người dùng và địa chỉ
-            $user = User::query()->with('addresses')->findOrFail($id);
+            $user = User::findOrFail($id);
 
             // Kiểm tra nếu người dùng là admin
             if ($user->role == 'admin') {
@@ -317,55 +366,24 @@ class UserController extends Controller
                 Storage::disk('public')->delete($old_avatar);
             }
 
-            // Kiểm tra nếu `is_default` là true, cập nhật các địa chỉ khác thành không mặc định
-            if ($request->is_default) {
-                Address::query()->where('user_id', $user->id)->update(['is_default' => false]);
-            }
-
-            // Kiểm tra xem địa chỉ đã tồn tại chưa
-            $existingAddress = Address::where([
-                ['user_id', '=', $user->id],
-                ['ward', '=', $request->ward],
-                ['detail_address', '=', $request->detail_address],
-            ])->first();
-
-            if ($existingAddress) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Địa chỉ này đã tồn tại.',
-                ], 409); // 409 Conflict
-            }
-
-            // Cập nhật hoặc tạo mới địa chỉ
-            Address::updateOrCreate(
-                [
-                    'user_id' => $user->id,
-                    'ward' => $request->ward,
-                    'detail_address' => $request->detail_address,
-                ],
-                [
-                    'address_name' => $request->address_name,
-                    'phone_number' => $request->phone_number,
-                    'city' => $request->city,
-                    'district' => $request->district,
-                    'ward' => $request->ward,
-                    'is_default' => $request->is_default,
-                ]
-            );
-            $user->load(['addresses' => function ($query) {
-                $query->latest('id');
-            }]);
+//
             DB::commit();
+
+            $avatarUrl = Storage::disk('public')->url($user->avatar);
 
             return response()->json([
                 'success' => true,
                 'message' => 'Cập nhật thông tin thành công.',
-                'data' => [$user]
+                'data' => [
+                    'user' => $user,
+                    'avatar_url' => $avatarUrl,
+                ]
             ], 200);
         } catch (ModelNotFoundException $e) {
             DB::rollBack();
             return response()->json(['success' => false,
-                'message' => 'Không tìm thấy người dùng.',], 404);
+                'message' => 'Không tìm thấy người dùng.',],
+                404);
         } catch
         (ValidationException $e) {
             DB::rollBack();
@@ -428,71 +446,7 @@ class UserController extends Controller
 //        return response()->json(['message' => 'Xoá tài khoản thành công'], 204);
 //    }
 
-    /**
-     * @OA\Delete(
-     *     path="/api/auth/addresses/destroy/{id}",
-     *     summary="Xóa địa chỉ của người dùng",
-     *     tags={"User"},
-     *     security={{"Bearer": {}}},
-     *     @OA\Parameter(
-     *         name="id",
-     *         in="path",
-     *         required=true,
-     *         description="ID của địa chỉ cần xóa",
-     *         @OA\Schema(type="integer")
-     *     ),
-     *     @OA\Response(
-     *         response=204,
-     *         description="Xóa địa chỉ thành công"
-     *     ),
-     *     @OA\Response(
-     *         response=403,
-     *         description="Không thể xóa địa chỉ mặc định"
-     *     ),
-     *     @OA\Response(
-     *         response=404,
-     *         description="Người dùng không tồn tại hoặc địa chỉ không tồn tại"
-     *     ),
-     *     @OA\Response(
-     *         response=500,
-     *         description="Có lỗi xảy ra"
-     *     ),
-     * )
-     */
-    public function destroyAddress($id)
-    {
-        try {
-            // Lấy thông tin người dùng hiện tại
-            $user = auth('api')->user();
 
-            // Kiểm tra xem người dùng có tồn tại không
-            if (!$user) {
-                return response()->json(['message' => 'Người dùng không tồn tại!'], 404);
-            }
-
-            // Tìm địa chỉ theo ID và kiểm tra thuộc về người dùng
-            $address = Address::where('id', $id)
-                ->where('user_id', $user->id)
-                ->first();
-
-            // Kiểm tra nếu địa chỉ không tồn tại
-            if (!$address) {
-                return response()->json(['message' => 'Địa chỉ không tồn tại!'], 404);
-            }
-
-            // Kiểm tra nếu địa chỉ là mặc định
-            if ($address->is_default) {
-                return response()->json(['message' => 'Không thể xoá địa chỉ mặc định'], 403);
-            }
-
-            // Xóa địa chỉ
-            $address->delete();
-
-            return response()->json(null, 204);
-        } catch (Exception $e) {
-            return response()->json(['message' => 'Có lỗi xảy ra', 'error' => $e->getMessage()], 500);
-        }
-    }
 
 
 }

@@ -8,9 +8,6 @@ use Illuminate\Database\Eloquent\Model;
 class CategoryVoucher extends Model
 {
     use HasFactory;
+    protected $fillable = ['category_id', 'voucher_id'];
 
-    protected $fillable = [
-        'category_id',
-        'voucher_id',
-    ];
 }

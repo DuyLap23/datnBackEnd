@@ -10,6 +10,321 @@
         "version": "1.0.0"
     },
     "paths": {
+        "/api/addresses": {
+            "get": {
+                "tags": [
+                    "Address"
+                ],
+                "summary": "Lấy danh sách địa chỉ",
+                "operationId": "05d45400dc99e36f78ac7453a329d22e",
+                "responses": {
+                    "200": {
+                        "description": "Lấy danh sách địa chỉ thành công",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Lấy danh sách địa chỉ thành công."
+                                        },
+                                        "addresses": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/Address"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Bạn cần đăng nhập để xem danh sách địa chỉ."
+                    },
+                    "404": {
+                        "description": "Không tìm thấy địa chỉ nào."
+                    },
+                    "422": {
+                        "description": "Yêu cầu không thể xử lý do đầu vào không hợp lệ."
+                    },
+                    "500": {
+                        "description": "Đã xảy ra lỗi không mong muốn."
+                    }
+                },
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Address"
+                ],
+                "summary": "Thêm địa chỉ mới",
+                "operationId": "94fa3d44216521505cefc876e95c85bd",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "address_name",
+                                    "phone_number",
+                                    "city",
+                                    "district",
+                                    "ward",
+                                    "detail_address"
+                                ],
+                                "properties": {
+                                    "address_name": {
+                                        "type": "string",
+                                        "example": "Nhà riêng"
+                                    },
+                                    "phone_number": {
+                                        "type": "string",
+                                        "example": "0123456789"
+                                    },
+                                    "city": {
+                                        "type": "string",
+                                        "example": "Hà Nội"
+                                    },
+                                    "district": {
+                                        "type": "string",
+                                        "example": "Hoàn Kiếm"
+                                    },
+                                    "ward": {
+                                        "type": "string",
+                                        "example": "Tràng Tiền"
+                                    },
+                                    "detail_address": {
+                                        "type": "string",
+                                        "example": "Số 1, phố Tràng Tiền"
+                                    },
+                                    "is_default": {
+                                        "description": "Đặt địa chỉ này làm mặc định",
+                                        "type": "boolean",
+                                        "example": true
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Thêm địa chỉ thành công",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Thêm địa chỉ thành công."
+                                        },
+                                        "data": {
+                                            "$ref": "#/components/schemas/Address"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Bạn cần đăng nhập để thêm địa chỉ."
+                    },
+                    "409": {
+                        "description": "Địa chỉ này đã tồn tại."
+                    },
+                    "422": {
+                        "description": "Dữ liệu không hợp lệ."
+                    },
+                    "500": {
+                        "description": "Thêm địa chỉ thất bại."
+                    }
+                },
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ]
+            }
+        },
+        "/api/addresses/{id}": {
+            "get": {
+                "tags": [
+                    "Address"
+                ],
+                "summary": "Lấy thông tin địa chỉ",
+                "description": "Lấy thông tin chi tiết của một địa chỉ dựa trên ID. Cần đăng nhập để truy cập.",
+                "operationId": "getAddressById",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID của địa chỉ cần lấy thông tin.",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Lấy thông tin thành công.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Lấy thông tin thành công"
+                                        },
+                                        "address": {
+                                            "$ref": "#/components/schemas/Address"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Bạn cần đăng nhập để xem thông tin.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Bạn cần đăng nhập để xem thông tin."
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Bạn không có quyền xem thông tin của người dùng khác.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Bạn không có quyền xem thông tin của người dùng khác."
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Không tồn tại địa chỉ này.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Không tồn tại địa chỉ này."
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Đã xảy ra lỗi không mong muốn.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Đã xảy ra lỗi không mong muốn."
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "Address"
+                ],
+                "summary": "Xóa địa chỉ của người dùng",
+                "operationId": "fd6c07ccab4cab14b0f9d9124fc9f5bf",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID của địa chỉ cần xóa",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Xóa địa chỉ thành công"
+                    },
+                    "403": {
+                        "description": "Không thể xóa địa chỉ mặc định"
+                    },
+                    "404": {
+                        "description": "Người dùng không tồn tại hoặc địa chỉ không tồn tại"
+                    },
+                    "500": {
+                        "description": "Có lỗi xảy ra"
+                    }
+                },
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ]
+            }
+        },
         "/api/auth/login": {
             "post": {
                 "tags": [
@@ -650,6 +965,26 @@
                             }
                         }
                     },
+                    "401": {
+                        "description": "Người dùng chưa đăng nhập",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Bạn cần đăng nhập để xem thông tin."
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
                     "404": {
                         "description": "Người dùng không tìm thấy",
                         "content": {
@@ -711,9 +1046,27 @@
                 "requestBody": {
                     "required": true,
                     "content": {
-                        "application/json": {
+                        "multipart/form-data": {
                             "schema": {
-                                "$ref": "#/components/schemas/UpdateProfileRequest"
+                                "properties": {
+                                    "name": {
+                                        "description": "Tên người dùng",
+                                        "type": "string"
+                                    },
+                                    "email": {
+                                        "description": "Email của người dùng",
+                                        "type": "string"
+                                    },
+                                    "phone": {
+                                        "description": "Số điện thoại của người dùng",
+                                        "type": "string"
+                                    },
+                                    "avatar": {
+                                        "description": "Ảnh đại diện của người dùng",
+                                        "type": "file"
+                                    }
+                                },
+                                "type": "object"
                             }
                         }
                     }
@@ -734,7 +1087,36 @@
                                             "example": "Cập nhật thông tin thành công."
                                         },
                                         "data": {
-                                            "$ref": "#/components/schemas/User"
+                                            "properties": {
+                                                "user": {
+                                                    "$ref": "#/components/schemas/User"
+                                                },
+                                                "avatar_url": {
+                                                    "type": "string",
+                                                    "example": "http://example.com/storage/avatars/avatar.jpg"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Người dùng không có quyền chỉnh sửa thông tin người khác",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Bạn không có quyền chỉnh sửa thông tin của người dùng khác."
                                         }
                                     },
                                     "type": "object"
@@ -743,11 +1125,15 @@
                         }
                     },
                     "404": {
-                        "description": "Không thể thay đổi admin",
+                        "description": "Không thể thay đổi admin hoặc người dùng không tồn tại",
                         "content": {
                             "application/json": {
                                 "schema": {
                                     "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
                                         "message": {
                                             "type": "string",
                                             "example": "Không thể thay đổi admin"
@@ -820,45 +1206,6 @@
                                 }
                             }
                         }
-                    }
-                },
-                "security": [
-                    {
-                        "Bearer": []
-                    }
-                ]
-            }
-        },
-        "/api/auth/addresses/destroy/{id}": {
-            "delete": {
-                "tags": [
-                    "User"
-                ],
-                "summary": "Xóa địa chỉ của người dùng",
-                "operationId": "4ef2adb52525298a3361f1fcf1534748",
-                "parameters": [
-                    {
-                        "name": "id",
-                        "in": "path",
-                        "description": "ID của địa chỉ cần xóa",
-                        "required": true,
-                        "schema": {
-                            "type": "integer"
-                        }
-                    }
-                ],
-                "responses": {
-                    "204": {
-                        "description": "Xóa địa chỉ thành công"
-                    },
-                    "403": {
-                        "description": "Không thể xóa địa chỉ mặc định"
-                    },
-                    "404": {
-                        "description": "Người dùng không tồn tại hoặc địa chỉ không tồn tại"
-                    },
-                    "500": {
-                        "description": "Có lỗi xảy ra"
                     }
                 },
                 "security": [
@@ -2479,6 +2826,10 @@
         }
     },
     "tags": [
+        {
+            "name": "Address",
+            "description": "Address"
+        },
         {
             "name": "Auth",
             "description": "Auth"

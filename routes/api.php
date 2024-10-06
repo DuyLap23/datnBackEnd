@@ -6,9 +6,6 @@ use App\Http\Controllers\API\Auth\RegisterController;
 use App\Http\Controllers\API\Auth\ResetPassword;
 use App\Http\Controllers\API\Auth\UserController;
 use App\Http\Controllers\API\BannerMktController;
-use App\Http\Controllers\API\TagController;
-use App\Http\Controllers\API\VouCherController;
-use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\API\BrandController;
 use App\Http\Controllers\API\CartController;
 use App\Http\Controllers\API\CategoryController;
@@ -21,6 +18,9 @@ use App\Http\Controllers\API\ProductController;
 use App\Http\Controllers\API\ProductImageController;
 use App\Http\Controllers\API\ProductSizeController;
 use App\Http\Controllers\API\ProductVariantController;
+use App\Http\Controllers\API\TagController;
+use App\Http\Controllers\API\VouCherController;
+use Illuminate\Support\Facades\Route;
 
 /*
 |--------------------------------------------------------------------------
@@ -48,7 +48,6 @@ Route::group(
         // Làm mới token, cần kiểm tra đã đăng nhập
         Route::post('refresh', [LoginController::class, 'refresh'])->middleware('auth:api');
 
-
         Route::get('profile', [UserController::class, 'profile'])->middleware('auth:api');
         Route::put('profile/update/{id}', [UserController::class, 'update'])->middleware('auth:api');
 
@@ -56,18 +55,27 @@ Route::group(
         Route::post('password/reset', [ResetPassword::class, 'reset']);
 
         Route::get('users/{id}', [UserController::class, 'show']);
-        Route::delete('addresses/destroy/{id}', [UserController::class, 'destroyAddress']);
+
 
     }
 );
 
-Route::get('categories', [CategoryController::class, 'index']);
+Route::group(
+    [
+        'middleware' => ['api','auth:api'],
+    ],
+    function ($router) {
+        Route::apiResource('address', AddressController::class);
+    }
+);
 
+
+Route::get('categories', [CategoryController::class, 'index']);
 
 
 Route::group(
     [
-        'middleware' => ['auth:api', 'role:admin','admin'],
+        'middleware' => ['auth:api', 'role:admin', 'admin'],
         'prefix' => 'admin',
     ],
     function ($router) {
@@ -86,9 +94,6 @@ Route::group(
         Route::apiResource('product/variants', ProductVariantController::class);
 
         Route::get('users', [UserController::class, 'index']);
-        Route::delete('users/destroy/{id}', [UserController::class, 'destroy']);
-
-//      Voucher
 
     }
 );
