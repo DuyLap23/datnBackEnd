@@ -8,6 +8,7 @@ use App\Models\User;
 use Exception;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
 
@@ -380,7 +381,7 @@ class UserController extends Controller
             DB::commit();
 
             $avatarUrl = Storage::disk('public')->url($user->avatar);
-
+            Log::info('Cập nhật người dùng thành công.', ['user_id' => $user->id]);
             return response()->json([
                 'success' => true,
                 'message' => 'Cập nhật thông tin thành công.',
@@ -397,6 +398,7 @@ class UserController extends Controller
         } catch
         (ValidationException $e) {
             DB::rollBack();
+            Log::error('Lỗi khi cập nhật người dùng.', ['error' => $e->getMessage()]);
             return response()->json([
                 'success' => false,
                 'message' => 'Dữ liệu không hợp lệ.',
@@ -404,6 +406,7 @@ class UserController extends Controller
             ], 422);
         } catch (Exception $e) {
             DB::rollBack();
+            Log::error('Lỗi khi cập nhật người dùng.', ['error' => $e->getMessage()]);
             return response()->json([
                 'success' => false,
                 'message' => 'Cập nhật thông tin thất bại',

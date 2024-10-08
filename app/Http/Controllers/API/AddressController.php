@@ -91,7 +91,7 @@ class AddressController extends Controller
             ], 404);
         } catch (\Exception $e) {
             // Ghi log lỗi
-            Log::error('Error in AddressController@index: ' . $e->getMessage());
+            Log::info('Đã xảy ra lỗi: ' . $e->getMessage());
 
             // Nếu có lỗi không mong muốn khác, trả về lỗi 500
             return response()->json([

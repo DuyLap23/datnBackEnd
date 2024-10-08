@@ -65,7 +65,7 @@ Route::group(
         'middleware' => ['api','auth:api'],
     ],
     function ($router) {
-        Route::apiResource('address', AddressController::class);
+        Route::apiResource('addresses', AddressController::class);
     }
 );
 
