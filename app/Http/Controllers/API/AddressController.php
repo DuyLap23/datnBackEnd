@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\AddressRequests;
 use App\Models\Address;
 use Exception;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
@@ -189,15 +190,13 @@ class AddressController extends Controller
                 'district' => $request->district,
                 'ward' => $request->ward,
                 'detail_address' => $request->detail_address,
-                'is_default' => $request->is_default,
+                'is_default' => true,
             ]);
-
-            // Nếu `is_default` là true, cập nhật các địa chỉ khác thành không mặc định
-            if ($request->has('is_default') && $request->is_default) {
-                Address::where('user_id', $currentUser->id)
+            // Cập nhật các địa chỉ khác thành không mặc định
+            Address::where('user_id', $currentUser->id)
                     ->where('id', '!=', $newAddress->id)
                     ->update(['is_default' => false]);
-            }
+
 
             DB::commit();
 
@@ -335,81 +334,81 @@ class AddressController extends Controller
      */
     public function update(AddressRequests $request, string $id)
     {
-//        // Lấy người dùng hiện tại từ token Bearer
-//        $currentUser = auth('api')->user();
-//
-//        // Kiểm tra xem người dùng hiện tại có phải là người được yêu cầu cập nhật không
-//        if ($currentUser->id != $id) {
-//            return response()->json([
-//                'success' => false,
-//                'message' => 'Bạn không có quyền chỉnh sửa thông tin của người dùng khác.'
-//            ], 403); // 403 Forbidden
-//        }
-//
-//        DB::beginTransaction();
-//        try {
-//           $address = Address::findOrFail($id);
-//
-//            // Kiểm tra nếu `is_default` là true, cập nhật các địa chỉ khác thành không mặc định
-//            if ($request->has('is_default') && $request->is_default) {
-//                Address::where('user_id', $currentUser->id)->update(['is_default' => false]);
-//            }
-//
-//
-//
-//            // Cập nhật hoặc tạo mới địa chỉ
-//            $address = Address::updateOrCreate(
-//                [
-//                    'user_id' => $currentUser->id,
-//                    'ward' => $request->ward,
-//                    'detail_address' => $request->detail_address,
-//                ],
-//                [
-//                    'address_name' => $request->address_name,
-//                    'phone_number' => $request->phone_number,
-//                    'city' => $request->city,
-//                    'district' => $request->district,
-//                    'ward' => $request->ward,
-//                    'is_default' => $request->is_default,
-//                ]
-//            );
-//
-//            // Load danh sách địa chỉ mới nhất
-//            $user->load(['addresses' => function ($query) {
-//                $query->latest('id');
-//            }]);
-//
-//            DB::commit();
-//
-//            return response()->json([
-//                'success' => true,
-//                'message' => 'Cập nhật thông tin thành công.',
-//                'data' => [
-//                    'addresses' => $user->addresses, // Trả về danh sách địa chỉ
-//                ]
-//            ], 200);
-//        } catch (ModelNotFoundException $e) {
-//            DB::rollBack();
-//            return response()->json([
-//                'success' => false,
-//                'message' => 'Không tìm thấy địa chỉ.',
-//            ], 404);
-//        } catch (ValidationException $e) {
-//            DB::rollBack();
-//            return response()->json([
-//                'success' => false,
-//                'message' => 'Dữ liệu không hợp lệ.',
-//                'errors' => $e->errors(),
-//            ], 422);
-//        } catch (Exception $e) {
-//            DB::rollBack();
-//            return response()->json([
-//                'success' => false,
-//                'message' => 'Cập nhật thông tin thất bại',
-//                'error' => $e->getMessage(),
-//            ], 500);
-//        }
+        // Lấy người dùng hiện tại từ token Bearer
+        $currentUser = auth('api')->user();
+
+        if (!$currentUser) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Bạn cần đăng nhập để xem thông tin.'
+            ], 401); // 401 Unauthorized
+        }
+
+        // Kiểm tra xem người dùng hiện tại có phải là chủ sở hữu của địa chỉ không
+        $address = Address::findOrFail($id);
+
+        if ($address->user_id != $currentUser->id) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Bạn không có quyền chỉnh sửa địa chỉ của người dùng khác.'
+            ], 403); // 403 Forbidden
+        }
+
+        DB::beginTransaction();
+        try {
+            // Kiểm tra nếu `is_default` là true, cập nhật các địa chỉ khác thành không mặc định
+            if ($request->has('is_default') && $request->is_default) {
+                Address::where('user_id', $currentUser->id)->update(['is_default' => false]);
+            }
+
+            // Cập nhật địa chỉ
+            $address->update([
+                'address_name' => $request->address_name,
+                'phone_number' => $request->phone_number,
+                'city' => $request->city,
+                'district' => $request->district,
+                'ward' => $request->ward,
+                'detail_address' => $request->detail_address,
+                'is_default' => $request->is_default,
+            ]);
+
+            // Load danh sách địa chỉ mới nhất
+            $currentUser->load(['addresses' => function ($query) {
+                $query->latest('id');
+            }]);
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Cập nhật thông tin thành công.',
+                'data' => [
+                    'addresses' => $currentUser->addresses, // Trả về danh sách địa chỉ
+                ]
+            ], 200);
+        } catch (ModelNotFoundException $e) {
+            DB::rollBack();
+            return response()->json([
+                'success' => false,
+                'message' => 'Không tìm thấy địa chỉ.',
+            ], 404);
+        } catch (ValidationException $e) {
+            DB::rollBack();
+            return response()->json([
+                'success' => false,
+                'message' => 'Dữ liệu không hợp lệ.',
+                'errors' => $e->errors(),
+            ], 422);
+        } catch (Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'success' => false,
+                'message' => 'Cập nhật thông tin thất bại.',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
     }
+
 
 
 
