@@ -8,6 +8,7 @@ use App\Models\User;
 use Exception;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
 
@@ -235,7 +236,7 @@ class UserController extends Controller
      *         in="path",
      *         required=true,
      *         description="ID của người dùng cần cập nhật",
-     *         @OA\Schema(type="integer")
+     *         @OA\Schema(type="bigint")
      *     ),
      *     @OA\RequestBody(
      *         required=true,
@@ -248,20 +249,20 @@ class UserController extends Controller
      *                     description="Tên người dùng"
      *                 ),
      *                 @OA\Property(
-     *                     property="email",
-     *                     type="string",
-     *                     description="Email của người dùng"
-     *                 ),
-     *                 @OA\Property(
-     *                     property="phone",
-     *                     type="string",
-     *                     description="Số điện thoại của người dùng"
-     *                 ),
-     *                 @OA\Property(
      *                     property="avatar",
      *                     type="file",
      *                     description="Ảnh đại diện của người dùng"
-     *                 )
+     *                 ),
+     *                  @OA\Property(
+     *                      property="link_fb",
+     *                      type="string",
+     *                      description="link facebook"
+     *                  ),
+     *                  @OA\Property(
+     *                      property="link_tt",
+     *                      type="string",
+     *                      description="link tiktok"
+     *                  )
      *             )
      *         )
      *     ),
@@ -275,6 +276,14 @@ class UserController extends Controller
      *                 @OA\Property(property="user", ref="#/components/schemas/User"),
      *                 @OA\Property(property="avatar_url", type="string", example="http://example.com/storage/avatars/avatar.jpg")
      *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=401,
+     *         description="Chưa đăng nhập",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=false),
+     *             @OA\Property(property="message", type="string", example="Bạn cần đăng nhập để xem thông tin.")
      *         )
      *     ),
      *     @OA\Response(
@@ -320,11 +329,17 @@ class UserController extends Controller
      *     )
      * )
      */
+
     public function update(UpdateProfileRequests $request, $id)
     {
         // Lấy người dùng hiện tại từ token Bearer
         $currentUser = auth('api')->user();
-
+        if (!$currentUser) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Bạn cần đăng nhập để xem thông tin.'
+            ], 401); // 401 Unauthorized
+        }
         // Kiểm tra xem người dùng hiện tại có phải là người được yêu cầu cập nhật không
         if ($currentUser->id != $id) {
             return response()->json([
@@ -363,11 +378,10 @@ class UserController extends Controller
                 Storage::disk('public')->delete($old_avatar);
             }
 
-//
             DB::commit();
 
             $avatarUrl = Storage::disk('public')->url($user->avatar);
-
+            Log::info('Cập nhật người dùng thành công.', ['user_id' => $user->id]);
             return response()->json([
                 'success' => true,
                 'message' => 'Cập nhật thông tin thành công.',
@@ -384,6 +398,7 @@ class UserController extends Controller
         } catch
         (ValidationException $e) {
             DB::rollBack();
+            Log::error('Lỗi khi cập nhật người dùng.', ['error' => $e->getMessage()]);
             return response()->json([
                 'success' => false,
                 'message' => 'Dữ liệu không hợp lệ.',
@@ -391,6 +406,7 @@ class UserController extends Controller
             ], 422);
         } catch (Exception $e) {
             DB::rollBack();
+            Log::error('Lỗi khi cập nhật người dùng.', ['error' => $e->getMessage()]);
             return response()->json([
                 'success' => false,
                 'message' => 'Cập nhật thông tin thất bại',
