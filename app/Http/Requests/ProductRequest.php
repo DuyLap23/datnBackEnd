@@ -33,15 +33,15 @@ class ProductRequest extends FormRequest
     public function rules(): array
     {
         return [
+            // Các quy tắc hiện có
             'name' => 'required|max:255',
             'description' => 'required',
-            'price' => 'required|numeric',
             'is_active' => 'required|boolean',
-            'is_new' => 'required|boolean',
-            'is_show_home' => 'required|boolean',
+            'is_new' => 'boolean',
+            'is_show_home' => 'boolean',
             'brand_id' => 'required|exists:brands,id',
             'category_id' => 'required|exists:categories,id',
-            'image' => 'required|mimes:jpeg,jpg,png,svg,webp|max:1500',
+            // 'image' => 'required|mimes:jpeg,jpg,png,svg,webp|max:1500',
             'product_variants' => 'required|array',
             'product_variants.*.product_size_id' => 'required|exists:product_sizes,id',
             'product_variants.*.product_color_id' => 'required|exists:product_colors,id',
@@ -53,17 +53,19 @@ class ProductRequest extends FormRequest
             'img_thumbnail' => 'required|mimes:jpeg,jpg,png,svg,webp|max:1500',
             'price_regular' => 'required|numeric',
             'price_sale' => 'nullable|numeric',
+            // Thêm quy tắc cho tags
+            // 'tags' => 'required|array',
+            // 'tags.*' => 'required|exists:tags,id', // Hoặc bạn có thể kiểm tra theo tên tag nếu cần
         ];
     }
 
     public function messages()
     {
         return [
+            // Các thông báo hiện có
             'name.required' => 'Vui lòng nhập tên sản phẩm',
             'name.max' => 'Vui lòng nhập tên sản phẩm < 255 ký tự',
             'description.required' => 'Vui lòng nhập mô tả sản phẩm',
-            'price.required' => 'Vui lòng nhập giá sản phẩm',
-            'price.numeric' => 'Giá sản phẩm phải là số',
             'is_active.required' => 'Vui lòng chọn trạng thái hoạt động',
             'is_active.boolean' => 'Trạng thái hoạt động phải là true hoặc false',
             'is_new.required' => 'Vui lòng chọn trạng thái mới',
@@ -74,9 +76,9 @@ class ProductRequest extends FormRequest
             'brand_id.exists' => 'Thương hiệu không tồn tại',
             'category_id.required' => 'Vui lòng chọn danh mục',
             'category_id.exists' => 'Danh mục không tồn tại',
-            'image.required' => 'Vui lòng chọn hình ảnh',
-            'image.mimes' => 'Hình ảnh phải là định dạng jpeg, jpg, png, svg, webp',
-            'image.max' => 'Hình ảnh phải nhỏ hơn 1500KB',
+            // 'image.required' => 'Vui lòng chọn hình ảnh',
+            // 'image.mimes' => 'Hình ảnh phải là định dạng jpeg, jpg, png, svg, webp',
+            // 'image.max' => 'Hình ảnh phải nhỏ hơn 1500KB',
             'product_variants.required' => 'Vui lòng nhập biến thể sản phẩm',
             'product_variants.array' => 'Biến thể sản phẩm phải là mảng',
             'product_variants.*.product_size_id.required' => 'Vui lòng chọn kích thước sản phẩm',
@@ -86,7 +88,7 @@ class ProductRequest extends FormRequest
             'product_variants.*.quantity.required' => 'Vui lòng nhập số lượng sản phẩm',
             'product_variants.*.quantity.numeric' => 'Số lượng sản phẩm phải là số',
             'product_variants.*.image.required' => 'Vui lòng chọn hình ảnh sản phẩm',
-            'product_variants.*.image.mimes' => 'Hình ảnh sản phẩm phải là định dạng jpeg, jpg, png, svg, webp',    
+            'product_variants.*.image.mimes' => 'Hình ảnh sản phẩm phải là định dạng jpeg, jpg, png, svg, webp',
             'product_variants.*.image.max' => 'Hình ảnh sản phẩm phải nhỏ hơn 1500KB',
             'content.required' => 'Vui lòng nhập nội dung sản phẩm',
             'user_manual.required' => 'Vui lòng nhập hướng dẫn sử dụng sản phẩm',
@@ -98,6 +100,11 @@ class ProductRequest extends FormRequest
             'price_regular.required' => 'Vui lòng nhập giá sản phẩm thường',
             'price_regular.numeric' => 'Giá sản phẩm thường phải là số',
             'price_sale.numeric' => 'Giá sản phẩm sale phải là số',
+            // Thêm thông báo cho tags
+            // 'tags.required' => 'Vui lòng nhập tags cho sản phẩm',
+            // 'tags.array' => 'Tags phải là mảng',
+            // 'tags.*.required' => 'Vui lòng chọn tag',
+            // 'tags.*.exists' => 'Tag không tồn tại',
         ];
     }
 }
