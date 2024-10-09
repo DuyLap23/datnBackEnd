@@ -51,7 +51,10 @@ class User extends Authenticatable implements JWTSubject
         'password',
         'remember_token',
     ];
-
+    public function isAdmin()
+    {
+        return $this->role === 'admin'; //  cột 'role' để xác định vai trò người dùng
+    }
     /**
      * The attributes that should be cast.
      *

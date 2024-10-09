@@ -3,6 +3,7 @@
 namespace App\Exceptions;
 
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
+use Illuminate\Auth\AuthenticationException; 
 use Throwable;
 
 class Handler extends ExceptionHandler
@@ -27,4 +28,19 @@ class Handler extends ExceptionHandler
             //
         });
     }
+
+    /**
+     * Customize the unauthenticated response.
+     *
+     * @param \Illuminate\Http\Request $request
+     * @param \Illuminate\Auth\AuthenticationException $exception
+     * @return \Illuminate\Http\JsonResponse
+     */
+    protected function unauthenticated($request, AuthenticationException $exception)
+    {
+        return response()->json([
+            'message' => 'Bạn cần đăng nhập để thực hiện hành động này.'
+        ], 401);
+    }
+
 }

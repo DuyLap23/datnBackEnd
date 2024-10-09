@@ -21,8 +21,8 @@ class LoginController extends Controller
      *         required=true,
      *         @OA\JsonContent(
      *             required={"email", "password"},
-     *             @OA\Property(property="email", type="string", format="email", example="crawford.kunze@example.com"),
-     *             @OA\Property(property="password", type="string", format="password", example="password"),
+     *             @OA\Property(property="email", type="string", format="email", example="hoangduylap124@gmail.com"),
+     *             @OA\Property(property="password", type="string", format="password", example="newpassword"),
      *         )
      *     ),
      *     @OA\Response(
@@ -82,6 +82,47 @@ class LoginController extends Controller
 
         return response()->json(['message' => 'Successfully logged out']);
     }
+
+    /**
+     * @OA\Post(
+     *     path="/api/auth/refresh",
+     *     summary="Refresh token",
+     *     tags={"Auth"},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"refresh_token"},
+     *             @OA\Property(property="refresh_token", type="string", description="JWT refresh token")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Token refreshed successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="access_token", type="string", description="New JWT access token"),
+     *             @OA\Property(property="refresh_token", type="string", description="New JWT refresh token"),
+     *             @OA\Property(property="token_type", type="string", example="bearer", description="Type of the token"),
+     *             @OA\Property(property="expires_in", type="integer", description="Time in seconds before the token expires")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=401,
+     *         description="Unauthorized, user not authenticated",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="error", type="string", description="Error message")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=500,
+     *         description="Internal server error",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="error", type="string", description="Error message")
+     *         )
+     *     ),
+     *     security={{"bearerAuth": {}}}
+     * )
+     */
+
     public function refresh()
     {
         $refreshToken = request()->refresh_token;

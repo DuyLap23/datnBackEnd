@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Foundation\Validation\ValidatesRequests;
 use Illuminate\Routing\Controller as BaseController;
-
 /**
  * @OA\OpenApi(
  *     @OA\Info(
@@ -30,21 +29,9 @@ use Illuminate\Routing\Controller as BaseController;
  *             type="object",
  *             @OA\Property(property="id", type="integer", example=1),
  *             @OA\Property(property="name", type="string", example="Nguyễn Văn A"),
- *             @OA\Property(property="email", type="string", example="email@example.com"),
  *             @OA\Property(property="avatar", type="string", example="path/to/avatar.png"),
- *             @OA\Property(property="addresses", type="array",
- *                 @OA\Items(ref="#/components/schemas/Address")
- *             )
- *         ),
- *         @OA\Schema(
- *             schema="UpdateProfileRequest",
- *             type="object",
- *             @OA\Property(property="name", type="string", example="Nguyễn Văn A"),
- *             @OA\Property(property="email", type="string", example="email@example.com"),
- *             @OA\Property(property="avatar", type="string", example="path/to/avatar.png"),
- *             @OA\Property(property="addresses", type="array",
- *                 @OA\Items(ref="#/components/schemas/Address")
- *             )
+ *             @OA\Property(property="link_fb", type="string", example="https://github.com/DuyLap23/datnBackEnd"),
+ *             @OA\Property(property="link_tiktok", type="string", example="https://github.com/DuyLap23/datnBackEnd"),
  *         ),
  *         @OA\Schema(
  *             schema="Address",
@@ -52,6 +39,7 @@ use Illuminate\Routing\Controller as BaseController;
  *             @OA\Property(property="id", type="integer", example=1),
  *             @OA\Property(property="user_id", type="integer", example=1),
  *             @OA\Property(property="address_name", type="string", example="Số 1, Đường ABC"),
+ *             @OA\Property(property="phone_number", type="string", example="0123456789"),
  *             @OA\Property(property="city", type="string", example="Hà Nội"),
  *             @OA\Property(property="district", type="string", example="Quận Hoàn Kiếm"),
  *             @OA\Property(property="ward", type="string", example="Phường Tràng Tiền"),
@@ -67,6 +55,7 @@ use Illuminate\Routing\Controller as BaseController;
  *     )
  * )
  */
+
 class Controller extends BaseController
 {
     use AuthorizesRequests, ValidatesRequests;

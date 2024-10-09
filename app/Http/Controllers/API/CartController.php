@@ -7,9 +7,63 @@ use Illuminate\Http\Request;
 
 class CartController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
+     /**
+ * @OA\Post(
+ * path="/api/create-store",
+ * summary="",
+ * description="Tạo mới cửa hàng",
+ * tags={"Create Cart"},
+ * @OA\RequestBody(
+ * required=true,
+ * @OA\MediaType(
+ * mediaType="application/json",
+ * @OA\Schema(
+ * @OA\Property(
+ * property="name",
+ * type="string",
+ * description="Giỏ hàng",
+ * example="Cửa hàng 1",
+ * ),
+ * ),
+ * ),
+ * ),
+ * @OA\Response(
+ * response=200,
+ * description="Thành công",
+ * @OA\JsonContent(
+ * @OA\Property(
+ * property="success",
+ * type="boolean",
+ * example=true,
+ * ),
+ * @OA\Property(
+ * property="message",
+ * type="string",
+ * example="Success",
+ * ),
+ * @OA\Property(
+ * property="status",
+ * type="string",
+ * example="200",
+ * ),
+ * @OA\Property(
+ * property="data",
+ * type="object",
+ * @OA\Property(
+ * property="id",
+ * type="integer",
+ * example=1,
+ * ),
+ * @OA\Property(
+ * property="name",
+ * type="string",
+ * example="Cửa hàng 1",
+ * ),
+ * ),
+ * ),
+ * ),
+ * )
+ */
     public function index()
     {
         //

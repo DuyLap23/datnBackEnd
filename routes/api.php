@@ -6,8 +6,6 @@ use App\Http\Controllers\API\Auth\RegisterController;
 use App\Http\Controllers\API\Auth\ResetPassword;
 use App\Http\Controllers\API\Auth\UserController;
 use App\Http\Controllers\API\BannerMktController;
-use App\Http\Controllers\API\TagController;
-use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\API\BrandController;
 use App\Http\Controllers\API\CartController;
 use App\Http\Controllers\API\CategoryController;
@@ -20,6 +18,9 @@ use App\Http\Controllers\API\ProductController;
 use App\Http\Controllers\API\ProductImageController;
 use App\Http\Controllers\API\ProductSizeController;
 use App\Http\Controllers\API\ProductVariantController;
+use App\Http\Controllers\API\TagController;
+use App\Http\Controllers\API\VouCherController;
+use Illuminate\Support\Facades\Route;
 
 /*
 |--------------------------------------------------------------------------
@@ -47,36 +48,76 @@ Route::group(
         // Làm mới token, cần kiểm tra đã đăng nhập
         Route::post('refresh', [LoginController::class, 'refresh'])->middleware('auth:api');
 
-
         Route::get('profile', [UserController::class, 'profile'])->middleware('auth:api');
         Route::put('profile/update/{id}', [UserController::class, 'update'])->middleware('auth:api');
 
         Route::post('password/forgot', [ResetPassword::class, 'sendResetLinkEmail']);
-        Route::post('password/reset', [ResetPassword::class, 'reset'])->name('password.reset');
+        Route::post('password/reset', [ResetPassword::class, 'reset']);
+
+        Route::get('users/{id}', [UserController::class, 'show']);
+
+
     }
 );
 
 Route::group(
     [
-        'middleware' => ['auth:api', 'role:admin'],
+        'middleware' => ['api','auth:api'],
+    ],
+    function ($router) {
+        Route::apiResource('addresses', AddressController::class);
+    }
+);
+
+
+Route::get('categories', [CategoryController::class, 'index']);
+
+
+Route::group(
+    [
+        'middleware' => ['auth:api', 'role:admin', 'admin'],
         'prefix' => 'admin',
     ],
     function ($router) {
-        Route::apiResource('categories', CategoryController::class);
+        Route::post('categories', [CategoryController::class, 'store']);
+        Route::put('categories/{id}', [CategoryController::class, 'update']);
+        Route::get('categories/{id}', [CategoryController::class, 'show']);
+        Route::delete('categories/{id}', [CategoryController::class, 'destroy']);
+//        Route::apiResource('categories', CategoryController::class);
         Route::apiResource('brands', BrandController::class);
         Route::apiResource('tags', TagController::class);
-        Route::apiResource('addresses', AddressController::class);
-        Route::apiResource('banners', BannerMktController::class);
         Route::apiResource('products', ProductController::class);
         Route::apiResource('product/colors', ProductColorController::class);
         Route::apiResource('product/images', ProductImageController::class);
         Route::apiResource('product/sizes', ProductSizeController::class);
         Route::apiResource('product/variants', ProductVariantController::class);
+
         Route::get('users', [UserController::class, 'index']);
-        Route::get('users/{id}', [UserController::class, 'show']);
+
+         // Comments routes
+        Route::get('comments', [CommentController::class, 'index']);  
+        Route::post('comments', [CommentController::class, 'store']); 
+        Route::get('comments/{id}', [CommentController::class, 'show']); 
+        Route::put('comments/{id}', [CommentController::class, 'update']); 
+        Route::delete('comments/{id}', [CommentController::class, 'destroy']);
+
+        Route::get('banners', [BannerMktController::class, 'index']);
+        Route::post('banners', [BannerMktController::class, 'store']);
+        Route::put('banners/{id}', [BannerMktController::class, 'update']);
+        Route::get('banners/{id}', [BannerMktController::class, 'show']);
+        Route::delete('banners/{id}', [BannerMktController::class, 'destroy']);
+
+
     }
 );
-Route::apiResource('category', CategoryController::class);
+
+Route::get('voucher', [VouCherController::class, 'index']);
+Route::post('voucher', [VouCherController::class, 'store']);
+Route::put('voucher/{id}', [VouCherController::class, 'update']);
+Route::get('voucher/{id}', [VouCherController::class, 'show']);
+Route::delete('voucher/{id}', [VouCherController::class, 'destroy']);
+
+
 Route::group(
     [
         'middleware' => ['auth:api', 'role:staff'],
@@ -86,15 +127,14 @@ Route::group(
         Route::apiResource('orders', OrderController::class);
         Route::apiResource('order/items', OrderItemController::class);
         Route::apiResource('favourites', FavouriteListController::class);
-        Route::apiResource('comments', CommentController::class);
         Route::apiResource('carts', CartController::class);
     }
 );
 
 Route::group(
     [
-        'middleware' => ['auth:api', 'role:customer'],
-        'prefix' => 'customer',
+        'middleware' => ['auth:api', 'role:customer,admin,staff'],
+
     ],
     function ($router) {
         Route::get('products', [ProductController::class, 'index']);
@@ -105,3 +145,4 @@ Route::group(
         Route::get('orders/{id}', [OrderController::class, 'show']);
     }
 );
+
