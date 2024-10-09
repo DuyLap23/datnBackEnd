@@ -26,7 +26,7 @@ class ProductVariant extends Model
     {
         return $this->belongsTo(ProductColor::class);
     }
-    
+
     public function productSize()
     {
         return $this->belongsTo(ProductSize::class);

@@ -53,7 +53,7 @@ class Product extends Model
 
     public function tags()
     {
-        return $this->belongsToMany(Tag::class);
+        return $this->belongsToMany(Tag::class, 'product_tags');
     }
 
     public function productImages()
@@ -62,6 +62,10 @@ class Product extends Model
     }
 
     public function productVariants()
+    {
+        return $this->hasMany(ProductVariant::class);
+    }
+    public function variants()
     {
         return $this->hasMany(ProductVariant::class);
     }
