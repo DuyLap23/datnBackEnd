@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 class CategoryController extends Controller
 {
@@ -315,7 +316,7 @@ class CategoryController extends Controller
     public function store(Request $request)
     {
         DB::beginTransaction();
-
+    $currentUser = auth('api')->user();
         try {
             // Validate dữ liệu đầu vào
             $data = $request->validate([
@@ -323,7 +324,7 @@ class CategoryController extends Controller
                 'image' => ['required', 'mimes:jpeg,jpg,png,svg,webp', 'max:1500'],
                 'parent_id' => ['nullable', 'exists:categories,id'],
             ]);
-
+            $data['slug'] = Str::slug($request->name);
             // Kiểm tra và lưu ảnh nếu có
             if ($request->hasFile('image')) {
                 $path = $request->file('image')->store(self::PATH_UPLOAD, 'public');
