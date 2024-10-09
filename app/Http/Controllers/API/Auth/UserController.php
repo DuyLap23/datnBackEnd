@@ -364,6 +364,7 @@ class UserController extends Controller
             // Xử lý avatar
             if ($request->hasFile('avatar')) {
                 $data['avatar'] = $request->file('avatar')->store('avatars', 'public');
+                $data['avatar'] = asset('storage/' .  $data['avatar']);
                 $old_avatar = $user->avatar;
             } else {
                 $data['avatar'] = $user->avatar;
@@ -387,7 +388,6 @@ class UserController extends Controller
                 'message' => 'Cập nhật thông tin thành công.',
                 'data' => [
                     'user' => $user,
-                    'avatar_url' => $avatarUrl,
                 ]
             ], 200);
         } catch (ModelNotFoundException $e) {
