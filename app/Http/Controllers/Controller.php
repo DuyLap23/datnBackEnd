@@ -51,10 +51,18 @@ use Illuminate\Routing\Controller as BaseController;
  *             type="object",
  *             required={"email"},
  *             @OA\Property(property="email", type="string", format="email", example="user@example.com")
+ *         ),
+ *         @OA\Schema(
+ *             schema="Category",
+ *             required={"id", "name"},
+ *             @OA\Property(property="id", type="integer", example=1),
+ *             @OA\Property(property="name", type="string", example="Danh mục sản phẩm"),
+ *             @OA\Property(property="deleted_at", type="string", format="date-time", example="2024-10-08T00:00:00Z"),
  *         )
  *     )
  * )
  */
+
 
 class Controller extends BaseController
 {

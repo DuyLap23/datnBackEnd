@@ -33,6 +33,7 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
+//AUTH
 Route::group(
     [
         'middleware' => 'api',
@@ -60,30 +61,44 @@ Route::group(
     }
 );
 
+//NHỮNG ROUTER CẦN CHECK ĐĂNG NHẬP
 Route::group(
     [
         'middleware' => ['api','auth:api'],
     ],
     function ($router) {
         Route::apiResource('addresses', AddressController::class);
+
+//        Route::get('voucher', [VouCherController::class, 'index']);
+//        Route::post('voucher', [VouCherController::class, 'store']);
+//        Route::put('voucher/{id}', [VouCherController::class, 'update']);
+//        Route::get('voucher/{id}', [VouCherController::class, 'show']);
+//        Route::delete('voucher/{id}', [VouCherController::class, 'destroy']);
     }
 );
 
 
+//Những đầu route không cần check đăng nhập và role vất vào đây
 Route::get('categories', [CategoryController::class, 'index']);
 
 
+//ADMIN
 Route::group(
     [
         'middleware' => ['auth:api', 'role:admin', 'admin'],
         'prefix' => 'admin',
     ],
     function ($router) {
+
+        //CATEGORIES
+        Route::get('categories/trashed', [CategoryController::class, 'trashed']);
         Route::post('categories', [CategoryController::class, 'store']);
         Route::put('categories/{id}', [CategoryController::class, 'update']);
         Route::get('categories/{id}', [CategoryController::class, 'show']);
         Route::delete('categories/{id}', [CategoryController::class, 'destroy']);
-//        Route::apiResource('categories', CategoryController::class);
+
+
+        Route::apiResource('voucher', VouCherController::class);
         Route::apiResource('brands', BrandController::class);
         Route::apiResource('tags', TagController::class);
         Route::apiResource('products', ProductController::class);
@@ -95,10 +110,10 @@ Route::group(
         Route::get('users', [UserController::class, 'index']);
 
          // Comments routes
-        Route::get('comments', [CommentController::class, 'index']);  
-        Route::post('comments', [CommentController::class, 'store']); 
-        Route::get('comments/{id}', [CommentController::class, 'show']); 
-        Route::put('comments/{id}', [CommentController::class, 'update']); 
+        Route::get('comments', [CommentController::class, 'index']);
+        Route::post('comments', [CommentController::class, 'store']);
+        Route::get('comments/{id}', [CommentController::class, 'show']);
+        Route::put('comments/{id}', [CommentController::class, 'update']);
         Route::delete('comments/{id}', [CommentController::class, 'destroy']);
 
         Route::get('banners', [BannerMktController::class, 'index']);
@@ -111,13 +126,8 @@ Route::group(
     }
 );
 
-Route::get('voucher', [VouCherController::class, 'index']);
-Route::post('voucher', [VouCherController::class, 'store']);
-Route::put('voucher/{id}', [VouCherController::class, 'update']);
-Route::get('voucher/{id}', [VouCherController::class, 'show']);
-Route::delete('voucher/{id}', [VouCherController::class, 'destroy']);
 
-
+//STAFF
 Route::group(
     [
         'middleware' => ['auth:api', 'role:staff'],
@@ -131,6 +141,7 @@ Route::group(
     }
 );
 
+//CUSTOMER
 Route::group(
     [
         'middleware' => ['auth:api', 'role:customer,admin,staff'],
