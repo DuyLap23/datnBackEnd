@@ -405,7 +405,6 @@ class AddressController extends Controller
      *                 @OA\Property(property="address_name", type="array",
      *                     @OA\Items(type="string", example="Trường này là bắt buộc.")
      *                 )
-     *                 // Thêm các trường lỗi khác nếu cần
      *             )
      *         )
      *     ),
