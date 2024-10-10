@@ -53,7 +53,7 @@ Route::group(
         Route::put('profile/update/{id}', [UserController::class, 'update'])->middleware('auth:api');
 
         Route::post('password/forgot', [ResetPassword::class, 'sendResetLinkEmail']);
-        Route::post('password/reset', [ResetPassword::class, 'reset']);
+        Route::post('password/reset', [ResetPassword::class, 'reset'])->name('password.reset');
 
         Route::get('users/{id}', [UserController::class, 'show']);
 
