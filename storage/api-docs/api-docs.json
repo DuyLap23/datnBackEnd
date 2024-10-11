@@ -2498,20 +2498,8 @@
                     "Category"
                 ],
                 "summary": "Lấy danh sách danh mục",
-                "description": "Trả về danh sách tất cả các danh mục chính và danh mục cha.",
+                "description": "Trả về danh sách tất cả các danh mục chính và danh mục con.",
                 "operationId": "8e17a9627dbed245cf032f867569cf11",
-                "parameters": [
-                    {
-                        "name": "page",
-                        "in": "query",
-                        "description": "Số trang hiện tại",
-                        "required": false,
-                        "schema": {
-                            "type": "integer",
-                            "example": 1
-                        }
-                    }
-                ],
                 "responses": {
                     "200": {
                         "description": "Thành công",
@@ -2527,113 +2515,92 @@
                                             "type": "string",
                                             "example": "Lấy thành công danh mục"
                                         },
-                                        "data": {
-                                            "properties": {
-                                                "categories": {
-                                                    "properties": {
-                                                        "current_page": {
-                                                            "type": "integer",
-                                                            "example": 1
-                                                        },
-                                                        "data": {
-                                                            "type": "array",
-                                                            "items": {
-                                                                "properties": {
-                                                                    "id": {
-                                                                        "type": "integer",
-                                                                        "example": 1
-                                                                    },
-                                                                    "name": {
-                                                                        "type": "string",
-                                                                        "example": "Danh mục 1"
-                                                                    },
-                                                                    "image": {
-                                                                        "type": "string",
-                                                                        "example": "image.png"
-                                                                    },
-                                                                    "parent_id": {
-                                                                        "type": "integer",
-                                                                        "example": null,
-                                                                        "nullable": true
-                                                                    },
-                                                                    "children": {
-                                                                        "type": "array",
-                                                                        "items": {
-                                                                            "properties": {
-                                                                                "id": {
-                                                                                    "type": "integer",
-                                                                                    "example": 2
-                                                                                },
-                                                                                "name": {
-                                                                                    "type": "string",
-                                                                                    "example": "Danh mục con 1"
-                                                                                },
-                                                                                "image": {
-                                                                                    "type": "string",
-                                                                                    "example": "child_image.png"
-                                                                                },
-                                                                                "parent_id": {
-                                                                                    "type": "integer",
-                                                                                    "example": 1
-                                                                                }
-                                                                            },
-                                                                            "type": "object"
-                                                                        }
-                                                                    }
-                                                                },
-                                                                "type": "object"
-                                                            }
-                                                        },
-                                                        "total": {
-                                                            "type": "integer",
-                                                            "example": 10
-                                                        },
-                                                        "last_page": {
-                                                            "type": "integer",
-                                                            "example": 1
-                                                        },
-                                                        "per_page": {
-                                                            "type": "integer",
-                                                            "example": 10
-                                                        },
-                                                        "from": {
-                                                            "type": "integer",
-                                                            "example": 1
-                                                        },
-                                                        "to": {
-                                                            "type": "integer",
-                                                            "example": 10
-                                                        }
+                                        "categories": {
+                                            "type": "array",
+                                            "items": {
+                                                "properties": {
+                                                    "id": {
+                                                        "type": "integer",
+                                                        "example": 3
                                                     },
-                                                    "type": "object"
-                                                },
-                                                "categoryParent": {
-                                                    "type": "array",
-                                                    "items": {
-                                                        "properties": {
-                                                            "id": {
-                                                                "type": "integer",
-                                                                "example": 1
+                                                    "name": {
+                                                        "type": "string",
+                                                        "example": "Category 2"
+                                                    },
+                                                    "slug": {
+                                                        "type": "string",
+                                                        "example": ""
+                                                    },
+                                                    "image": {
+                                                        "type": "string",
+                                                        "example": "https://picsum.photos/200/300?random=2"
+                                                    },
+                                                    "parent_id": {
+                                                        "type": "integer",
+                                                        "example": null,
+                                                        "nullable": true
+                                                    },
+                                                    "created_at": {
+                                                        "type": "string",
+                                                        "format": "date-time",
+                                                        "example": "2024-09-05T16:26:27.000000Z"
+                                                    },
+                                                    "updated_at": {
+                                                        "type": "string",
+                                                        "format": "date-time",
+                                                        "example": "2024-09-05T16:26:27.000000Z"
+                                                    },
+                                                    "deleted_at": {
+                                                        "type": "string",
+                                                        "example": null,
+                                                        "nullable": true
+                                                    },
+                                                    "children": {
+                                                        "type": "array",
+                                                        "items": {
+                                                            "properties": {
+                                                                "id": {
+                                                                    "type": "integer",
+                                                                    "example": 9
+                                                                },
+                                                                "name": {
+                                                                    "type": "string",
+                                                                    "example": "Category 3"
+                                                                },
+                                                                "slug": {
+                                                                    "type": "string",
+                                                                    "example": ""
+                                                                },
+                                                                "image": {
+                                                                    "type": "string",
+                                                                    "example": "https://picsum.photos/200/300?random=3"
+                                                                },
+                                                                "parent_id": {
+                                                                    "type": "integer",
+                                                                    "example": 3
+                                                                },
+                                                                "created_at": {
+                                                                    "type": "string",
+                                                                    "format": "date-time",
+                                                                    "example": "2024-09-05T16:26:27.000000Z"
+                                                                },
+                                                                "updated_at": {
+                                                                    "type": "string",
+                                                                    "format": "date-time",
+                                                                    "example": "2024-09-05T16:26:27.000000Z"
+                                                                },
+                                                                "deleted_at": {
+                                                                    "type": "string",
+                                                                    "example": null,
+                                                                    "nullable": true
+                                                                }
                                                             },
-                                                            "name": {
-                                                                "type": "string",
-                                                                "example": "Danh mục cha"
-                                                            },
-                                                            "image": {
-                                                                "type": "string",
-                                                                "example": "parent_image.png"
-                                                            },
-                                                            "parent_id": {
-                                                                "type": "integer",
-                                                                "example": null,
-                                                                "nullable": true
-                                                            }
-                                                        },
-                                                        "type": "object"
+                                                            "type": "object"
+                                                        }
                                                     }
-                                                }
-                                            },
-                                            "type": "object"
+                                                },
+                                                "type": "object"
+                                            }
                                         }
                                     },
                                     "type": "object"
@@ -2665,12 +2632,7 @@
                             }
                         }
                     }
-                },
-                "security": [
-                    {
-                        "Bearer": []
-                    }
-                ]
+                }
             }
         },
         "/api/admin/categories/trashed": {
@@ -2769,8 +2731,8 @@
                                                             "example": ""
                                                         },
                                                         "parent_id": {
-                                                            "type": "string",
-                                                            "example": "1"
+                                                            "type": "integer",
+                                                            "example": 1
                                                         }
                                                     },
                                                     "type": "object"
@@ -2991,7 +2953,7 @@
                                 "properties": {
                                     "name": {
                                         "type": "string",
-                                        "example": "Category Name"
+                                        "example": "Tên danh mục"
                                     },
                                     "image": {
                                         "type": "string",
@@ -3000,7 +2962,7 @@
                                     },
                                     "parent_id": {
                                         "type": "integer",
-                                        "example": "1"
+                                        "example": 1
                                     }
                                 },
                                 "type": "object"
@@ -3031,15 +2993,15 @@
                                                 },
                                                 "name": {
                                                     "type": "string",
-                                                    "example": "Category Name"
+                                                    "example": "Tên danh mục"
                                                 },
                                                 "slug": {
                                                     "type": "string",
-                                                    "example": "category-name"
+                                                    "example": "ten-danh-muc"
                                                 },
                                                 "image": {
                                                     "type": "string",
-                                                    "example": "http://127.0.0.1:8000/storage/categories/WH9uJPvTt5VjkpDr0dE5uEkeXaFtCKaOwuAups3C.jpg"
+                                                    "example": "http://127.0.0.1:8000/storage/categories/image.jpg"
                                                 },
                                                 "created_at": {
                                                     "type": "string",
@@ -3077,6 +3039,26 @@
                                         "error": {
                                             "type": "string",
                                             "example": "No query results for model [Category]"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Thông tin không hợp lệ",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Danh mục cha không thể là danh mục con của một danh mục khác!"
                                         }
                                     },
                                     "type": "object"
