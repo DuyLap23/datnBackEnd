@@ -141,19 +141,25 @@ Route::group(
     }
 );
 
-//CUSTOMER
+// CUSTOMER
 Route::group(
     [
         'middleware' => ['auth:api', 'role:customer,admin,staff'],
-
     ],
     function ($router) {
-        Route::get('products', [ProductController::class, 'index']);
-        Route::get('products/{id}', [ProductController::class, 'show']);
-        Route::post('carts', [CartController::class, 'store']);
-        Route::get('carts', [CartController::class, 'index']);
-        Route::post('orders', [OrderController::class, 'store']);
-        Route::get('orders/{id}', [OrderController::class, 'show']);
+        Route::get('products', [ProductController::class, 'index'])->name('products.index');
+        Route::get('products/{id}', [ProductController::class, 'show'])->name('products.show');
+        Route::post('carts', [CartController::class, 'store'])->name('carts.store');
+        Route::get('carts', [CartController::class, 'index'])->name('carts.index');
+        Route::get('carts/{id}', [CartController::class, 'show'])->name('carts.show');
+        Route::put('carts/{id}', [CartController::class, 'update'])->name('carts.update');
+        Route::delete('carts/{id}', [CartController::class, 'destroy'])->name('carts.destroy');
+        Route::post('orders', [OrderController::class, 'store'])->name('orders.store');
+        Route::get('orders/{id}', [OrderController::class, 'show'])->name('orders.show');
+        Route::get('orders', [OrderController::class, 'index'])->name('orders.index');
+        Route::put('orders/{id}', [OrderController::class, 'update'])->name('orders.update');
+        Route::delete('orders/{id}', [OrderController::class, 'destroy'])->name('orders.destroy');
     }
 );
+
 

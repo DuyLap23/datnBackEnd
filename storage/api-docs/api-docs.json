@@ -2431,9 +2431,9 @@
                 "tags": [
                     "Create Cart"
                 ],
-                "summary": "",
-                "description": "Tạo mới cửa hàng",
-                "operationId": "1fbe2dd02bb99e9b1f935bfdb64b1d24",
+                "summary": "Tạo mới cửa hàng",
+                "description": "Tạo mới cửa hàng cho giỏ hàng",
+                "operationId": "c89f0d8b2dc009eb7eb3ec1e1a931770",
                 "requestBody": {
                     "required": true,
                     "content": {
@@ -2441,7 +2441,7 @@
                             "schema": {
                                 "properties": {
                                     "name": {
-                                        "description": "Giỏ hàng",
+                                        "description": "Tên cửa hàng",
                                         "type": "string",
                                         "example": "Cửa hàng 1"
                                     }
@@ -2488,6 +2488,129 @@
                                 }
                             }
                         }
+                    }
+                }
+            }
+        },
+        "/api/cart/{id}": {
+            "get": {
+                "tags": [
+                    "Cart"
+                ],
+                "summary": "Lấy thông tin cửa hàng",
+                "description": "Hiển thị thông tin cửa hàng theo ID",
+                "operationId": "c43d7cefedb6cc03b5c5de4fa2cc2d89",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Thành công",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "id": {
+                                                    "type": "integer",
+                                                    "example": 1
+                                                },
+                                                "name": {
+                                                    "type": "string",
+                                                    "example": "Cửa hàng 1"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Không tìm thấy"
+                    }
+                }
+            },
+            "put": {
+                "tags": [
+                    "Cart"
+                ],
+                "summary": "Cập nhật cửa hàng",
+                "description": "Cập nhật thông tin cửa hàng theo ID",
+                "operationId": "ed1e0ee177e4752010f98d03851aae41",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "name": {
+                                        "description": "Tên cửa hàng",
+                                        "type": "string",
+                                        "example": "Cửa hàng 2"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Cập nhật thành công"
+                    },
+                    "404": {
+                        "description": "Không tìm thấy"
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "Cart"
+                ],
+                "summary": "Xóa cửa hàng",
+                "description": "Xóa cửa hàng theo ID",
+                "operationId": "fee5f2f0960b8f0306ee4739c64264e9",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Xóa thành công"
+                    },
+                    "404": {
+                        "description": "Không tìm thấy"
                     }
                 }
             }
@@ -3762,6 +3885,10 @@
         {
             "name": "Create Cart",
             "description": "Create Cart"
+        },
+        {
+            "name": "Cart",
+            "description": "Cart"
         },
         {
             "name": "Category",
