@@ -68,7 +68,7 @@ Route::group(
     ],
     function ($router) {
         Route::apiResource('addresses', AddressController::class);
-
+        Route::put('/addresses/{id}/default', [AddressController::class, 'setDefault'])->name('addresses.setDefault');
 //        Route::get('voucher', [VouCherController::class, 'index']);
 //        Route::post('voucher', [VouCherController::class, 'store']);
 //        Route::put('voucher/{id}', [VouCherController::class, 'update']);

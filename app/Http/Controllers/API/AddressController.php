@@ -103,8 +103,77 @@ class AddressController extends Controller
     }
 
 
+    /**
+     * @OA\Put(
+     *     path="/api/addresses/{id}/default",
+     *     summary="Đặt một địa chỉ mặc định",
+     *     description="Đặt một địa chỉ cụ thể làm địa chỉ mặc định cho người dùng đã xác thực. Nếu địa chỉ đã là mặc định, sẽ không thể thay đổi được.",
+     *     tags={"Address"},
+     *     security={{"Bearer":{}}},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         description="ID của địa chỉ",
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Đặt địa chỉ mặc định thành công",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="Địa chỉ đã được cập nhật thành mặc định")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Địa chỉ không tìm thấy hoặc không thuộc về người dùng",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="Địa chỉ không tìm thấy hoặc không thuộc về người dùng.")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=400,
+     *         description="Địa chỉ này đã là địa chỉ mặc định",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="Địa chỉ này đã là địa chỉ mặc định.")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=401,
+     *         description="Vui lòng đăng nhập",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="Vui lòng đăng nhập.")
+     *         )
+     *     )
+     * )
+     */
 
 
+
+    public function setDefault($id)
+    {
+        // Lấy người dùng đang đăng nhập
+        $user = auth('api')->user();
+        if(!$user){
+            return response()->json(['message' => 'Vui lòng đăng nhập.'], 401);
+        }
+        // Kiểm tra xem địa chỉ có thuộc về người dùng hay không
+        $address = Address::where('user_id', $user->id)->where('id', $id)->first();
+        if (!$address) {
+            return response()->json(['message' => 'Bạn không có địa chỉ này!'], 404);
+        }
+
+        if ($address->is_default) {
+            return response()->json(['message' => 'Địa chỉ này đã là địa chỉ mặc định.'], 400); // Trả về lỗi nếu địa chỉ đã là mặc định
+        }
+        // Hủy bỏ mặc định của các địa chỉ khác
+        Address::where('user_id', $user->id)->update(['is_default' => false]);
+
+        // Đặt địa chỉ này là mặc định
+        $address->update(['is_default' => true]);
+
+        return response()->json(['message' => 'Địa chỉ đã được cập nhật thành mặc định'], 200);
+    }
 
     /**
      * Store a newly created resource in storage.

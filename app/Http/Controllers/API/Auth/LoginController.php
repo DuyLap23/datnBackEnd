@@ -36,7 +36,7 @@ class LoginController extends Controller
      *         )
      *     ),
      *     @OA\Response(
-     *         response=401,
+     *         response=400,
      *         description="Email không tồn tại hoặc mật khẩu không đúng",
      *         @OA\JsonContent(
      *             @OA\Property(property="message", type="string", example="Mật khẩu không đúng."),
@@ -58,14 +58,14 @@ class LoginController extends Controller
         if (!User::where('email', $credentials['email'])->exists()) {
             return response()->json([
                 'message' => 'Email không tồn tại.'
-            ], 401);
+            ], 400);
         }
 
         // Kiểm tra nếu thông tin đăng nhập không đúng
         if (!($token = auth('api')->attempt($credentials))) {
             return response()->json([
                 'message' => 'Mật khẩu không đúng.'
-            ], 401);
+            ], 400);
         }
 
         // Tạo refresh token

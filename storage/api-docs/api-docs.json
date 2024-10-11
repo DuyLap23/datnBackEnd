@@ -162,6 +162,98 @@
                 ]
             }
         },
+        "/api/addresses/{id}/default": {
+            "put": {
+                "tags": [
+                    "Address"
+                ],
+                "summary": "Đặt một địa chỉ mặc định",
+                "description": "Đặt một địa chỉ cụ thể làm địa chỉ mặc định cho người dùng đã xác thực. Nếu địa chỉ đã là mặc định, sẽ không thể thay đổi được.",
+                "operationId": "44a401e1118ba806440879c91a4b27e3",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID của địa chỉ",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Đặt địa chỉ mặc định thành công",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Địa chỉ đã được cập nhật thành mặc định"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Địa chỉ không tìm thấy hoặc không thuộc về người dùng",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Địa chỉ không tìm thấy hoặc không thuộc về người dùng."
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Địa chỉ này đã là địa chỉ mặc định",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Địa chỉ này đã là địa chỉ mặc định."
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Vui lòng đăng nhập",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Vui lòng đăng nhập."
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ]
+            }
+        },
         "/api/addresses/{id}": {
             "get": {
                 "tags": [
@@ -609,7 +701,7 @@
                             }
                         }
                     },
-                    "401": {
+                    "400": {
                         "description": "Email không tồn tại hoặc mật khẩu không đúng",
                         "content": {
                             "application/json": {
