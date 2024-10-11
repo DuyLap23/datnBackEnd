@@ -149,7 +149,7 @@ Route::group(
     function ($router) {
         Route::get('products', [ProductController::class, 'index'])->name('products.index');
         Route::get('products/{id}', [ProductController::class, 'show'])->name('products.show');
-        Route::post('carts', [CartController::class, 'store'])->name('carts.store');
+        Route::post('carts', [CartController::class, 'addProductToCart'])->name('carts.store'); 
         Route::get('carts', [CartController::class, 'index'])->name('carts.index');
         Route::get('carts/{id}', [CartController::class, 'show'])->name('carts.show');
         Route::put('carts/{id}', [CartController::class, 'update'])->name('carts.update');
