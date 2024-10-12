@@ -23,7 +23,12 @@ class CartController extends Controller
      */
     public function index(Request $request)
     {
-        $carts = Cart::where('user_id', $request->user()->id)->get(); // Lấy giỏ hàng của người dùng
+        if (!$request->user()) {
+            return response()->json(['error' => 'Unauthorized'], 401);
+        }
+        $carts = Cart::with('product') // Giả sử bạn đã định nghĩa quan hệ 'product' trong mô hình Cart
+        ->where('user_id', $request->user()->id)
+        ->get();
         return response()->json($carts); // Trả về dữ liệu dưới dạng JSON
     }
 
@@ -49,28 +54,45 @@ class CartController extends Controller
      */
     public function addProductToCart(Request $request)
     {
+        if (!$request->user()) {
+            return response()->json(['error' => 'Unauthorized'], 401);
+        }
+
         $validatedData = $request->validate([
             'product_id' => 'required|integer|exists:products,id', 
             'quantity' => 'required|integer|min:1', // Kiểm tra số lượng sản phẩm
         ]);
 
-        // Kiểm tra xem sản phẩm đã tồn tại trong giỏ hàng chưa
-        $cartItem = Cart::where('user_id', $request->user()->id)
-            ->where('product_id', $validatedData['product_id'])
-            ->first();
+        try {
+            // Kiểm tra xem sản phẩm đã tồn tại trong giỏ hàng chưa
+            $cartItem = Cart::where('user_id', $request->user()->id)
+                ->where('product_id', $validatedData['product_id'])
+                ->first();
 
-        if ($cartItem) {
-            // Nếu đã tồn tại, cập nhật số lượng
-            $cartItem->quantity += $validatedData['quantity'];
-            $cartItem->save();
-        } else {
-            // Nếu chưa tồn tại, tạo mới
-            $cartItem = Cart::create(array_merge($validatedData, [
-                'user_id' => $request->user()->id, 
-            ]));
+            if ($cartItem) {
+                // Nếu đã tồn tại, cập nhật số lượng
+                $cartItem->quantity += $validatedData['quantity'];
+                $cartItem->save();
+                return response()->json([
+                    'message' => 'Cập nhật số lượng sản phẩm thành công.',
+                    'cart_item' => $cartItem,
+                ], 200); 
+            } else {
+                // Nếu chưa tồn tại, tạo mới
+                $cartItem = Cart::create(array_merge($validatedData, [
+                    'user_id' => $request->user()->id, 
+                ]));
+                return response()->json([
+                    'message' => 'Thêm sản phẩm vào giỏ hàng thành công.',
+                    'cart_item' => $cartItem,
+                ], 201); 
+            }
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 'Có lỗi xảy ra khi thêm sản phẩm.',
+                'details' => $e->getMessage(),
+            ], 500); 
         }
-
-        return response()->json($cartItem, 201); // Trả về bản ghi vừa tạo hoặc đã cập nhật
     }
 
     /**
@@ -100,13 +122,26 @@ class CartController extends Controller
      */
     public function update(Request $request, $id)
     {
-        $cart = Cart::findOrFail($id); 
+        if (!$request->user()) {
+            return response()->json(['error' => 'Unauthorized'], 401);
+        }
+        
+        // Kiểm tra xem sản phẩm trong giỏ hàng có tồn tại không
+        $cart = Cart::find($id);
+        if (!$cart) {
+            return response()->json(['error' => 'Sản phẩm không tìm thấy'], 404);
+        }
+
         $validatedData = $request->validate([
             'quantity' => 'required|integer|min:1',
         ]);
 
+        // Cập nhật số lượng
         $cart->update($validatedData); 
-        return response()->json($cart); 
+        return response()->json([
+            'message' => 'Cập nhật số lượng sản phẩm thành công.',
+            'cart_item' => $cart,
+        ]); 
     }
 
     /**
@@ -129,9 +164,13 @@ class CartController extends Controller
      */
     public function destroy($id)
     {
-        $cart = Cart::findOrFail($id); 
-        $cart->delete(); //
-        return response()->json(null, 204); 
+        $cart = Cart::find($id); 
+        if (!$cart) {
+            return response()->json(['error' => 'Sản phẩm không tìm thấy'], 404);
+        }
+
+        $cart->delete(); 
+        return response()->json(['message' => 'Xóa sản phẩm thành công.'], 204); 
     }
 
 }
