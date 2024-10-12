@@ -17,6 +17,7 @@ class CategorySeeder extends Seeder
             Category::query()->create([
                 'name' => 'Category ' . $i,
                 'image' => 'https://picsum.photos/200/300?random=' . $i,
+                'slug' => 'category-' . $i,
                 'parent_id' => null,
             ]);
         }
@@ -24,6 +25,7 @@ class CategorySeeder extends Seeder
             Category::query()->create([
                 'name' => 'Category ' . $i,
                 'image' => 'https://picsum.photos/200/300?random=' . $i,
+                'slug' => 'category-' . $i,
                 'parent_id' => rand(1, 5),
             ]);
         }

@@ -2198,7 +2198,7 @@
             },
             "put": {
                 "tags": [
-                    "Brands"
+                    "Brand"
                 ],
                 "summary": "Cập nhật thương hiệu",
                 "operationId": "5d525a2a0d9844327611ddfdda66d375",
@@ -2358,7 +2358,7 @@
         "api/admin/brands/{id}": {
             "delete": {
                 "tags": [
-                    "brands"
+                    "Brand"
                 ],
                 "summary": "Xóa danh mục",
                 "operationId": "a9976bff6784e806d6fe488811b3991b",
@@ -4213,14 +4213,6 @@
         {
             "name": "Brand",
             "description": "Brand"
-        },
-        {
-            "name": "Brands",
-            "description": "Brands"
-        },
-        {
-            "name": "brands",
-            "description": "brands"
         },
         {
             "name": "Cart",

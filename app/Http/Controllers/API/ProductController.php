@@ -15,8 +15,8 @@ class ProductController extends Controller
 {
     public function index()
     {
-        $products = Product::with(['category', 'brand'])->get();
-        return response()->json($products);
+        $products = Product::query()->with(['category', 'brand'])->get();
+        return response()->json(['data' => $products], 200);
     }
 
     public function store(Request $request)
@@ -40,18 +40,18 @@ class ProductController extends Controller
                 'category_id' => 'required|exists:categories,id',
                 'brand_id' => 'required|exists:brands,id',
             ]);
-    
+
             $product = new Product($data);
-    
+
             if ($request->hasFile('img_thumbnail')) {
                 $thumbnail = $request->file('img_thumbnail');
                 $thumbnailName = time() . '_' . Str::random(10) . '.' . $thumbnail->getClientOriginalExtension();
                 $product->img_thumbnail = $thumbnail->storeAs('products', $thumbnailName, 'public');
             }
-    
+
             $product->save();
             DB::commit();
-    
+
             return response()->json($product->load(['category', 'brand']), 201);
         } catch (ValidationException $e) {
             DB::rollBack();
