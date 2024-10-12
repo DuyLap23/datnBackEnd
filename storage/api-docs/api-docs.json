@@ -3286,7 +3286,7 @@
         "/api/admin/comments": {
             "get": {
                 "tags": [
-                    "Comments"
+                    "Admin Comments"
                 ],
                 "summary": "Lấy danh sách tất cả bình luận",
                 "description": "Trả về danh sách tất cả các bình luận trong hệ thống hoặc lọc theo sản phẩm và người dùng.",
@@ -3363,7 +3363,7 @@
             },
             "post": {
                 "tags": [
-                    "Comments"
+                    "Admin Comments"
                 ],
                 "summary": "Tạo một bình luận mới",
                 "description": "Tạo một bình luận mới với nội dung, ID người dùng và ID sản phẩm đã cung cấp.",
@@ -3459,7 +3459,7 @@
         "/api/admin/comments/{id}": {
             "get": {
                 "tags": [
-                    "Comments"
+                    "Admin Comments"
                 ],
                 "summary": "Lấy bình luận theo ID",
                 "description": "Lấy thông tin chi tiết của một bình luận dựa trên ID được cung cấp.",
@@ -3515,7 +3515,7 @@
             },
             "put": {
                 "tags": [
-                    "Comments"
+                    "Admin Comments"
                 ],
                 "summary": "Cập nhật một bình luận",
                 "description": "Cập nhật bình luận dựa trên ID đã cung cấp và nội dung mới.",
@@ -3590,11 +3590,341 @@
             },
             "delete": {
                 "tags": [
-                    "Comments"
+                    "Admin Comments"
                 ],
                 "summary": "Xóa bình luận",
                 "description": "Xóa một bình luận dựa trên ID được cung cấp.",
                 "operationId": "b637dd433d1077b9081b6dfbc70f786c",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID của bình luận cần xóa",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Bình luận đã được xóa thành công"
+                    },
+                    "404": {
+                        "description": "Không tìm thấy bình luận",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Bình luận không tồn tại."
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ]
+            }
+        },
+        "/api/user/comments": {
+            "get": {
+                "tags": [
+                    "User Comments"
+                ],
+                "summary": "Lấy danh sách bình luận của người dùng",
+                "description": "Trả về danh sách bình luận của người dùng đã đăng nhập.",
+                "operationId": "56269984c073d6024b05399ee50a1a36",
+                "responses": {
+                    "200": {
+                        "description": "Danh sách bình luận của người dùng",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/Comment"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Lỗi khi lấy danh sách bình luận",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Lỗi không xác định."
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "User Comments"
+                ],
+                "summary": "Tạo bình luận mới",
+                "description": "Tạo một bình luận mới cho sản phẩm đã cung cấp.",
+                "operationId": "4cb31a77dbf34f928307321adc786bf7",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "content",
+                                    "product_id"
+                                ],
+                                "properties": {
+                                    "content": {
+                                        "type": "string",
+                                        "example": "Nội dung bình luận"
+                                    },
+                                    "product_id": {
+                                        "type": "integer",
+                                        "example": 456
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Bình luận được tạo thành công",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Comment"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Dữ liệu đầu vào không hợp lệ",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Dữ liệu không hợp lệ."
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Lỗi khi tạo bình luận",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Tạo bình luận không thành công."
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ]
+            }
+        },
+        "/api/user/comments/{id}": {
+            "get": {
+                "tags": [
+                    "User Comments"
+                ],
+                "summary": "Lấy bình luận theo ID",
+                "description": "Lấy thông tin chi tiết của một bình luận dựa trên ID được cung cấp.",
+                "operationId": "14e48af9db91208d9b0752ec71a971d1",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID của bình luận cần lấy",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Phản hồi thành công",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Comment"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Không tìm thấy bình luận",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Bình luận không tồn tại."
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ]
+            },
+            "put": {
+                "tags": [
+                    "User Comments"
+                ],
+                "summary": "Cập nhật bình luận",
+                "description": "Cập nhật bình luận dựa trên ID đã cung cấp và nội dung mới.",
+                "operationId": "1f2ebac14195d9e5f9a4ba7e4b382aba",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID của bình luận cần cập nhật",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "content"
+                                ],
+                                "properties": {
+                                    "content": {
+                                        "type": "string",
+                                        "example": "Nội dung bình luận đã cập nhật"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Bình luận được cập nhật thành công",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Comment"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Không tìm thấy bình luận",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Bình luận không tồn tại."
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "User Comments"
+                ],
+                "summary": "Xóa bình luận",
+                "description": "Xóa một bình luận dựa trên ID được cung cấp.",
+                "operationId": "d255cf759899fd070cf3357a5f3bde1b",
                 "parameters": [
                     {
                         "name": "id",
@@ -3779,6 +4109,43 @@
                     }
                 ]
             },
+            "Cart": {
+                "type": "object",
+                "allOf": [
+                    {
+                        "$ref": "#/components/schemas/Category"
+                    },
+                    {
+                        "properties": {
+                            "id": {
+                                "type": "integer",
+                                "example": 1
+                            },
+                            "user_id": {
+                                "type": "integer",
+                                "example": 123
+                            },
+                            "product_id": {
+                                "type": "integer",
+                                "example": 456
+                            },
+                            "quantity": {
+                                "type": "integer",
+                                "example": 2
+                            },
+                            "created_at": {
+                                "type": "string",
+                                "format": "date-time"
+                            },
+                            "updated_at": {
+                                "type": "string",
+                                "format": "date-time"
+                            }
+                        },
+                        "type": "object"
+                    }
+                ]
+            },
             "Comment": {
                 "type": "object",
                 "allOf": [
@@ -3864,8 +4231,12 @@
             "description": "Category"
         },
         {
-            "name": "Comments",
-            "description": "Comments"
+            "name": "Admin Comments",
+            "description": "Admin Comments"
+        },
+        {
+            "name": "User Comments",
+            "description": "User Comments"
         }
     ]
 }

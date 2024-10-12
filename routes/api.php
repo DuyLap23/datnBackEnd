@@ -19,6 +19,7 @@ use App\Http\Controllers\API\ProductImageController;
 use App\Http\Controllers\API\ProductSizeController;
 use App\Http\Controllers\API\ProductVariantController;
 use App\Http\Controllers\API\TagController;
+use App\Http\Controllers\Api\UserCommentController;
 use App\Http\Controllers\API\VouCherController;
 use Illuminate\Support\Facades\Route;
 
@@ -159,6 +160,12 @@ Route::group(
         Route::get('orders', [OrderController::class, 'index'])->name('orders.index');
         Route::put('orders/{id}', [OrderController::class, 'update'])->name('orders.update');
         Route::delete('orders/{id}', [OrderController::class, 'destroy'])->name('orders.destroy');
+
+        Route::get('/user/comments', [UserCommentController::class, 'index']);
+        Route::post('/user/comments', [UserCommentController::class, 'store']);
+        Route::get('/user/comments/{id}', [UserCommentController::class, 'show']);
+        Route::put('/user/comments/{id}', [UserCommentController::class, 'update']);
+        Route::delete('/user/comments/{id}', [UserCommentController::class, 'destroy']);
     }
 );
 
