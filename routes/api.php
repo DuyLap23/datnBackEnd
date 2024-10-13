@@ -117,7 +117,7 @@ Route::group(
         Route::get('users', [UserController::class, 'index']);
 
          // Comments routes
-        Route::get('comments', [CommentController::class, 'index']);
+        Route::post('comments', [CommentController::class, 'index']);
         Route::post('comments', [CommentController::class, 'store']);
         Route::get('comments/{id}', [CommentController::class, 'show']);
         Route::put('comments/{id}', [CommentController::class, 'update']);
@@ -152,8 +152,6 @@ Route::group(
         Route::apiResource('orders', OrderController::class);
         Route::apiResource('order/items', OrderItemController::class);
         Route::apiResource('favourites', FavouriteListController::class);
-        Route::apiResource('carts', CartController::class);
-        
     }
 );
 
@@ -172,11 +170,9 @@ Route::group(
 
 
         Route::get('products/{id}', [ProductController::class, 'show'])->name('products.show');
-        Route::post('carts', [CartController::class, 'addProductToCart'])->name('carts.store');
         Route::post('/carts', [CartController::class, 'addProductToCart']);
         Route::delete('/carts/{id}', [CartController::class, 'deleteProductFromCart']);
         Route::get('/carts', [CartController::class, 'listProductsInCart']);
-        Route::delete('carts/{id}', [CartController::class, 'destroy'])->name('carts.destroy');
         Route::post('orders', [OrderController::class, 'store'])->name('orders.store');
         Route::get('orders/{id}', [OrderController::class, 'show'])->name('orders.show');
         Route::get('orders', [OrderController::class, 'index'])->name('orders.index');
