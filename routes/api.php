@@ -144,9 +144,9 @@ Route::group(
 // CUSTOMER
 Route::group(
     [
-        'middleware' => ['auth:api', 'role:customer,admin,staff'],
+        'middleware' => ['role:customer,admin,staff'],
     ],
-    function ($router) {
+    function () {
 
         Route::get('products/{id}', [ProductController::class, 'show'])->name('products.show');
         Route::post('/carts', [CartController::class, 'addProductToCart']);

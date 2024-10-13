@@ -262,7 +262,7 @@ class CommentController extends Controller
             $comment = Comment::findOrFail($id);
             $comment->delete();
 
-            return response()->json(['success' => true, 'message' => 'Bình luận đã được xóa thành công.'], 204);
+            return response()->json(['success' => true, 'message' => 'Bình luận đã được xóa thành công.'], 200);
         } catch (\Exception $e) {
             return response()->json(['success' => false, 'message' => 'Bình luận không tồn tại.'], 404);
         }

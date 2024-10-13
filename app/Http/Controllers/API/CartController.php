@@ -68,11 +68,9 @@ class CartController extends Controller
  */
 public function addProductToCart(Request $request)
 {
-    if (!$request->user()) {
-        return response()->json([
-            'success' => false,
-            'message' => 'Bạn cần đăng nhập để thực hiện hành động này.'
-        ], 401); // 401 Unauthorized
+   
+    if (!Auth::check()) {
+        return response()->json(['message' => 'Vui lòng đăng nhập'], 401);
     }
     // Kiểm tra và xác thực dữ liệu
     $validatedData = $request->validate([
@@ -157,6 +155,7 @@ public function addProductToCart(Request $request)
  *     path="/api/carts/{id}",
  *     tags={"Cart"},
  *     summary="Xóa sản phẩm khỏi giỏ hàng",
+ *     security={{"Bearer": {}}},
  *     description="Xóa sản phẩm khỏi giỏ hàng của người dùng theo ID sản phẩm.",
  *     @OA\Parameter(
  *         name="id",
@@ -166,19 +165,15 @@ public function addProductToCart(Request $request)
  *     ),
  *     @OA\Response(response="204", description="Xóa sản phẩm thành công"),
  *     @OA\Response(response="404", description="Sản phẩm không tìm thấy"),
- *     @OA\Response(response="401", description="Unauthorized"),
- *     security={{"Bearer": {}}}
+ *     @OA\Response(response="401", description="Unauthorized")
  * )
  */
 public function deleteProductFromCart($id)
 {
-    // Kiểm tra người dùng đã đăng nhập hay chưa
     if (!Auth::check()) {
-        return response()->json([
-            'success' => false,
-            'message' => 'Bạn cần đăng nhập để thực hiện hành động này.'
-        ], 401);
+        return response()->json(['message' => 'Vui lòng đăng nhập'], 401);
     }
+    
     
     // Lấy ID người dùng hiện tại
     $userId = auth('api')->user()->id;
@@ -193,7 +188,7 @@ public function deleteProductFromCart($id)
 
     // Xóa sản phẩm
     $cart->delete();
-    return response()->json(['message' => 'Xóa sản phẩm thành công.'], 204); // 204 No Content
+    return response()->json(['message' => 'Xóa sản phẩm thành công.'], 200);
 }
 
   /**
@@ -201,6 +196,7 @@ public function deleteProductFromCart($id)
  *     path="/api/carts",
  *     tags={"Cart"},
  *     summary="Lấy danh sách sản phẩm trong giỏ hàng",
+ *     security={{"Bearer": {}}},
  *     description="Lấy danh sách tất cả sản phẩm trong giỏ hàng của người dùng.",
  *     @OA\Response(response="200", description="Danh sách sản phẩm trong giỏ hàng", 
  *         @OA\JsonContent(
@@ -209,17 +205,15 @@ public function deleteProductFromCart($id)
  *             @OA\Property(property="total_price", type="number", format="float", description="Tổng giá trị của sản phẩm trong giỏ hàng")
  *         )
  *     ),
- *     @OA\Response(response="401", description="Unauthorized"),
- *     security={{"Bearer": {}}}
+ *     @OA\Response(response="401", description="Unauthorized")
+ *     
  * )
  */
 public function listProductsInCart(Request $request)
 {
-    if (!$request->user()) {
-        return response()->json([
-            'success' => false,
-            'message' => 'Bạn cần đăng nhập để thực hiện hành động này.'
-        ], 401); // 401 Unauthorized
+
+    if (!Auth::check()) {
+        return response()->json(['message' => 'Vui lòng đăng nhập'], 401);
     }
     // Lấy danh sách sản phẩm trong giỏ hàng của người dùng
     $cartItems = Cart::where('user_id', $request->user()->id)->get();
