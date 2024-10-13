@@ -103,8 +103,77 @@ class AddressController extends Controller
     }
 
 
+    /**
+     * @OA\Put(
+     *     path="/api/addresses/{id}/default",
+     *     summary="Đặt một địa chỉ mặc định",
+     *     description="Đặt một địa chỉ cụ thể làm địa chỉ mặc định cho người dùng đã xác thực. Nếu địa chỉ đã là mặc định, sẽ không thể thay đổi được.",
+     *     tags={"Address"},
+     *     security={{"Bearer":{}}},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         description="ID của địa chỉ",
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Đặt địa chỉ mặc định thành công",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="Địa chỉ đã được cập nhật thành mặc định")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Địa chỉ không tìm thấy hoặc không thuộc về người dùng",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="Địa chỉ không tìm thấy hoặc không thuộc về người dùng.")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=400,
+     *         description="Địa chỉ này đã là địa chỉ mặc định",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="Địa chỉ này đã là địa chỉ mặc định.")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=401,
+     *         description="Vui lòng đăng nhập",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="Vui lòng đăng nhập.")
+     *         )
+     *     )
+     * )
+     */
 
 
+
+    public function setDefault($id)
+    {
+        // Lấy người dùng đang đăng nhập
+        $user = auth('api')->user();
+        if(!$user){
+            return response()->json(['message' => 'Vui lòng đăng nhập.'], 401);
+        }
+        // Kiểm tra xem địa chỉ có thuộc về người dùng hay không
+        $address = Address::where('user_id', $user->id)->where('id', $id)->first();
+        if (!$address) {
+            return response()->json(['message' => 'Bạn không có địa chỉ này!'], 404);
+        }
+
+        if ($address->is_default) {
+            return response()->json(['message' => 'Địa chỉ này đã là địa chỉ mặc định.'], 400); // Trả về lỗi nếu địa chỉ đã là mặc định
+        }
+        // Hủy bỏ mặc định của các địa chỉ khác
+        Address::where('user_id', $user->id)->update(['is_default' => false]);
+
+        // Đặt địa chỉ này là mặc định
+        $address->update(['is_default' => true]);
+
+        return response()->json(['message' => 'Địa chỉ đã được cập nhật thành mặc định'], 200);
+    }
 
     /**
      * Store a newly created resource in storage.
@@ -332,6 +401,94 @@ class AddressController extends Controller
     /**
      * Update the specified resource in storage.
      */
+    /**
+     * @OA\Put(
+     *     path="/api/user/addresses/{id}",
+     *     summary="Cập nhật địa chỉ",
+     *     tags={"Address"},
+     *     security={{"Bearer": {}}},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         description="ID của địa chỉ cần cập nhật",
+     *         @OA\Schema(type="string")
+     *     ),
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"address_name", "phone_number", "city", "district", "ward", "detail_address"},
+     *             @OA\Property(property="address_name", type="string", example="123 Đường ABC"),
+     *             @OA\Property(property="phone_number", type="string", example="0123456789"),
+     *             @OA\Property(property="city", type="string", example="Thành phố HCM"),
+     *             @OA\Property(property="district", type="string", example="Quận 1"),
+     *             @OA\Property(property="ward", type="string", example="Phường B"),
+     *             @OA\Property(property="detail_address", type="string", example="Số 123, khu phố 1"),
+     *             @OA\Property(property="is_default", type="boolean", example=true),
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Cập nhật địa chỉ thành công",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="message", type="string", example="Cập nhật thông tin thành công."),
+     *             @OA\Property(property="data", type="object",
+     *                 @OA\Property(property="addresses", type="array",
+     *                     @OA\Items(ref="#/components/schemas/Address")
+     *                 )
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=401,
+     *         description="Không được phép truy cập",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=false),
+     *             @OA\Property(property="message", type="string", example="Bạn cần đăng nhập để xem thông tin.")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=403,
+     *         description="Không có quyền chỉnh sửa địa chỉ của người dùng khác",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=false),
+     *             @OA\Property(property="message", type="string", example="Bạn không có quyền chỉnh sửa địa chỉ của người dùng khác.")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Không tìm thấy địa chỉ",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=false),
+     *             @OA\Property(property="message", type="string", example="Không tìm thấy địa chỉ.")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=422,
+     *         description="Dữ liệu không hợp lệ",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=false),
+     *             @OA\Property(property="message", type="string", example="Dữ liệu không hợp lệ."),
+     *             @OA\Property(property="errors", type="object",
+     *                 @OA\Property(property="address_name", type="array",
+     *                     @OA\Items(type="string", example="Trường này là bắt buộc.")
+     *                 )
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=500,
+     *         description="Lỗi không xác định",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=false),
+     *             @OA\Property(property="message", type="string", example="Cập nhật thông tin thất bại."),
+     *             @OA\Property(property="error", type="string", example="Lý do lỗi")
+     *         )
+     *     )
+     * )
+     */
+
     public function update(AddressRequests $request, string $id)
     {
         // Lấy người dùng hiện tại từ token Bearer

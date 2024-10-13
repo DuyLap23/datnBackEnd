@@ -19,6 +19,7 @@ use App\Http\Controllers\API\ProductImageController;
 use App\Http\Controllers\API\ProductSizeController;
 use App\Http\Controllers\API\ProductVariantController;
 use App\Http\Controllers\API\TagController;
+use App\Http\Controllers\Api\UserCommentController;
 use App\Http\Controllers\API\VouCherController;
 use Illuminate\Support\Facades\Route;
 
@@ -33,6 +34,7 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
+//AUTH
 Route::group(
     [
         'middleware' => 'api',
@@ -52,7 +54,7 @@ Route::group(
         Route::put('profile/update/{id}', [UserController::class, 'update'])->middleware('auth:api');
 
         Route::post('password/forgot', [ResetPassword::class, 'sendResetLinkEmail']);
-        Route::post('password/reset', [ResetPassword::class, 'reset']);
+        Route::post('password/reset', [ResetPassword::class, 'reset'])->name('password.reset');
 
         Route::get('users/{id}', [UserController::class, 'show']);
 
@@ -60,30 +62,44 @@ Route::group(
     }
 );
 
+//NHỮNG ROUTER CẦN CHECK ĐĂNG NHẬP
 Route::group(
     [
         'middleware' => ['api','auth:api'],
     ],
     function ($router) {
         Route::apiResource('addresses', AddressController::class);
+        Route::put('/addresses/{id}/default', [AddressController::class, 'setDefault'])->name('addresses.setDefault');
+//        Route::get('voucher', [VouCherController::class, 'index']);
+//        Route::post('voucher', [VouCherController::class, 'store']);
+//        Route::put('voucher/{id}', [VouCherController::class, 'update']);
+//        Route::get('voucher/{id}', [VouCherController::class, 'show']);
+//        Route::delete('voucher/{id}', [VouCherController::class, 'destroy']);
     }
 );
 
 
+//Những đầu route không cần check đăng nhập và role vất vào đây
 Route::get('categories', [CategoryController::class, 'index']);
+Route::get('products', [ProductController::class, 'index'])->name('products.index');
 
-
+//ADMIN
 Route::group(
     [
         'middleware' => ['auth:api', 'role:admin', 'admin'],
         'prefix' => 'admin',
     ],
     function ($router) {
+
+        //CATEGORIES
+        Route::get('categories/trashed', [CategoryController::class, 'trashed']);
         Route::post('categories', [CategoryController::class, 'store']);
         Route::put('categories/{id}', [CategoryController::class, 'update']);
         Route::get('categories/{id}', [CategoryController::class, 'show']);
         Route::delete('categories/{id}', [CategoryController::class, 'destroy']);
-//        Route::apiResource('categories', CategoryController::class);
+
+
+        Route::apiResource('voucher', VouCherController::class);
         Route::apiResource('brands', BrandController::class);
         Route::apiResource('tags', TagController::class);
         Route::apiResource('products', ProductController::class);
@@ -95,10 +111,10 @@ Route::group(
         Route::get('users', [UserController::class, 'index']);
 
          // Comments routes
-        Route::get('comments', [CommentController::class, 'index']);  
-        Route::post('comments', [CommentController::class, 'store']); 
-        Route::get('comments/{id}', [CommentController::class, 'show']); 
-        Route::put('comments/{id}', [CommentController::class, 'update']); 
+        Route::get('comments', [CommentController::class, 'index']);
+        Route::post('comments', [CommentController::class, 'store']);
+        Route::get('comments/{id}', [CommentController::class, 'show']);
+        Route::put('comments/{id}', [CommentController::class, 'update']);
         Route::delete('comments/{id}', [CommentController::class, 'destroy']);
 
         Route::get('banners', [BannerMktController::class, 'index']);
@@ -119,6 +135,8 @@ Route::delete('voucher/{id}', [VouCherController::class, 'destroy']);
 Route::get('products', [ProductController::class, 'index']);
 Route::get('products/{id}', [ProductController::class, 'show']);
 
+
+//STAFF
 Route::group(
     [
         'middleware' => ['auth:api', 'role:staff'],
@@ -133,17 +151,39 @@ Route::group(
     }
 );
 
+// CUSTOMER
 Route::group(
     [
         'middleware' => ['auth:api', 'role:customer,admin,staff'],
-
     ],
     function ($router) {
+
        
         Route::post('carts', [CartController::class, 'store']);
         Route::get('carts', [CartController::class, 'index']);
         Route::post('orders', [OrderController::class, 'store']);
         Route::get('orders/{id}', [OrderController::class, 'show']);
+
+
+        Route::get('products/{id}', [ProductController::class, 'show'])->name('products.show');
+        Route::post('carts', [CartController::class, 'addProductToCart'])->name('carts.store');
+        Route::post('/carts', [CartController::class, 'addProductToCart']);
+        Route::delete('/carts/{id}', [CartController::class, 'deleteProductFromCart']);
+        Route::get('/carts', [CartController::class, 'listProductsInCart']);
+        Route::delete('carts/{id}', [CartController::class, 'destroy'])->name('carts.destroy');
+        Route::post('orders', [OrderController::class, 'store'])->name('orders.store');
+        Route::get('orders/{id}', [OrderController::class, 'show'])->name('orders.show');
+        Route::get('orders', [OrderController::class, 'index'])->name('orders.index');
+        Route::put('orders/{id}', [OrderController::class, 'update'])->name('orders.update');
+        Route::delete('orders/{id}', [OrderController::class, 'destroy'])->name('orders.destroy');
+
+        Route::get('/user/comments', [UserCommentController::class, 'index']);
+        Route::post('/user/comments', [UserCommentController::class, 'store']);
+        Route::get('/user/comments/{id}', [UserCommentController::class, 'show']);
+        Route::put('/user/comments/{id}', [UserCommentController::class, 'update']);
+        Route::delete('/user/comments/{id}', [UserCommentController::class, 'destroy']);
+
     }
 );
+
 

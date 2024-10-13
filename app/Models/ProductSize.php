@@ -16,7 +16,9 @@ class ProductSize extends Model
             'name',
             'type',
         ];
-       
+       protected $casts = [
+           'type' => 'integer',
+       ];
         public function variants()
         {
             return $this->hasMany(ProductVariant::class);
@@ -25,5 +27,5 @@ class ProductSize extends Model
 {
     return $this->hasMany(ProductVariant::class, 'size_id', 'id');
 }
-       
+
 }

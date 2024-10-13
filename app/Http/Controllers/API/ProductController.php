@@ -103,6 +103,7 @@ class ProductController extends Controller
 
     public function index()
     {
+
         $products = Product::with(
             [
                 'category',
@@ -122,6 +123,10 @@ class ProductController extends Controller
             ],
             200,
         );
+
+        $products = Product::query()->with(['category', 'brand'])->get();
+        return response()->json(['data' => $products], 200);
+
     }
 /**
  * @OA\Post(
@@ -331,6 +336,7 @@ class ProductController extends Controller
     {
         DB::beginTransaction();
         try {
+
             // Lấy dữ liệu sản phẩm và gán các giá trị mặc định
             $dataProduct = $request->except(['product_variants', 'tags', 'product_images']);
             $dataProduct['is_active'] = $request->input('is_active', 0);
@@ -340,6 +346,28 @@ class ProductController extends Controller
             $dataProduct['sku'] = Str::uuid();
 
             // Xử lý hình ảnh thumbnail
+=======
+            $data = $request->validate([
+                'name' => 'required|string|max:255',
+                'slug' => 'nullable|unique:products,slug',
+                'sku' => 'nullable|unique:products,sku',
+                'img_thumbnail' => 'required|image|mimes:jpeg,png,jpg,gif,svg,webp|max:2048',
+                'price_regular' => 'required|numeric|min:0',
+                'price_sale' => 'nullable|numeric|min:0',
+                'description' => 'required|string',
+                'content' => 'required|string',
+                'user_manual' => 'required|string',
+                'view' => 'required|integer|min:0',
+                'is_active' => 'required|boolean',
+                'is_new' => 'required|boolean',
+                'is_show_home' => 'required|boolean',
+                'category_id' => 'required|exists:categories,id',
+                'brand_id' => 'required|exists:brands,id',
+            ]);
+
+            $product = new Product($data);
+
+
             if ($request->hasFile('img_thumbnail')) {
                 $path = $request->file('img_thumbnail')->store('products', 'public');
                 $dataProduct['img_thumbnail'] = asset('storage/' . $path);
@@ -381,6 +409,15 @@ class ProductController extends Controller
                 $product->load(['category', 'brand', 'tags', 'productImages', 'productVariants.productColor', 'productVariants.productSize']),
                 201
             );
+=======
+            $product->save();
+            DB::commit();
+
+            return response()->json($product->load(['category', 'brand']), 201);
+        } catch (ValidationException $e) {
+            DB::rollBack();
+            return response()->json(['errors' => $e->errors()], 422);
+
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error($e->getMessage());

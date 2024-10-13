@@ -73,9 +73,9 @@ class BrandController extends Controller
      *                                 type="string",
      *                                 example="image.png",
      *                             ),
-     *                           
-     *                            
-     *                                  
+     *
+     *
+     *
      *                                     ),
      *                                 )
      *                             )
@@ -107,8 +107,8 @@ class BrandController extends Controller
      *                         example=10
      *                     )
      *                 ),
-     *                
-     *                    
+     *
+     *
      *                 ),
      *             ),
      *         ),
@@ -176,7 +176,7 @@ class BrandController extends Controller
      * description="Hình ảnh thương hiệu",
      * example="image.png",
      * ),
-   
+
      * ),
      * ),
      * ),
@@ -536,5 +536,5 @@ class BrandController extends Controller
             );
         }
     }
-   
+
 }
