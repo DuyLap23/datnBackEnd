@@ -2431,12 +2431,32 @@
                 "tags": [
                     "Cart"
                 ],
-                "summary": "Hiển thị danh sách giỏ hàng của người dùng",
-                "description": "Lấy danh sách tất cả các sản phẩm trong giỏ hàng của người dùng hiện tại.",
-                "operationId": "082ccb576b0f3887aeea5ab4ad1e76b8",
+                "summary": "Lấy danh sách sản phẩm trong giỏ hàng",
+                "description": "Lấy danh sách tất cả sản phẩm trong giỏ hàng của người dùng.",
+                "operationId": "21230eed0aee13cda3136751f37a4439",
                 "responses": {
                     "200": {
-                        "description": "Danh sách giỏ hàng thành công"
+                        "description": "Danh sách sản phẩm trong giỏ hàng",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "cart_items": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/Cart"
+                                            }
+                                        },
+                                        "total_price": {
+                                            "description": "Tổng giá trị của sản phẩm trong giỏ hàng",
+                                            "type": "number",
+                                            "format": "float"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
                     },
                     "401": {
                         "description": "Unauthorized"
@@ -2472,6 +2492,14 @@
                                     "quantity": {
                                         "description": "Số lượng sản phẩm cần thêm. Phải lớn hơn 0.",
                                         "type": "integer"
+                                    },
+                                    "color": {
+                                        "description": "Màu sắc của sản phẩm.",
+                                        "type": "string"
+                                    },
+                                    "size": {
+                                        "description": "Kích thước của sản phẩm.",
+                                        "type": "string"
                                     }
                                 },
                                 "type": "object"
@@ -2484,10 +2512,59 @@
                         "description": "Thêm sản phẩm thành công"
                     },
                     "400": {
-                        "description": "Thông tin không hợp lệ"
+                        "description": "Thông tin không hợp lệ",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "error": {
+                                            "type": "string",
+                                            "example": "Số lượng sản phẩm vượt quá giới hạn cho phép."
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Sản phẩm không tồn tại",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "error": {
+                                            "type": "string",
+                                            "example": "Sản phẩm không tồn tại."
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
                     },
                     "401": {
                         "description": "Unauthorized"
+                    },
+                    "500": {
+                        "description": "Có lỗi xảy ra khi thêm sản phẩm",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "error": {
+                                            "type": "string",
+                                            "example": "Có lỗi xảy ra khi thêm sản phẩm."
+                                        },
+                                        "details": {
+                                            "type": "string",
+                                            "example": "Chi tiết lỗi."
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
                     }
                 },
                 "security": [
@@ -2498,67 +2575,13 @@
             }
         },
         "/api/carts/{id}": {
-            "put": {
-                "tags": [
-                    "Cart"
-                ],
-                "summary": "Cập nhật số lượng sản phẩm trong giỏ hàng",
-                "description": "Cập nhật số lượng của sản phẩm đã có trong giỏ hàng. Nếu số lượng không hợp lệ, trả về lỗi.",
-                "operationId": "6b3288907562be31f345b214eb824d76",
-                "parameters": [
-                    {
-                        "name": "id",
-                        "in": "path",
-                        "required": true,
-                        "schema": {
-                            "description": "ID của sản phẩm trong giỏ hàng cần cập nhật.",
-                            "type": "integer"
-                        }
-                    }
-                ],
-                "requestBody": {
-                    "required": true,
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "required": [
-                                    "quantity"
-                                ],
-                                "properties": {
-                                    "quantity": {
-                                        "description": "Số lượng sản phẩm cần cập nhật. Phải lớn hơn 0.",
-                                        "type": "integer"
-                                    }
-                                },
-                                "type": "object"
-                            }
-                        }
-                    }
-                },
-                "responses": {
-                    "200": {
-                        "description": "Cập nhật sản phẩm thành công"
-                    },
-                    "404": {
-                        "description": "Sản phẩm không tìm thấy"
-                    },
-                    "401": {
-                        "description": "Unauthorized"
-                    }
-                },
-                "security": [
-                    {
-                        "Bearer": []
-                    }
-                ]
-            },
             "delete": {
                 "tags": [
                     "Cart"
                 ],
                 "summary": "Xóa sản phẩm khỏi giỏ hàng",
                 "description": "Xóa sản phẩm khỏi giỏ hàng của người dùng theo ID sản phẩm.",
-                "operationId": "9a70a882e504ac01a01f1b44ff1d257e",
+                "operationId": "b22009110008b97b4c82e3333bc4bf24",
                 "parameters": [
                     {
                         "name": "id",

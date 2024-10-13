@@ -6,6 +6,11 @@ use App\Models\Cart;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Models\Product;
+use App\Models\ProductColor;
+use App\Models\ProductSize;
+use App\Models\ProductVariant;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 
 /**
  * @OA\Schema(
@@ -63,6 +68,12 @@ class CartController extends Controller
  */
 public function addProductToCart(Request $request)
 {
+    if (!$request->user()) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Bạn cần đăng nhập để thực hiện hành động này.'
+        ], 401); // 401 Unauthorized
+    }
     // Kiểm tra và xác thực dữ liệu
     $validatedData = $request->validate([
         'product_id' => 'required|integer|exists:products,id', 
@@ -71,12 +82,30 @@ public function addProductToCart(Request $request)
         'size' => 'nullable|string',
     ]);
 
-    // Kiểm tra tồn tại sản phẩm
-    $product = Product::find($validatedData['product_id']);
+        // Kiểm tra tồn tại sản phẩm
+        $product = Product::find($validatedData['product_id']);
+        // Kiểm tra màu sắc từ bảng product_colors
+        $colorId = ProductColor::where('name', $validatedData['color'])->value('id');
+
+        // Kiểm tra kích thước từ bảng product_sizes
+        $sizeId = ProductSize::where('name', $validatedData['size'])->value('id');
     if (!$product) {
         return response()->json(['error' => 'Sản phẩm không tồn tại.'], 404);
     }
+      // Kiểm tra số lượng từ bảng product_variants
+      $productVariant = ProductVariant::where('product_id', $validatedData['product_id'])
+      ->where('product_color_id', $colorId)
+      ->where('product_size_id', $sizeId)
+      ->first();
 
+        if (!$productVariant) {
+            return response()->json(['error' => 'Biến thể sản phẩm không tồn tại.'], 404);
+        }
+
+        // Kiểm tra số lượng có đủ không
+        if ($productVariant->quantity < $validatedData['quantity']) {
+            return response()->json(['error' => 'Số lượng sản phẩm không đủ.'], 400);
+        }
     try {
         // Kiểm tra sản phẩm có trong giỏ hàng không
         $cartItem = Cart::where('user_id', $request->user()->id)
@@ -124,33 +153,48 @@ public function addProductToCart(Request $request)
 }
 
 /**
-     * @OA\Delete(
-     *     path="/api/carts/{id}",
-     *     tags={"Cart"},
-     *     summary="Xóa sản phẩm khỏi giỏ hàng",
-     *     description="Xóa sản phẩm khỏi giỏ hàng của người dùng theo ID sản phẩm.",
-     *     @OA\Parameter(
-     *         name="id",
-     *         in="path",
-     *         required=true,
-     *         @OA\Schema(type="integer", description="ID của sản phẩm trong giỏ hàng cần xóa.")
-     *     ),
-     *     @OA\Response(response="204", description="Xóa sản phẩm thành công"),
-     *     @OA\Response(response="404", description="Sản phẩm không tìm thấy"),
-     *     @OA\Response(response="401", description="Unauthorized"),
-     *     security={{"Bearer": {}}}
-     * )
-     */
-    public function destroy($id)
-    {
-        $cart = Cart::find($id);
-        if (!$cart) {
-            return response()->json(['error' => 'Sản phẩm không tìm thấy'], 404);
-        }
-
-        $cart->delete();
-        return response()->json(['message' => 'Xóa sản phẩm thành công.'], 204);
+ * @OA\Delete(
+ *     path="/api/carts/{id}",
+ *     tags={"Cart"},
+ *     summary="Xóa sản phẩm khỏi giỏ hàng",
+ *     description="Xóa sản phẩm khỏi giỏ hàng của người dùng theo ID sản phẩm.",
+ *     @OA\Parameter(
+ *         name="id",
+ *         in="path",
+ *         required=true,
+ *         @OA\Schema(type="integer", description="ID của sản phẩm trong giỏ hàng cần xóa.")
+ *     ),
+ *     @OA\Response(response="204", description="Xóa sản phẩm thành công"),
+ *     @OA\Response(response="404", description="Sản phẩm không tìm thấy"),
+ *     @OA\Response(response="401", description="Unauthorized"),
+ *     security={{"Bearer": {}}}
+ * )
+ */
+public function deleteProductFromCart($id)
+{
+    // Kiểm tra người dùng đã đăng nhập hay chưa
+    if (!Auth::check()) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Bạn cần đăng nhập để thực hiện hành động này.'
+        ], 401);
     }
+    
+    // Lấy ID người dùng hiện tại
+    $userId = auth('api')->user()->id;
+
+    // Tìm sản phẩm trong giỏ hàng của người dùng
+    $cart = Cart::where('id', $id)->where('user_id', $userId)->first();
+    
+    // Kiểm tra xem sản phẩm có tồn tại hay không
+    if (!$cart) {
+        return response()->json(['error' => 'Sản phẩm không tìm thấy'], 404);
+    }
+
+    // Xóa sản phẩm
+    $cart->delete();
+    return response()->json(['message' => 'Xóa sản phẩm thành công.'], 204); // 204 No Content
+}
 
   /**
  * @OA\Get(
@@ -171,6 +215,12 @@ public function addProductToCart(Request $request)
  */
 public function listProductsInCart(Request $request)
 {
+    if (!$request->user()) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Bạn cần đăng nhập để thực hiện hành động này.'
+        ], 401); // 401 Unauthorized
+    }
     // Lấy danh sách sản phẩm trong giỏ hàng của người dùng
     $cartItems = Cart::where('user_id', $request->user()->id)->get();
 
