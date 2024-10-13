@@ -151,9 +151,9 @@ Route::group(
 
         Route::get('products/{id}', [ProductController::class, 'show'])->name('products.show');
         Route::post('carts', [CartController::class, 'addProductToCart'])->name('carts.store');
-        Route::get('carts', [CartController::class, 'index'])->name('carts.index');
-        Route::get('carts/{id}', [CartController::class, 'show'])->name('carts.show');
-        Route::put('carts/{id}', [CartController::class, 'update'])->name('carts.update');
+        Route::post('/carts', [CartController::class, 'addProductToCart']);
+        Route::delete('/carts/{id}', [CartController::class, 'deleteProductFromCart']);
+        Route::get('/carts', [CartController::class, 'listProductsInCart']);
         Route::delete('carts/{id}', [CartController::class, 'destroy'])->name('carts.destroy');
         Route::post('orders', [OrderController::class, 'store'])->name('orders.store');
         Route::get('orders/{id}', [OrderController::class, 'show'])->name('orders.show');
