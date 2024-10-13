@@ -2112,25 +2112,6 @@
                                                 "description": {
                                                     "type": "string",
                                                     "example": ""
-                                                },
-                                                "\tdeleted_at": {
-                                                    "type": "string",
-                                                    "example": ""
-                                                },
-                                                "deleted_at": {
-                                                    "type": "string",
-                                                    "format": "date-time",
-                                                    "example": "2024-09-19T12:34:56Z"
-                                                },
-                                                "created_at": {
-                                                    "type": "string",
-                                                    "format": "date-time",
-                                                    "example": "2024-09-19T12:34:56Z"
-                                                },
-                                                "updated_at": {
-                                                    "type": "string",
-                                                    "format": "date-time",
-                                                    "example": "2024-09-19T12:34:56Z"
                                                 }
                                             },
                                             "type": "object"
@@ -2270,25 +2251,6 @@
                                                 "description": {
                                                     "type": "string",
                                                     "example": ""
-                                                },
-                                                "\tdeleted_at": {
-                                                    "type": "string",
-                                                    "example": ""
-                                                },
-                                                "deleted_at": {
-                                                    "type": "string",
-                                                    "format": "date-time",
-                                                    "example": "2024-09-19T12:34:56Z"
-                                                },
-                                                "created_at": {
-                                                    "type": "string",
-                                                    "format": "date-time",
-                                                    "example": "2024-09-19T12:34:56Z"
-                                                },
-                                                "updated_at": {
-                                                    "type": "string",
-                                                    "format": "date-time",
-                                                    "example": "2024-09-19T12:34:56Z"
                                                 }
                                             },
                                             "type": "object"
@@ -2426,6 +2388,16 @@
                 ]
             }
         },
+
+        "/api/create-store": {
+            "post": {
+                "tags": [
+                    "Create Cart"
+                ],
+                "summary": "",
+                "description": "Tạo mới cửa hàng",
+                "operationId": "1fbe2dd02bb99e9b1f935bfdb64b1d24",
+
         "/api/carts": {
             "get": {
                 "tags": [
@@ -2455,6 +2427,7 @@
                 "summary": "Thêm sản phẩm vào giỏ hàng",
                 "description": "Thêm một sản phẩm vào giỏ hàng của người dùng. Nếu sản phẩm đã tồn tại, số lượng sẽ được cập nhật.",
                 "operationId": "2515b3b3df63e63629b891e129b55623",
+
                 "requestBody": {
                     "required": true,
                     "content": {
@@ -2465,6 +2438,12 @@
                                     "quantity"
                                 ],
                                 "properties": {
+
+                                    "name": {
+                                        "description": "Giỏ hàng",
+                                        "type": "string",
+                                        "example": "Cửa hàng 1"
+
                                     "product_id": {
                                         "description": "ID của sản phẩm cần thêm vào giỏ hàng.",
                                         "type": "integer"
@@ -2472,6 +2451,7 @@
                                     "quantity": {
                                         "description": "Số lượng sản phẩm cần thêm. Phải lớn hơn 0.",
                                         "type": "integer"
+
                                     }
                                 },
                                 "type": "object"
@@ -2480,6 +2460,7 @@
                     }
                 },
                 "responses": {
+
                     "201": {
                         "description": "Thêm sản phẩm thành công"
                     },
@@ -2609,6 +2590,26 @@
                                         },
                                         "message": {
                                             "type": "string",
+
+                                            "example": "Success"
+                                        },
+                                        "status": {
+                                            "type": "string",
+                                            "example": "200"
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "id": {
+                                                    "type": "integer",
+                                                    "example": 1
+                                                },
+                                                "name": {
+                                                    "type": "string",
+                                                    "example": "Cửa hàng 1"
+                                                }
+                                            },
+                                            "type": "object"
+
                                             "example": "Lấy thành công danh mục"
                                         },
                                         "categories": {
@@ -2731,11 +2732,34 @@
                 }
             }
         },
+
+        "/api/categories": {
+
         "/api/admin/categories/trashed": {
+
             "get": {
                 "tags": [
                     "Category"
                 ],
+
+                "summary": "Lấy danh sách danh mục",
+                "description": "Trả về danh sách tất cả các danh mục chính và danh mục cha.",
+                "operationId": "8e17a9627dbed245cf032f867569cf11",
+                "parameters": [
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "description": "Số trang hiện tại",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+
                 "summary": "Lấy danh mục đã xóa",
                 "operationId": "200c867867f83a7171472166eb9c5387",
                 "responses": {
@@ -2796,6 +2820,7 @@
                 },
                 "responses": {
                     "201": {
+
                         "description": "Thành công",
                         "content": {
                             "application/json": {
@@ -2807,6 +2832,86 @@
                                         },
                                         "message": {
                                             "type": "string",
+
+                                            "example": "Lấy thành công danh mục"
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "categories": {
+                                                    "properties": {
+                                                        "current_page": {
+                                                            "type": "integer",
+                                                            "example": 1
+                                                        },
+                                                        "data": {
+                                                            "type": "array",
+                                                            "items": {
+                                                                "properties": {
+                                                                    "id": {
+                                                                        "type": "integer",
+                                                                        "example": 1
+                                                                    },
+                                                                    "name": {
+                                                                        "type": "string",
+                                                                        "example": "Danh mục 1"
+                                                                    },
+                                                                    "image": {
+                                                                        "type": "string",
+                                                                        "example": "image.png"
+                                                                    },
+                                                                    "parent_id": {
+                                                                        "type": "integer",
+                                                                        "example": null,
+                                                                        "nullable": true
+                                                                    },
+                                                                    "children": {
+                                                                        "type": "array",
+                                                                        "items": {
+                                                                            "properties": {
+                                                                                "id": {
+                                                                                    "type": "integer",
+                                                                                    "example": 2
+                                                                                },
+                                                                                "name": {
+                                                                                    "type": "string",
+                                                                                    "example": "Danh mục con 1"
+                                                                                },
+                                                                                "image": {
+                                                                                    "type": "string",
+                                                                                    "example": "child_image.png"
+                                                                                },
+                                                                                "parent_id": {
+                                                                                    "type": "integer",
+                                                                                    "example": 1
+                                                                                }
+                                                                            },
+                                                                            "type": "object"
+                                                                        }
+                                                                    }
+                                                                },
+                                                                "type": "object"
+                                                            }
+                                                        },
+                                                        "total": {
+                                                            "type": "integer",
+                                                            "example": 10
+                                                        },
+                                                        "last_page": {
+                                                            "type": "integer",
+                                                            "example": 1
+                                                        },
+                                                        "per_page": {
+                                                            "type": "integer",
+                                                            "example": 10
+                                                        },
+                                                        "from": {
+                                                            "type": "integer",
+                                                            "example": 1
+                                                        },
+                                                        "to": {
+                                                            "type": "integer",
+                                                            "example": 10
+=======
                                             "example": "Thêm danh mục thành công."
                                         },
                                         "data": {
@@ -2829,9 +2934,35 @@
                                                         "parent_id": {
                                                             "type": "integer",
                                                             "example": 1
+
                                                         }
                                                     },
                                                     "type": "object"
+                                                },
+                                                "categoryParent": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "properties": {
+                                                            "id": {
+                                                                "type": "integer",
+                                                                "example": 1
+                                                            },
+                                                            "name": {
+                                                                "type": "string",
+                                                                "example": "Danh mục cha"
+                                                            },
+                                                            "image": {
+                                                                "type": "string",
+                                                                "example": "parent_image.png"
+                                                            },
+                                                            "parent_id": {
+                                                                "type": "integer",
+                                                                "example": null,
+                                                                "nullable": true
+                                                            }
+                                                        },
+                                                        "type": "object"
+                                                    }
                                                 }
                                             },
                                             "type": "object"
@@ -2863,6 +2994,128 @@
                         }
                     },
                     "500": {
+
+                        "description": "Lỗi server",
+
+                        "description": "Thêm danh mục thất bại",
+
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+
+                                            "example": "Lỗi khi lấy danh mục."
+                                        },
+                                        "error": {
+                                            "type": "string",
+                                            "example": "Server Error Message"
+
+                                            "example": "Thêm danh mục thất bại"
+                                        },
+                                        "error": {
+                                            "type": "string",
+                                            "example": "Chi tiết lỗi..."
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ]
+            }
+        },
+
+        "/api/admin/categories": {
+            "post": {
+                "tags": [
+                    "Category"
+                ],
+                "summary": "Thêm danh mục mới",
+                "description": "Thêm danh mục vào hệ thống.",
+                "operationId": "d2b35462e503ce58ae15900db673ef51",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "name": {
+                                        "description": "Tên danh mục",
+                                        "type": "string",
+                                        "example": "Danh mục 1"
+                                    },
+                                    "image": {
+                                        "description": "Hình ảnh danh mục",
+                                        "type": "string",
+                                        "example": "image.png"
+                                    },
+                                    "parent_id": {
+                                        "description": "ID danh mục cha",
+                                        "type": "bigint",
+                                        "example": "1"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Thành công",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Thêm danh mục thành công."
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "category": {
+                                                    "properties": {
+                                                        "id": {
+                                                            "type": "bigint",
+                                                            "example": 1
+                                                        },
+                                                        "name": {
+                                                            "type": "string",
+                                                            "example": "Danh mục 1"
+                                                        },
+                                                        "image_url": {
+                                                            "type": "string",
+                                                            "example": "https://apitopdeal.shop/storage/categories/image.png"
+                                                        }
+                                                    },
+                                                    "type": "object"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
                         "description": "Thêm danh mục thất bại",
                         "content": {
                             "application/json": {
@@ -2878,7 +3131,7 @@
                                         },
                                         "error": {
                                             "type": "string",
-                                            "example": "Chi tiết lỗi..."
+                                            "example": "Error details..."
                                         }
                                     },
                                     "type": "object"
@@ -2912,6 +3165,26 @@
                         }
                     }
                 ],
+
+        "/api/admin/categories/{id}": {
+            "get": {
+                "tags": [
+                    "Category"
+                ],
+                "summary": "Lấy chi tiết danh mục",
+                "operationId": "750a18271e2c072d45518d1e5bf4d065",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID của danh mục",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+
                 "responses": {
                     "200": {
                         "description": "Lấy thành công dữ liệu của danh mục",
@@ -2945,10 +3218,12 @@
                                                     "type": "string",
                                                     "example": ""
                                                 },
+
                                                 "slug": {
                                                     "type": "string",
                                                     "example": "category-name"
                                                 },
+
                                                 "created_at": {
                                                     "type": "string",
                                                     "format": "date-time",
@@ -3028,6 +3303,7 @@
                     "Category"
                 ],
                 "summary": "Cập nhật danh mục",
+
                 "description": "Cập nhật thông tin của một danh mục.",
                 "operationId": "d68df7c013004912f5ea2f792573304a",
                 "parameters": [
@@ -3089,6 +3365,17 @@
                                                 },
                                                 "name": {
                                                     "type": "string",
+
+                                                    "example": "Category Name"
+                                                },
+                                                "slug": {
+                                                    "type": "string",
+                                                    "example": "category-name"
+                                                },
+                                                "image": {
+                                                    "type": "string",
+                                                    "example": "path/to/image.jpg"
+
                                                     "example": "Tên danh mục"
                                                 },
                                                 "slug": {
@@ -3098,6 +3385,7 @@
                                                 "image": {
                                                     "type": "string",
                                                     "example": "http://127.0.0.1:8000/storage/categories/image.jpg"
+
                                                 },
                                                 "created_at": {
                                                     "type": "string",
@@ -3192,13 +3480,23 @@
                         "Bearer": []
                     }
                 ]
+
+            }
+        },
+        "api/admin/categories/{id}": {
+
             },
+
             "delete": {
                 "tags": [
                     "Category"
                 ],
                 "summary": "Xóa danh mục",
+
+                "operationId": "8ef4fc1e69fa1a5c85d87ec3f045cad4",
+
                 "operationId": "8a783e8811e5c895ed415a5ccdd8a734",
+
                 "parameters": [
                     {
                         "name": "id",
@@ -3211,7 +3509,11 @@
                     }
                 ],
                 "responses": {
+
+                    "200": {
+
                     "204": {
+
                         "description": "Xóa danh mục thành công",
                         "content": {
                             "application/json": {
@@ -3231,8 +3533,13 @@
                             }
                         }
                     },
+
+                    "500": {
+                        "description": "Lỗi khi xóa danh mục",
+
                     "400": {
                         "description": "Không thể xóa danh mục do liên quan đến các bản ghi khác",
+
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -3243,37 +3550,22 @@
                                         },
                                         "message": {
                                             "type": "string",
-                                            "example": "Không thể xóa danh mục này vì nó có liên quan đến các bản ghi khác."
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "Lỗi không xác định",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "properties": {
-                                        "success": {
-                                            "type": "boolean",
-                                            "example": false
-                                        },
-                                        "message": {
-                                            "type": "string",
-                                            "example": "Xóa danh mục không thành công do lỗi không xác định."
+
+                                            "example": "Xóa danh mục không thành công."
                                         },
                                         "error": {
                                             "type": "string",
                                             "example": "Lý do lỗi"
+
+                                            "example": "Không thể xóa danh mục này vì nó có liên quan đến các bản ghi khác."
+
                                         }
                                     },
                                     "type": "object"
                                 }
                             }
                         }
+
                     }
                 },
                 "security": [
@@ -3286,7 +3578,7 @@
         "/api/admin/comments": {
             "get": {
                 "tags": [
-                    "Admin Comments"
+                    "Comments"
                 ],
                 "summary": "Lấy danh sách tất cả bình luận",
                 "description": "Trả về danh sách tất cả các bình luận trong hệ thống hoặc lọc theo sản phẩm và người dùng.",
@@ -3314,25 +3606,41 @@
                 "responses": {
                     "200": {
                         "description": "Danh sách bình luận",
+
+                    },
+                    "500": {
+                        "description": "Lỗi không xác định",
+
                         "content": {
                             "application/json": {
                                 "schema": {
                                     "properties": {
                                         "success": {
                                             "type": "boolean",
-                                            "example": true
+                                            "example": false
                                         },
+
                                         "data": {
                                             "type": "array",
                                             "items": {
                                                 "$ref": "#/components/schemas/Comment"
                                             }
+
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Xóa danh mục không thành công do lỗi không xác định."
+                                        },
+                                        "error": {
+                                            "type": "string",
+                                            "example": "Lý do lỗi"
+
                                         }
                                     },
                                     "type": "object"
                                 }
                             }
                         }
+
                     },
                     "500": {
                         "description": "Lỗi khi lấy danh sách bình luận",
@@ -3363,7 +3671,7 @@
             },
             "post": {
                 "tags": [
-                    "Admin Comments"
+                    "Comments"
                 ],
                 "summary": "Tạo một bình luận mới",
                 "description": "Tạo một bình luận mới với nội dung, ID người dùng và ID sản phẩm đã cung cấp.",
@@ -3459,7 +3767,7 @@
         "/api/admin/comments/{id}": {
             "get": {
                 "tags": [
-                    "Admin Comments"
+                    "Comments"
                 ],
                 "summary": "Lấy bình luận theo ID",
                 "description": "Lấy thông tin chi tiết của một bình luận dựa trên ID được cung cấp.",
@@ -3515,7 +3823,7 @@
             },
             "put": {
                 "tags": [
-                    "Admin Comments"
+                    "Comments"
                 ],
                 "summary": "Cập nhật một bình luận",
                 "description": "Cập nhật bình luận dựa trên ID đã cung cấp và nội dung mới.",
@@ -3590,7 +3898,7 @@
             },
             "delete": {
                 "tags": [
-                    "Admin Comments"
+                    "Comments"
                 ],
                 "summary": "Xóa bình luận",
                 "description": "Xóa một bình luận dựa trên ID được cung cấp.",
@@ -3622,6 +3930,1267 @@
                                         },
                                         "message": {
                                             "type": "string",
+                                            "example": "Bình luận không tồn tại."
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+
+                    }
+                },
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ]
+            }
+        },
+
+        "/api/product-colors": {
+            "get": {
+                "tags": [
+                    "Product Colors"
+                ],
+                "summary": "Lấy danh sách màu sắc sản phẩm",
+                "operationId": "c3c7e5e32777e9671bc6a85dcabbff0d",
+                "responses": {
+                    "200": {
+                        "description": "Thành công",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "properties": {
+                                            "id": {
+                                                "type": "integer",
+                                                "example": 1
+                                            },
+                                            "name": {
+                                                "type": "string",
+                                                "example": "Đỏ"
+                                            }
+                                        },
+                                        "type": "object"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "Product Colors"
+                ],
+                "summary": "Thêm màu sắc mới",
+                "operationId": "5111a3dc6f48062bb4d8182913ecf46c",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "example": "Xanh lá"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Tạo thành công",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "id": {
+                                            "type": "integer",
+                                            "example": 2
+                                        },
+                                        "name": {
+                                            "type": "string",
+                                            "example": "Xanh lá"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Dữ liệu không hợp lệ",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Validation failed"
+                                        },
+                                        "errors": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/product-colors/{id}": {
+            "get": {
+                "tags": [
+                    "Product Colors"
+                ],
+                "summary": "Lấy chi tiết màu sắc",
+                "operationId": "6520b6390ae04f0597550ac1597b0444",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID của màu sắc",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Thành công",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "id": {
+                                                    "type": "integer",
+                                                    "example": 1
+                                                },
+                                                "name": {
+                                                    "type": "string",
+                                                    "example": "Đỏ"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Không tìm thấy",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Không tìm thấy màu sắc."
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "put": {
+                "tags": [
+                    "Product Colors"
+                ],
+                "summary": "Cập nhật màu sắc",
+                "operationId": "be0bd9a452ae2ea24a698a2fa0089883",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID của màu sắc",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "example": "Xanh dương"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Cập nhật thành công",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Màu sắc đã được cập nhật thành công."
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "id": {
+                                                    "type": "integer",
+                                                    "example": 1
+                                                },
+                                                "name": {
+                                                    "type": "string",
+                                                    "example": "Xanh dương"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Không tìm thấy",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Không tìm thấy màu sắc."
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Dữ liệu không hợp lệ",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Dữ liệu không hợp lệ."
+                                        },
+                                        "errors": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "Product Colors"
+                ],
+                "summary": "Xóa màu sắc",
+                "operationId": "826f7e3de8089792f4867dfa42308288",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID của màu sắc",
+                        "required": true,
+
+        "/api/admin/comments": {
+            "get": {
+                "tags": [
+                    "Admin Comments"
+                ],
+                "summary": "Lấy danh sách tất cả bình luận",
+                "description": "Trả về danh sách tất cả các bình luận trong hệ thống hoặc lọc theo sản phẩm và người dùng.",
+                "operationId": "3e176f6e60251f991fe2ce2ebde1099d",
+                "parameters": [
+                    {
+                        "name": "product_id",
+                        "in": "query",
+                        "description": "ID sản phẩm để lọc bình luận",
+                        "required": false,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "user_id",
+                        "in": "query",
+                        "description": "ID người dùng để lọc bình luận",
+                        "required": false,
+
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+
+                        "description": "Xóa thành công",
+
+                        "description": "Danh sách bình luận",
+
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Màu sắc đã được xóa thành công."
+
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/Comment"
+                                            }
+
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+
+                    "404": {
+                        "description": "Không tìm thấy",
+
+                    "500": {
+                        "description": "Lỗi khi lấy danh sách bình luận",
+
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+
+                                            "example": "Không tìm thấy màu sắc."
+
+                                            "example": "Lỗi không xác định."
+
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+
+                }
+            }
+        },
+        "/api/admin/products": {
+            "post": {
+                "tags": [
+                    "Product"
+                ],
+                "summary": "Thêm sản phẩm mới",
+                "description": "Thêm sản phẩm vào hệ thống với các biến thể và thẻ.",
+                "operationId": "b114a4e638eb751912f27bab4dfcca12",
+
+                },
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Admin Comments"
+                ],
+                "summary": "Tạo một bình luận mới",
+                "description": "Tạo một bình luận mới với nội dung, ID người dùng và ID sản phẩm đã cung cấp.",
+                "operationId": "e5ee2e94735d1b847f7f0ce0321e7a0c",
+
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "content",
+                                    "user_id",
+                                    "product_id"
+                                ],
+                                "properties": {
+
+                                    "name": {
+                                        "description": "Tên sản phẩm",
+                                        "type": "string",
+                                        "example": "Sản phẩm A"
+                                    },
+                                    "price": {
+                                        "description": "Giá sản phẩm",
+                                        "type": "number",
+                                        "format": "float",
+                                        "example": 199000
+                                    },
+                                    "is_active": {
+                                        "description": "Trạng thái hoạt động của sản phẩm",
+                                        "type": "boolean",
+                                        "example": true
+                                    },
+                                    "is_new": {
+                                        "description": "Sản phẩm mới",
+                                        "type": "boolean",
+                                        "example": true
+                                    },
+                                    "is_show_home": {
+                                        "description": "Hiển thị trên trang chủ",
+                                        "type": "boolean",
+                                        "example": false
+                                    },
+                                    "img_thumbnail": {
+                                        "description": "Ảnh thumbnail của sản phẩm",
+                                        "type": "string",
+                                        "format": "binary",
+                                        "example": "thumbnail.png"
+                                    },
+                                    "product_variants": {
+                                        "type": "array",
+                                        "items": {
+                                            "properties": {
+                                                "product_size_id": {
+                                                    "description": "ID kích thước sản phẩm",
+                                                    "type": "integer",
+                                                    "example": 1
+                                                },
+                                                "product_color_id": {
+                                                    "description": "ID màu sắc sản phẩm",
+                                                    "type": "integer",
+                                                    "example": 2
+                                                },
+                                                "quantity": {
+                                                    "description": "Số lượng biến thể",
+                                                    "type": "integer",
+                                                    "example": 10
+                                                },
+                                                "image": {
+                                                    "description": "Hình ảnh biến thể sản phẩm",
+                                                    "type": "string",
+                                                    "format": "binary",
+                                                    "example": "variant_image.png"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "tags": {
+                                        "type": "array",
+                                        "items": {
+                                            "description": "ID thẻ liên kết với sản phẩm",
+                                            "type": "integer",
+                                            "example": 1
+                                        }
+
+                                    "content": {
+                                        "type": "string",
+                                        "example": "Nội dung bình luận"
+                                    },
+                                    "user_id": {
+                                        "type": "integer",
+                                        "example": 123
+                                    },
+                                    "product_id": {
+                                        "type": "integer",
+                                        "example": 456
+
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+
+                        "description": "Thêm sản phẩm thành công",
+
+                        "description": "Bình luận được tạo thành công",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Comment"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Dữ liệu đầu vào không hợp lệ",
+
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+
+                                        "id": {
+                                            "type": "integer",
+                                            "example": 1
+
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+
+                                        },
+                                        "name": {
+                                            "type": "string",
+
+                                            "example": "Sản phẩm A"
+                                        },
+                                        "price": {
+                                            "type": "number",
+                                            "format": "float",
+                                            "example": 199000
+                                        },
+                                        "category": {
+                                            "properties": {
+                                                "name": {
+                                                    "type": "string",
+                                                    "example": "Danh mục 1"
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        "brand": {
+                                            "properties": {
+                                                "name": {
+                                                    "type": "string",
+                                                    "example": "Thương hiệu A"
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        "tags": {
+                                            "type": "array",
+                                            "items": {
+                                                "properties": {
+                                                    "name": {
+                                                        "type": "string",
+                                                        "example": "Thẻ 1"
+                                                    }
+                                                },
+                                                "type": "object"
+                                            }
+                                        },
+                                        "product_images": {
+                                            "type": "array",
+                                            "items": {
+                                                "properties": {
+                                                    "url": {
+                                                        "type": "string",
+                                                        "example": "https://apitopdeal.shop/storage/products/thumbnail.png"
+                                                    }
+                                                },
+                                                "type": "object"
+                                            }
+                                        },
+                                        "product_variants": {
+                                            "type": "array",
+                                            "items": {
+                                                "properties": {
+                                                    "product_size": {
+                                                        "properties": {
+                                                            "name": {
+                                                                "type": "string",
+                                                                "example": "Size M"
+                                                            }
+                                                        },
+                                                        "type": "object"
+                                                    },
+                                                    "product_color": {
+                                                        "properties": {
+                                                            "name": {
+                                                                "type": "string",
+                                                                "example": "Màu Đỏ"
+                                                            }
+                                                        },
+                                                        "type": "object"
+                                                    },
+                                                    "quantity": {
+                                                        "type": "integer",
+                                                        "example": 10
+                                                    },
+                                                    "image_url": {
+                                                        "type": "string",
+                                                        "example": "https://apitopdeal.shop/storage/products/variant_image.png"
+                                                    }
+                                                },
+                                                "type": "object"
+                                            }
+
+                                            "example": "Dữ liệu không hợp lệ."
+
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+
+                        "description": "Thêm sản phẩm thất bại",
+
+                        "description": "Lỗi khi tạo bình luận",
+
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+
+                                        "error": {
+                                            "type": "string",
+                                            "example": "Lỗi thêm sản phẩm: {error details}"
+
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Tạo bình luận không thành công."
+
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ]
+            }
+        },
+
+        "/api/admin/product/{id}": {
+            "get": {
+                "tags": [
+                    "Product"
+                ],
+                "summary": "Lấy chi tiết sản phẩm",
+                "operationId": "ecfd329d22f936a7e51144d7ed2c3d69",
+
+        "/api/admin/comments/{id}": {
+            "get": {
+                "tags": [
+                    "Admin Comments"
+                ],
+                "summary": "Lấy bình luận theo ID",
+                "description": "Lấy thông tin chi tiết của một bình luận dựa trên ID được cung cấp.",
+                "operationId": "11bb0539b32c9a718800f6ad89540b50",
+
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+
+                        "description": "ID của sản phẩm",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Lấy thành công dữ liệu của sản phẩm",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Lấy thành công dữ liệu của sản phẩm {id}"
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "id": {
+                                                    "type": "integer",
+                                                    "example": 1
+                                                },
+                                                "name": {
+                                                    "type": "string",
+                                                    "example": "Tên sản phẩm"
+                                                },
+                                                "img_thumbnail": {
+                                                    "type": "string",
+                                                    "example": "thumbnail.png"
+                                                },
+                                                "is_active": {
+                                                    "type": "boolean",
+                                                    "example": true
+                                                },
+                                                "is_new": {
+                                                    "type": "boolean",
+                                                    "example": false
+                                                },
+                                                "is_show_home": {
+                                                    "type": "boolean",
+                                                    "example": true
+                                                },
+                                                "category": {
+                                                    "properties": {
+                                                        "id": {
+                                                            "type": "integer",
+                                                            "example": 1
+                                                        },
+                                                        "name": {
+                                                            "type": "string",
+                                                            "example": "Danh mục sản phẩm"
+                                                        }
+                                                    },
+                                                    "type": "object"
+                                                },
+                                                "brand": {
+                                                    "properties": {
+                                                        "id": {
+                                                            "type": "integer",
+                                                            "example": 1
+                                                        },
+                                                        "name": {
+                                                            "type": "string",
+                                                            "example": "Thương hiệu sản phẩm"
+                                                        }
+                                                    },
+                                                    "type": "object"
+                                                },
+                                                "tags": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "string",
+                                                        "example": "Tag 1"
+                                                    }
+                                                },
+                                                "productImages": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "properties": {
+                                                            "id": {
+                                                                "type": "integer",
+                                                                "example": 1
+                                                            },
+                                                            "image_url": {
+                                                                "type": "string",
+                                                                "example": "image1.png"
+                                                            }
+                                                        },
+                                                        "type": "object"
+                                                    }
+                                                },
+                                                "productVariants": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "properties": {
+                                                            "id": {
+                                                                "type": "integer",
+                                                                "example": 1
+                                                            },
+                                                            "product_size_id": {
+                                                                "type": "integer",
+                                                                "example": 1
+                                                            },
+                                                            "product_color_id": {
+                                                                "type": "integer",
+                                                                "example": 2
+                                                            },
+                                                            "quantity": {
+                                                                "type": "integer",
+                                                                "example": 10
+                                                            },
+                                                            "image": {
+                                                                "type": "string",
+                                                                "example": "variant_image.png"
+                                                            }
+                                                        },
+                                                        "type": "object"
+                                                    }
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Sản phẩm không tìm thấy",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Sản phẩm không tìm thấy."
+                                        },
+                                        "error": {
+                                            "type": "string",
+                                            "example": "No query results for model [Product]"
+                                        }
+                                    },
+                                    "type": "object"
+
+                        "description": "ID của bình luận cần lấy",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Phản hồi thành công",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Comment"
+
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Không tìm thấy bình luận",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+
+                                            "example": "Lỗi khi lấy thông tin sản phẩm."
+                                        },
+                                        "error": {
+                                            "type": "string",
+                                            "example": "Server Error Message"
+
+                                            "example": "Bình luận không tồn tại."
+
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ]
+            },
+            "put": {
+                "tags": [
+
+                    "Product"
+                ],
+                "summary": "Cập nhật thông tin sản phẩm",
+                "operationId": "24b0bf291f5b21f57384d8f1ace9afdb",
+
+                    "Admin Comments"
+                ],
+                "summary": "Cập nhật một bình luận",
+                "description": "Cập nhật bình luận dựa trên ID đã cung cấp và nội dung mới.",
+                "operationId": "6c10a368b8e9a01d30e1b6ed0265b466",
+
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+
+                        "description": "ID của sản phẩm",
+
+                        "description": "ID của bình luận cần cập nhật",
+
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "content"
+                                ],
+                                "properties": {
+
+                                    "name": {
+                                        "type": "string",
+                                        "example": "Tên sản phẩm"
+                                    },
+                                    "is_active": {
+                                        "type": "boolean",
+                                        "example": true
+                                    },
+                                    "is_new": {
+                                        "type": "boolean",
+                                        "example": false
+                                    },
+                                    "is_show_home": {
+                                        "type": "boolean",
+                                        "example": true
+                                    },
+                                    "img_thumbnail": {
+                                        "type": "string",
+                                        "format": "binary",
+                                        "example": "thumbnail.png"
+                                    },
+                                    "product_variants": {
+                                        "type": "array",
+                                        "items": {
+                                            "properties": {
+                                                "product_size_id": {
+                                                    "type": "integer",
+                                                    "example": 1
+                                                },
+                                                "product_color_id": {
+                                                    "type": "integer",
+                                                    "example": 2
+                                                },
+                                                "quantity": {
+                                                    "type": "integer",
+                                                    "example": 10
+                                                },
+                                                "image": {
+                                                    "type": "string",
+                                                    "format": "binary",
+                                                    "example": "variant_image.png"
+                                                },
+                                                "old_image": {
+                                                    "type": "string",
+                                                    "example": "old_image.png"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "tags": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "integer",
+                                            "example": 1
+                                        }
+
+                                    "content": {
+                                        "type": "string",
+                                        "example": "Nội dung bình luận đã cập nhật"
+
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+
+                        "description": "Cập nhật thành công thông tin sản phẩm",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Cập nhật thành công sản phẩm {id}"
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "id": {
+                                                    "type": "integer",
+                                                    "example": 1
+                                                },
+                                                "name": {
+                                                    "type": "string",
+                                                    "example": "Tên sản phẩm"
+                                                },
+                                                "img_thumbnail": {
+                                                    "type": "string",
+                                                    "example": "thumbnail.png"
+                                                },
+                                                "is_active": {
+                                                    "type": "boolean",
+                                                    "example": true
+                                                },
+                                                "is_new": {
+                                                    "type": "boolean",
+                                                    "example": false
+                                                },
+                                                "is_show_home": {
+                                                    "type": "boolean",
+                                                    "example": true
+                                                },
+                                                "tags": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "integer",
+                                                        "example": 1
+                                                    }
+                                                },
+                                                "productVariants": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "properties": {
+                                                            "id": {
+                                                                "type": "integer",
+                                                                "example": 1
+                                                            },
+                                                            "product_size_id": {
+                                                                "type": "integer",
+                                                                "example": 1
+                                                            },
+                                                            "product_color_id": {
+                                                                "type": "integer",
+                                                                "example": 2
+                                                            },
+                                                            "quantity": {
+                                                                "type": "integer",
+                                                                "example": 10
+                                                            },
+                                                            "image": {
+                                                                "type": "string",
+                                                                "example": "variant_image.png"
+                                                            }
+                                                        },
+                                                        "type": "object"
+                                                    }
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+
+                        "description": "Bình luận được cập nhật thành công",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Comment"
+
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+
+                        "description": "Sản phẩm không tìm thấy",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Cập nhật không thành công"
+                                        },
+                                        "error": {
+                                            "type": "string",
+                                            "example": "No query results for model [Product]"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Lỗi server",
+
+                        "description": "Không tìm thấy bình luận",
+
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+
+                                            "example": "Cập nhật không thành công"
+                                        },
+                                        "error": {
+                                            "type": "string",
+                                            "example": "Server Error Message"
+
+                                            "example": "Bình luận không tồn tại."
+
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ]
+
+            }
+        },
+        "/api/admin/products/{id}": {
+            "delete": {
+                "tags": [
+                    "Product"
+                ],
+                "summary": "Xóa sản phẩm",
+                "operationId": "75b10f3b0d30e4cb4e9ebfcd9a1ea2a8",
+
+            },
+            "delete": {
+                "tags": [
+                    "Admin Comments"
+                ],
+                "summary": "Xóa bình luận",
+                "description": "Xóa một bình luận dựa trên ID được cung cấp.",
+                "operationId": "b637dd433d1077b9081b6dfbc70f786c",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+ 
+                        "description": "ID của sản phẩm cần xóa",
+
+                        "description": "ID của bình luận cần xóa",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Xóa sản phẩm thành công",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Xóa sản phẩm thành công."
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Lỗi khi xóa sản phẩm",
+
+                    "204": {
+                        "description": "Bình luận đã được xóa thành công"
+                    },
+                    "404": {
+                        "description": "Không tìm thấy bình luận",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Xóa sản phẩm không thành công."
                                             "example": "Bình luận không tồn tại."
                                         }
                                     },
@@ -3679,98 +5248,9 @@
                                             "type": "boolean",
                                             "example": false
                                         },
-                                        "message": {
+                                        "error": {
                                             "type": "string",
-                                            "example": "Lỗi không xác định."
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            }
-                        }
-                    }
-                },
-                "security": [
-                    {
-                        "Bearer": []
-                    }
-                ]
-            },
-            "post": {
-                "tags": [
-                    "User Comments"
-                ],
-                "summary": "Tạo bình luận mới",
-                "description": "Tạo một bình luận mới cho sản phẩm đã cung cấp.",
-                "operationId": "4cb31a77dbf34f928307321adc786bf7",
-                "requestBody": {
-                    "required": true,
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "required": [
-                                    "content",
-                                    "product_id"
-                                ],
-                                "properties": {
-                                    "content": {
-                                        "type": "string",
-                                        "example": "Nội dung bình luận"
-                                    },
-                                    "product_id": {
-                                        "type": "integer",
-                                        "example": 456
-                                    }
-                                },
-                                "type": "object"
-                            }
-                        }
-                    }
-                },
-                "responses": {
-                    "201": {
-                        "description": "Bình luận được tạo thành công",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/Comment"
-                                }
-                            }
-                        }
-                    },
-                    "400": {
-                        "description": "Dữ liệu đầu vào không hợp lệ",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "properties": {
-                                        "success": {
-                                            "type": "boolean",
-                                            "example": false
-                                        },
-                                        "message": {
-                                            "type": "string",
-                                            "example": "Dữ liệu không hợp lệ."
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "Lỗi khi tạo bình luận",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "properties": {
-                                        "success": {
-                                            "type": "boolean",
-                                            "example": false
-                                        },
-                                        "message": {
-                                            "type": "string",
-                                            "example": "Tạo bình luận không thành công."
+                                            "example": "Lý do lỗi"
                                         }
                                     },
                                     "type": "object"
@@ -3786,6 +5266,140 @@
                 ]
             }
         },
+        "/api/product-sizes": {
+            "get": {
+                "tags": [
+                    "Product Sizes"
+                ],
+                "summary": "Lấy danh sách kích thước sản phẩm",
+                "operationId": "dc265d968a1d13294e25b98fb474bd59",
+                "responses": {
+                    "200": {
+                        "description": "Thành công",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "properties": {
+                                            "id": {
+                                                "type": "integer",
+                                                "example": 1
+                                            },
+                                            "name": {
+                                                "type": "string",
+                                                "example": "S"
+                                            },
+                                            "type": {
+                                                "type": "integer",
+                                                "example": 1
+                                            }
+                                        },
+                                        "type": "object"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "Product Sizes"
+                ],
+                "summary": "Thêm kích thước mới",
+                "operationId": "b22769e616980915be3211859eafc918",
+                    "User Comments"
+                ],
+                "summary": "Tạo bình luận mới",
+                "description": "Tạo một bình luận mới cho sản phẩm đã cung cấp.",
+                "operationId": "4cb31a77dbf34f928307321adc786bf7",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+ 
+
+                                "required": [
+                                    "content",
+                                    "product_id"
+                                ],
+
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "example": "M"
+                                    },
+                                    "type": {
+
+                                        "example": "Nội dung bình luận"
+                                    },
+                                    "product_id": {
+                                        "type": "integer",
+                                        "example": 1
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Tạo thành công",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "id": {
+                                            "type": "integer",
+                                            "example": 2
+                                        },
+                                        "name": {
+                                            "type": "string",
+                                            "example": "M"
+                                        },
+                                        "type": {
+                                            "type": "integer",
+                                            "example": 1
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Dữ liệu không hợp lệ",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Validation failed"
+                                        },
+                                        "errors": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/product-sizes/{id}": {
+            "get": {
+                "tags": [
+                    "Product Sizes"
+                ],
+                "summary": "Lấy chi tiết kích thước",
+                "operationId": "08727bcb605dc02588334f174249a8da",
+
         "/api/user/comments/{id}": {
             "get": {
                 "tags": [
@@ -3798,7 +5412,7 @@
                     {
                         "name": "id",
                         "in": "path",
-                        "description": "ID của bình luận cần lấy",
+                        "description": "ID của kích thước",
                         "required": true,
                         "schema": {
                             "type": "integer"
@@ -3807,17 +5421,40 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Phản hồi thành công",
+                        "description": "Thành công",
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/Comment"
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "id": {
+                                                    "type": "integer",
+                                                    "example": 1
+                                                },
+                                                "name": {
+                                                    "type": "string",
+                                                    "example": "S"
+                                                },
+                                                "type": {
+                                                    "type": "integer",
+                                                    "example": 1
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
                                 }
                             }
                         }
                     },
                     "404": {
-                        "description": "Không tìm thấy bình luận",
+                        "description": "Không tìm thấy",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -3828,7 +5465,7 @@
                                         },
                                         "message": {
                                             "type": "string",
-                                            "example": "Bình luận không tồn tại."
+                                            "example": "Không tìm thấy kích thước."
                                         }
                                     },
                                     "type": "object"
@@ -3836,15 +5473,15 @@
                             }
                         }
                     }
-                },
-                "security": [
-                    {
-                        "Bearer": []
-                    }
-                ]
+                }
             },
             "put": {
                 "tags": [
+                    "Product Sizes"
+                ],
+                "summary": "Cập nhật kích thước",
+                "operationId": "ea5c046077f32299b0bb6e36134a498a",
+
                     "User Comments"
                 ],
                 "summary": "Cập nhật bình luận",
@@ -3854,7 +5491,7 @@
                     {
                         "name": "id",
                         "in": "path",
-                        "description": "ID của bình luận cần cập nhật",
+                        "description": "ID của kích thước",
                         "required": true,
                         "schema": {
                             "type": "integer"
@@ -3866,13 +5503,14 @@
                     "content": {
                         "application/json": {
                             "schema": {
-                                "required": [
-                                    "content"
-                                ],
                                 "properties": {
-                                    "content": {
+                                    "name": {
                                         "type": "string",
-                                        "example": "Nội dung bình luận đã cập nhật"
+                                        "example": "L"
+                                    },
+                                    "type": {
+                                        "type": "integer",
+                                        "example": 2
                                     }
                                 },
                                 "type": "object"
@@ -3882,28 +5520,57 @@
                 },
                 "responses": {
                     "200": {
-                        "description": "Bình luận được cập nhật thành công",
+                        "description": "Cập nhật thành công",
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/Comment"
+                                    "properties": {
+                                        "id": {
+                                            "type": "integer",
+                                            "example": 1
+                                        },
+                                        "name": {
+                                            "type": "string",
+                                            "example": "L"
+                                        },
+                                        "type": {
+                                            "type": "integer",
+                                            "example": 2
+                                        }
+                                    },
+                                    "type": "object"
                                 }
                             }
                         }
                     },
                     "404": {
-                        "description": "Không tìm thấy bình luận",
+                        "description": "Không tìm thấy",
                         "content": {
                             "application/json": {
                                 "schema": {
                                     "properties": {
-                                        "success": {
-                                            "type": "boolean",
-                                            "example": false
-                                        },
                                         "message": {
                                             "type": "string",
-                                            "example": "Bình luận không tồn tại."
+                                            "example": "Size not found"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Dữ liệu không hợp lệ",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Validation failed"
+                                        },
+                                        "errors": {
+                                            "type": "object"
                                         }
                                     },
                                     "type": "object"
@@ -3911,15 +5578,15 @@
                             }
                         }
                     }
-                },
-                "security": [
-                    {
-                        "Bearer": []
-                    }
-                ]
+                }
             },
             "delete": {
                 "tags": [
+                    "Product Sizes"
+                ],
+                "summary": "Xóa kích thước",
+                "operationId": "84de855d19eb4ed6432666acaa54a5d1",
+
                     "User Comments"
                 ],
                 "summary": "Xóa bình luận",
@@ -3929,7 +5596,7 @@
                     {
                         "name": "id",
                         "in": "path",
-                        "description": "ID của bình luận cần xóa",
+                        "description": "ID của kích thước",
                         "required": true,
                         "schema": {
                             "type": "integer"
@@ -3938,21 +5605,17 @@
                 ],
                 "responses": {
                     "204": {
-                        "description": "Bình luận đã được xóa thành công"
+                        "description": "Xóa thành công"
                     },
                     "404": {
-                        "description": "Không tìm thấy bình luận",
+                        "description": "Không tìm thấy",
                         "content": {
                             "application/json": {
                                 "schema": {
                                     "properties": {
-                                        "success": {
-                                            "type": "boolean",
-                                            "example": false
-                                        },
                                         "message": {
                                             "type": "string",
-                                            "example": "Bình luận không tồn tại."
+                                            "example": "Size not found"
                                         }
                                     },
                                     "type": "object"
@@ -3960,12 +5623,7 @@
                             }
                         }
                     }
-                },
-                "security": [
-                    {
-                        "Bearer": []
-                    }
-                ]
+                }
             }
         }
     },
@@ -4050,6 +5708,12 @@
                 },
                 "type": "object"
             },
+            "Product": {
+                "required": [
+                    "name",
+                    "price",
+                    "is_active",
+                    "product_variants"
             "Category": {
                 "required": [
                     "id",
@@ -4062,6 +5726,72 @@
                     },
                     "name": {
                         "type": "string",
+                        "example": "Sản phẩm A"
+                    },
+                    "price": {
+                        "type": "number",
+                        "format": "float",
+                        "example": 199000
+                    },
+                    "is_active": {
+                        "type": "boolean",
+                        "example": true
+                    },
+                    "is_new": {
+                        "type": "boolean",
+                        "example": true
+                    },
+                    "is_show_home": {
+                        "type": "boolean",
+                        "example": false
+                    },
+                    "img_thumbnail": {
+                        "type": "string",
+                        "example": "path/to/thumbnail.png"
+                    },
+                    "product_variants": {
+                        "type": "array",
+                        "items": {
+                            "properties": {
+                                "product_size_id": {
+                                    "type": "integer",
+                                    "example": 1
+                                },
+                                "product_color_id": {
+                                    "type": "integer",
+                                    "example": 2
+                                },
+                                "quantity": {
+                                    "type": "integer",
+                                    "example": 10
+                                },
+                                "image": {
+                                    "type": "string",
+                                    "example": "path/to/variant_image.png"
+                                }
+                            },
+                            "type": "object"
+                        }
+                    },
+                    "tags": {
+                        "type": "array",
+                        "items": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    },
+                    "product_images": {
+                        "type": "array",
+                        "items": {
+                            "properties": {
+                                "url": {
+                                    "type": "string",
+                                    "example": "https://apitopdeal.shop/storage/products/thumbnail.png"
+                                }
+                            },
+                            "type": "object"
+                        }
+
                         "example": "Danh mục sản phẩm"
                     },
                     "deleted_at": {
@@ -4076,6 +5806,8 @@
                 "type": "object",
                 "allOf": [
                     {
+                        "$ref": "#/components/schemas/Product"
+
                         "$ref": "#/components/schemas/Category"
                     },
                     {
@@ -4150,6 +5882,7 @@
                 "type": "object",
                 "allOf": [
                     {
+                        "$ref": "#/components/schemas/Product"
                         "$ref": "#/components/schemas/Category"
                     },
                     {
@@ -4182,6 +5915,19 @@
                         "type": "object"
                     }
                 ]
+            },
+            "ProductSize": {
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "name": {
+                        "type": "string",
+                        "example": "L"
+                    }
+                },
+                "type": "object"
             }
         },
         "securitySchemes": {
@@ -4215,6 +5961,10 @@
             "description": "Brand"
         },
         {
+ 
+            "name": "Create Cart",
+            "description": "Create Cart"
+
             "name": "Cart",
             "description": "Cart"
         },
@@ -4223,12 +5973,28 @@
             "description": "Category"
         },
         {
+            "name": "Comments",
+            "description": "Comments"
+        },
+        {
+            "name": "Product Colors",
+            "description": "Product Colors"
+        },
+        {
+            "name": "Product",
+            "description": "Product"
+        },
+        {
+            "name": "Product Sizes",
+            "description": "Product Sizes"
+
             "name": "Admin Comments",
             "description": "Admin Comments"
         },
         {
             "name": "User Comments",
             "description": "User Comments"
+ 
         }
     ]
 }

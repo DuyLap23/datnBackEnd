@@ -26,6 +26,7 @@ class Product extends Model
         'is_show_home',
         'category_id',
         'brand_id',
+        
     ];
     protected $casts = [
         'is_active' => 'boolean',
@@ -52,7 +53,7 @@ class Product extends Model
 
     public function tags()
     {
-        return $this->belongsToMany(Tag::class);
+        return $this->belongsToMany(Tag::class, 'product_tags');
     }
 
     public function productImages()
@@ -64,6 +65,11 @@ class Product extends Model
     {
         return $this->hasMany(ProductVariant::class);
     }
+    public function variants()
+    {
+        return $this->hasMany(ProductVariant::class);
+    }
+   
     
 }
 

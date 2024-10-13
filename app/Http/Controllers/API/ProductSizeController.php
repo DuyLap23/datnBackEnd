@@ -12,12 +12,70 @@ use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 class ProductSizeController extends Controller
 {
+    
+ /**
+     * @OA\Get(
+     *     path="/api/product-sizes",
+     *     summary="Lấy danh sách kích thước sản phẩm",
+     *     tags={"Product Sizes"},
+     *     @OA\Response(
+     *         response=200,
+     *         description="Thành công",
+     *         @OA\JsonContent(
+     *             type="array",
+     *             @OA\Items(
+     *                 @OA\Property(property="id", type="integer", example=1),
+     *                 @OA\Property(property="name", type="string", example="S"),
+     *                 @OA\Property(property="type", type="integer", example=1)
+     *             )
+     *         )
+     *     )
+     * )
+     */
     public function index()
     {
         $sizes = ProductSize::all();
-        return response()->json($sizes);
+       
+        return response()->json(
+            [
+                'success' => true,
+                'message' => 'Lấy thành công size',
+                'sizes' =>  $sizes,
+            ],
+            200,
+        );
     }
-
+  /**
+     * @OA\Post(
+     *     path="/api/product-sizes",
+     *     summary="Thêm kích thước mới",
+     *     tags={"Product Sizes"},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             @OA\Property(property="name", type="string", example="M"),
+     *             @OA\Property(property="type", type="integer", example=1)
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=201,
+     *         description="Tạo thành công",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="id", type="integer", example=2),
+     *             @OA\Property(property="name", type="string", example="M"),
+     *             @OA\Property(property="type", type="integer", example=1)
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=422,
+     *         description="Dữ liệu không hợp lệ",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="Validation failed"),
+     *             @OA\Property(property="errors", type="object")
+     *         )
+     *     )
+     * )
+     */
     public function store(Request $request)
     {
         try {
@@ -34,6 +92,43 @@ class ProductSizeController extends Controller
             return response()->json(['message' => 'Error creating size', 'error' => $e->getMessage()], 500);
         }
     }
+    
+    /**
+     * @OA\Get(
+     *     path="/api/product-sizes/{id}",
+     *     summary="Lấy chi tiết kích thước",
+     *     tags={"Product Sizes"},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         description="ID của kích thước",
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Thành công",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(
+     *                 property="data",
+     *                 type="object",
+     *                 @OA\Property(property="id", type="integer", example=1),
+     *                 @OA\Property(property="name", type="string", example="S"),
+     *                 @OA\Property(property="type", type="integer", example=1)
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Không tìm thấy",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=false),
+     *             @OA\Property(property="message", type="string", example="Không tìm thấy kích thước.")
+     *         )
+     *     )
+     * )
+     */
     public function show($id)
     {
         try {
@@ -56,6 +151,52 @@ class ProductSizeController extends Controller
             ], 500);
         }
     }
+    
+    /**
+     * @OA\Put(
+     *     path="/api/product-sizes/{id}",
+     *     summary="Cập nhật kích thước",
+     *     tags={"Product Sizes"},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         description="ID của kích thước",
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             @OA\Property(property="name", type="string", example="L"),
+     *             @OA\Property(property="type", type="integer", example=2)
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Cập nhật thành công",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="id", type="integer", example=1),
+     *             @OA\Property(property="name", type="string", example="L"),
+     *             @OA\Property(property="type", type="integer", example=2)
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Không tìm thấy",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="Size not found")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=422,
+     *         description="Dữ liệu không hợp lệ",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="Validation failed"),
+     *             @OA\Property(property="errors", type="object")
+     *         )
+     *     )
+     * )
+     */
     public function update(Request $request, $id)
     {
         try {
@@ -75,7 +216,31 @@ class ProductSizeController extends Controller
             return response()->json(['message' => 'Error updating size', 'error' => $e->getMessage()], 500);
         }
     }
-
+ /**
+     * @OA\Delete(
+     *     path="/api/product-sizes/{id}",
+     *     summary="Xóa kích thước",
+     *     tags={"Product Sizes"},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         description="ID của kích thước",
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\Response(
+     *         response=204,
+     *         description="Xóa thành công"
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Không tìm thấy",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="Size not found")
+     *         )
+     *     )
+     * )
+     */
     public function destroy($id)
     {
         try {

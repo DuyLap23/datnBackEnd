@@ -127,6 +127,14 @@ Route::group(
     }
 );
 
+Route::get('voucher', [VouCherController::class, 'index']);
+Route::post('voucher', [VouCherController::class, 'store']);
+Route::put('voucher/{id}', [VouCherController::class, 'update']);
+Route::get('voucher/{id}', [VouCherController::class, 'show']);
+Route::delete('voucher/{id}', [VouCherController::class, 'destroy']);
+Route::get('products', [ProductController::class, 'index']);
+Route::get('products/{id}', [ProductController::class, 'show']);
+
 
 //STAFF
 Route::group(
@@ -139,6 +147,7 @@ Route::group(
         Route::apiResource('order/items', OrderItemController::class);
         Route::apiResource('favourites', FavouriteListController::class);
         Route::apiResource('carts', CartController::class);
+        
     }
 );
 
@@ -148,6 +157,13 @@ Route::group(
         'middleware' => ['auth:api', 'role:customer,admin,staff'],
     ],
     function ($router) {
+
+       
+        Route::post('carts', [CartController::class, 'store']);
+        Route::get('carts', [CartController::class, 'index']);
+        Route::post('orders', [OrderController::class, 'store']);
+        Route::get('orders/{id}', [OrderController::class, 'show']);
+
 
         Route::get('products/{id}', [ProductController::class, 'show'])->name('products.show');
         Route::post('carts', [CartController::class, 'addProductToCart'])->name('carts.store');
@@ -166,6 +182,7 @@ Route::group(
         Route::get('/user/comments/{id}', [UserCommentController::class, 'show']);
         Route::put('/user/comments/{id}', [UserCommentController::class, 'update']);
         Route::delete('/user/comments/{id}', [UserCommentController::class, 'destroy']);
+
     }
 );
 
