@@ -18,7 +18,7 @@ class CategorySeeder extends Seeder
                 'name' => 'Category ' . $i,
                 'image' => 'https://picsum.photos/200/300?random=' . $i,
                 'slug' => 'category-' . $i,
-                'parent_id' => null,
+                'parent_id' => 0,
             ]);
         }
         for ($i = 0; $i < 5; $i++) {

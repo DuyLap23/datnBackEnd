@@ -167,9 +167,13 @@ class CategoryController extends Controller
     {
         $categories = Category::query()
             ->with(['children'])
-            ->where('parent_id', null)
+            ->where(function ($query) {
+                $query->where('parent_id', 0)
+                    ->orWhereNull('parent_id');
+            })
             ->latest('id')
             ->get();
+
 
 
         return response()->json(
@@ -510,7 +514,12 @@ class CategoryController extends Controller
     {
         try {
 //            $category = Category::findOrFail($id);
-            $category = Category::query()->with(['children','products'])->get();
+            $category = Category::query()
+                ->with(['children', 'products'])
+                ->findOrFail($id)
+                ->toArray();
+
+
             return response()->json(
                 [
                     'success' => true,
