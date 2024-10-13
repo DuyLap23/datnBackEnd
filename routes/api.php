@@ -85,6 +85,7 @@ Route::group(
 //Những đầu route không cần check đăng nhập và role vất vào đây
 Route::get('categories', [CategoryController::class, 'index']);
 Route::get('products', [ProductController::class, 'index'])->name('products.index');
+Route::get('products/{id}', [ProductController::class,'show'])->name('products.show');
 
 //ADMIN
 Route::group(
@@ -105,7 +106,7 @@ Route::group(
         Route::apiResource('voucher', VouCherController::class);
         Route::apiResource('brands', BrandController::class);
         Route::apiResource('tags', TagController::class);
-        Route::apiResource('products', ProductController::class);
+       
         Route::post('products', [ProductController::class, 'store']); 
         Route::put('products/{id}', [ProductController::class, 'update']); 
         Route::delete('products/{id}', [ProductController::class, 'destroy']);
@@ -171,7 +172,7 @@ Route::group(
         Route::get('orders/{id}', [OrderController::class, 'show']);
 
 
-        Route::get('products/{id}', [ProductController::class, 'show'])->name('products.show');
+        
         Route::post('carts', [CartController::class, 'addProductToCart'])->name('carts.store');
         Route::post('/carts', [CartController::class, 'addProductToCart']);
         Route::delete('/carts/{id}', [CartController::class, 'deleteProductFromCart']);
