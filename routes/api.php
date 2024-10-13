@@ -61,6 +61,9 @@ Route::group(
 
     }
 );
+// Route không cần check đăng nhập 
+Route::get('products', [ProductController::class, 'index']);
+Route::get('products/{id}', [ProductController::class, 'show']);
 
 //NHỮNG ROUTER CẦN CHECK ĐĂNG NHẬP
 Route::group(
@@ -103,6 +106,9 @@ Route::group(
         Route::apiResource('brands', BrandController::class);
         Route::apiResource('tags', TagController::class);
         Route::apiResource('products', ProductController::class);
+        Route::post('products', [ProductController::class, 'store']); 
+        Route::put('products/{id}', [ProductController::class, 'update']); 
+        Route::delete('products/{id}', [ProductController::class, 'destroy']);
         Route::apiResource('product/colors', ProductColorController::class);
         Route::apiResource('product/images', ProductImageController::class);
         Route::apiResource('product/sizes', ProductSizeController::class);
