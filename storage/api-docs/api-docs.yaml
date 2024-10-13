@@ -2414,6 +2414,59 @@ paths:
       security:
         -
           Bearer: []
+  /api/favourites:
+    get:
+      tags:
+        - Favourites
+      summary: 'Lấy danh sách sản phẩm yêu thích'
+      operationId: c1e2cb9515ed511825fa500f937b1809
+      responses:
+        200:
+          description: 'Danh sách sản phẩm yêu thích'
+      security:
+        -
+          Bearer: []
+    post:
+      tags:
+        - Favourites
+      summary: 'Thêm sản phẩm vào danh sách yêu thích'
+      operationId: 15931ec5307051f588b1fe7017dbb547
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              properties:
+                product_id:
+                  type: integer
+                  example: 1
+              type: object
+      responses:
+        201:
+          description: 'Sản phẩm đã được thêm vào yêu thích'
+      security:
+        -
+          Bearer: []
+  '/api/favourites/{id}':
+    delete:
+      tags:
+        - Favourites
+      summary: 'Xóa sản phẩm khỏi danh sách yêu thích'
+      operationId: 59da34692a6fef9bb39ed3c02fb656b8
+      parameters:
+        -
+          name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            example: 1
+      responses:
+        200:
+          description: 'Sản phẩm đã được xóa khỏi danh sách yêu thích'
+      security:
+        -
+          Bearer: []
   /api/product-colors:
     get:
       tags:
@@ -3812,6 +3865,9 @@ tags:
   -
     name: 'Admin Comments'
     description: 'Admin Comments'
+  -
+    name: Favourites
+    description: Favourites
   -
     name: 'Product Colors'
     description: 'Product Colors'

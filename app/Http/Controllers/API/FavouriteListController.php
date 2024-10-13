@@ -3,47 +3,95 @@
 namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
+use App\Models\FavouriteList;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class FavouriteListController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * @OA\Get(
+     *     path="/api/favourites",
+     *     tags={"Favourites"},
+     *     summary="Lấy danh sách sản phẩm yêu thích",
+     *     security={{"Bearer": {}}},
+     *     @OA\Response(response=200, description="Danh sách sản phẩm yêu thích"),
+     * )
      */
     public function index()
     {
-        //
+        if (!Auth::check()) {
+            return response()->json(['message' => 'Vui lòng đăng nhập'], 401);
+        }
+        
+        $favorites = FavouriteList::where('user_id', Auth::id())->with('product')->get();
+        return response()->json($favorites);
     }
 
     /**
-     * Store a newly created resource in storage.
+     * @OA\Post(
+     *     path="/api/favourites",
+     *     tags={"Favourites"},
+     *     summary="Thêm sản phẩm vào danh sách yêu thích",
+     *     security={{"Bearer": {}}},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             @OA\Property(property="product_id", type="integer", example=1)
+     *         )
+     *     ),
+     *     @OA\Response(response=201, description="Sản phẩm đã được thêm vào yêu thích"),
+     * )
      */
     public function store(Request $request)
     {
-        //
+        if (!Auth::check()) {
+            return response()->json(['message' => 'Vui lòng đăng nhập'], 401);
+        }
+        
+        $request->validate([
+            'product_id' => 'required|exists:products,id',
+        ]);
+
+        FavouriteList::updateOrCreate(
+            [
+                'user_id' => Auth::id(),
+                'product_id' => $request->product_id,
+            ]
+        );
+
+        return response()->json(['message' => 'Sản phẩm đã được thêm vào yêu thích.'], 201);
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
+     /**
+     * @OA\Delete(
+     *     path="/api/favourites/{id}",
+     *     tags={"Favourites"},
+     *     summary="Xóa sản phẩm khỏi danh sách yêu thích",
+     *     security={{"Bearer": {}}},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         @OA\Schema(type="integer", example=1)
+     *     ),
+     *     @OA\Response(response=200, description="Sản phẩm đã được xóa khỏi danh sách yêu thích"),
+     * )
      */
     public function destroy(string $id)
     {
-        //
+        if (!Auth::check()) {
+            return response()->json(['message' => 'Vui lòng đăng nhập'], 401);
+        }
+        
+        $favorite = FavouriteList::where('user_id', Auth::id())->where('product_id', $id);
+        
+        if (!$favorite->exists()) {
+            return response()->json(['message' => 'Sản phẩm không nằm trong danh sách yêu thích.'], 404);
+        }
+
+        $favorite->delete();
+
+        return response()->json(['message' => 'Sản phẩm đã được xóa khỏi danh sách yêu thích.'],200);
     }
 }

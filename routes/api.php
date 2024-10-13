@@ -179,6 +179,10 @@ Route::group(
         Route::put('/user/comments/{id}', [UserCommentController::class, 'update']);
         Route::delete('/user/comments/{id}', [UserCommentController::class, 'destroy']);
 
+        Route::get('/favourites', [FavouriteListController::class, 'index']);
+        Route::post('/favourites', [FavouriteListController::class, 'store']);
+        Route::delete('/favourites/{id}', [FavouriteListController::class, 'destroy']);
+
     }
 );
 
