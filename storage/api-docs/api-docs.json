@@ -2543,7 +2543,7 @@
                 ],
                 "summary": "Xóa sản phẩm khỏi giỏ hàng",
                 "description": "Xóa sản phẩm khỏi giỏ hàng của người dùng theo ID sản phẩm.",
-                "operationId": "9a70a882e504ac01a01f1b44ff1d257e",
+                "operationId": "b22009110008b97b4c82e3333bc4bf24",
                 "parameters": [
                     {
                         "name": "id",

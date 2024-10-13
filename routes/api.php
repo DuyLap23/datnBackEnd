@@ -159,19 +159,10 @@ Route::group(
 // CUSTOMER
 Route::group(
     [
-        'middleware' => ['auth:api', 'role:customer,admin,staff'],
+        'middleware' => ['role:customer,admin,staff'],
     ],
     function ($router) {
 
-       
-        Route::post('carts', [CartController::class, 'store']);
-        Route::get('carts', [CartController::class, 'index']);
-        Route::post('orders', [OrderController::class, 'store']);
-        Route::get('orders/{id}', [OrderController::class, 'show']);
-
-
-        
-        Route::post('carts', [CartController::class, 'addProductToCart'])->name('carts.store');
         Route::post('/carts', [CartController::class, 'addProductToCart']);
         Route::delete('/carts/{id}', [CartController::class, 'deleteProductFromCart']);
         Route::get('/carts', [CartController::class, 'listProductsInCart']);
