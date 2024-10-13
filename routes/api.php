@@ -19,6 +19,7 @@ use App\Http\Controllers\API\ProductImageController;
 use App\Http\Controllers\API\ProductSizeController;
 use App\Http\Controllers\API\ProductVariantController;
 use App\Http\Controllers\API\TagController;
+use App\Http\Controllers\Api\UserCommentController;
 use App\Http\Controllers\API\VouCherController;
 use Illuminate\Support\Facades\Route;
 
@@ -80,7 +81,7 @@ Route::group(
 
 //Những đầu route không cần check đăng nhập và role vất vào đây
 Route::get('categories', [CategoryController::class, 'index']);
-
+Route::get('products', [ProductController::class, 'index'])->name('products.index');
 
 //ADMIN
 Route::group(
@@ -126,6 +127,14 @@ Route::group(
     }
 );
 
+Route::get('voucher', [VouCherController::class, 'index']);
+Route::post('voucher', [VouCherController::class, 'store']);
+Route::put('voucher/{id}', [VouCherController::class, 'update']);
+Route::get('voucher/{id}', [VouCherController::class, 'show']);
+Route::delete('voucher/{id}', [VouCherController::class, 'destroy']);
+Route::get('products', [ProductController::class, 'index']);
+Route::get('products/{id}', [ProductController::class, 'show']);
+
 
 //STAFF
 Route::group(
@@ -138,22 +147,43 @@ Route::group(
         Route::apiResource('order/items', OrderItemController::class);
         Route::apiResource('favourites', FavouriteListController::class);
         Route::apiResource('carts', CartController::class);
+        
     }
 );
 
-//CUSTOMER
+// CUSTOMER
 Route::group(
     [
         'middleware' => ['auth:api', 'role:customer,admin,staff'],
-
     ],
     function ($router) {
-        Route::get('products', [ProductController::class, 'index']);
-        Route::get('products/{id}', [ProductController::class, 'show']);
+
+       
         Route::post('carts', [CartController::class, 'store']);
         Route::get('carts', [CartController::class, 'index']);
         Route::post('orders', [OrderController::class, 'store']);
         Route::get('orders/{id}', [OrderController::class, 'show']);
+
+
+        Route::get('products/{id}', [ProductController::class, 'show'])->name('products.show');
+        Route::post('carts', [CartController::class, 'addProductToCart'])->name('carts.store');
+        Route::post('/carts', [CartController::class, 'addProductToCart']);
+        Route::delete('/carts/{id}', [CartController::class, 'deleteProductFromCart']);
+        Route::get('/carts', [CartController::class, 'listProductsInCart']);
+        Route::delete('carts/{id}', [CartController::class, 'destroy'])->name('carts.destroy');
+        Route::post('orders', [OrderController::class, 'store'])->name('orders.store');
+        Route::get('orders/{id}', [OrderController::class, 'show'])->name('orders.show');
+        Route::get('orders', [OrderController::class, 'index'])->name('orders.index');
+        Route::put('orders/{id}', [OrderController::class, 'update'])->name('orders.update');
+        Route::delete('orders/{id}', [OrderController::class, 'destroy'])->name('orders.destroy');
+
+        Route::get('/user/comments', [UserCommentController::class, 'index']);
+        Route::post('/user/comments', [UserCommentController::class, 'store']);
+        Route::get('/user/comments/{id}', [UserCommentController::class, 'show']);
+        Route::put('/user/comments/{id}', [UserCommentController::class, 'update']);
+        Route::delete('/user/comments/{id}', [UserCommentController::class, 'destroy']);
+
     }
 );
+
 

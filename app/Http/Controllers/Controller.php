@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Foundation\Validation\ValidatesRequests;
 use Illuminate\Routing\Controller as BaseController;
+
 /**
  * @OA\OpenApi(
  *     @OA\Info(
@@ -53,6 +54,40 @@ use Illuminate\Routing\Controller as BaseController;
  *             @OA\Property(property="email", type="string", format="email", example="user@example.com")
  *         ),
  *         @OA\Schema(
+ *             schema="Product",
+ *             type="object",
+ *             required={"name", "price", "is_active", "product_variants"},
+ *             @OA\Property(property="id", type="integer", example=1),
+ *             @OA\Property(property="name", type="string", example="Sản phẩm A"),
+ *             @OA\Property(property="price", type="number", format="float", example=199000),
+ *             @OA\Property(property="is_active", type="boolean", example=true),
+ *             @OA\Property(property="is_new", type="boolean", example=true),
+ *             @OA\Property(property="is_show_home", type="boolean", example=false),
+ *             @OA\Property(property="img_thumbnail", type="string", example="path/to/thumbnail.png"),
+ *             @OA\Property(
+ *                 property="product_variants",
+ *                 type="array",
+ *                 @OA\Items(
+ *                     type="object",
+ *                     @OA\Property(property="product_size_id", type="integer", example=1),
+ *                     @OA\Property(property="product_color_id", type="integer", example=2),
+ *                     @OA\Property(property="quantity", type="integer", example=10),
+ *                     @OA\Property(property="image", type="string", example="path/to/variant_image.png")
+ *                 )
+ *             ),
+ *             @OA\Property(
+ *                 property="tags",
+ *                 type="array",
+ *                 @OA\Items(type="integer", example=1)
+ *             ),
+ *             @OA\Property(
+ *                 property="product_images",
+ *                 type="array",
+ *                 @OA\Items(
+ *                     type="object",
+ *                     @OA\Property(property="url", type="string", example="https://apitopdeal.shop/storage/products/thumbnail.png")
+ *                 )
+ *             )
  *             schema="Category",
  *             required={"id", "name"},
  *             @OA\Property(property="id", type="integer", example=1),

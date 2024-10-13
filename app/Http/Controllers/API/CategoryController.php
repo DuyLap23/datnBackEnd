@@ -167,9 +167,13 @@ class CategoryController extends Controller
     {
         $categories = Category::query()
             ->with(['children'])
-            ->where('parent_id', null)
+            ->where(function ($query) {
+                $query->where('parent_id', 0)
+                    ->orWhereNull('parent_id');
+            })
             ->latest('id')
             ->get();
+
 
 
         return response()->json(
@@ -409,9 +413,12 @@ class CategoryController extends Controller
                 $path = $request->file('image')->store(self::PATH_UPLOAD, 'public');
                 $data['image'] =  asset('storage/' . $path);
             }
+            if($data['parent_id'] == null){
+                $data['parent_id'] = 0;
+            }
             if ($data['parent_id']) {
                 $parentID = Category::query()->find($data['parent_id']);
-                if ($parentID && $parentID->parent_id) {
+                if ($parentID && $parentID->parent_id  != 0) {
                     return response()->json([
                         'success' => false,
                         'message' => 'Danh mục cha không thể là danh mục con của một danh mục khác!',
@@ -507,7 +514,12 @@ class CategoryController extends Controller
     {
         try {
 //            $category = Category::findOrFail($id);
-            $category = Category::query()->with('children')->get();
+            $category = Category::query()
+                ->with(['children', 'products'])
+                ->findOrFail($id)
+                ->toArray();
+
+
             return response()->json(
                 [
                     'success' => true,
@@ -614,9 +626,12 @@ class CategoryController extends Controller
 
             $model = Category::query()->findOrFail($id);
 
+            if($data['parent_id'] == null){
+                $data['parent_id'] = 0;
+            }
             if ($data['parent_id']) {
                 $parentID = Category::query()->find($data['parent_id']);
-                if ($parentID && $parentID->parent_id) {
+                if ($parentID && $parentID->parent_id != 0) {
                     return response()->json([
                         'success' => false,
                         'message' => 'Danh mục cha không thể là danh mục con của một danh mục khác!',

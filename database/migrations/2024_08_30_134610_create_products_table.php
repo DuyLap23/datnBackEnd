@@ -22,7 +22,7 @@ return new class extends Migration
             $table->decimal('price_regular', 10, 2);
             $table->decimal('price_sale', 10, 2)->nullable();
             $table->string('description');
-            $table->string('content');
+            $table->text('content');
             $table->string('user_manual')->comment("Châ liệu");
             $table->tinyInteger('view');
             $table->tinyInteger('is_active');
