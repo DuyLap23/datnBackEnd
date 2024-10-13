@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\AddressRequests;
 use App\Models\Address;
 use Exception;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
@@ -91,7 +92,7 @@ class AddressController extends Controller
             ], 404);
         } catch (\Exception $e) {
             // Ghi log lỗi
-            Log::error('Error in AddressController@index: ' . $e->getMessage());
+            Log::info('Đã xảy ra lỗi: ' . $e->getMessage());
 
             // Nếu có lỗi không mong muốn khác, trả về lỗi 500
             return response()->json([
@@ -102,8 +103,77 @@ class AddressController extends Controller
     }
 
 
+    /**
+     * @OA\Put(
+     *     path="/api/addresses/{id}/default",
+     *     summary="Đặt một địa chỉ mặc định",
+     *     description="Đặt một địa chỉ cụ thể làm địa chỉ mặc định cho người dùng đã xác thực. Nếu địa chỉ đã là mặc định, sẽ không thể thay đổi được.",
+     *     tags={"Address"},
+     *     security={{"Bearer":{}}},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         description="ID của địa chỉ",
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Đặt địa chỉ mặc định thành công",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="Địa chỉ đã được cập nhật thành mặc định")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Địa chỉ không tìm thấy hoặc không thuộc về người dùng",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="Địa chỉ không tìm thấy hoặc không thuộc về người dùng.")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=400,
+     *         description="Địa chỉ này đã là địa chỉ mặc định",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="Địa chỉ này đã là địa chỉ mặc định.")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=401,
+     *         description="Vui lòng đăng nhập",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="Vui lòng đăng nhập.")
+     *         )
+     *     )
+     * )
+     */
 
 
+
+    public function setDefault($id)
+    {
+        // Lấy người dùng đang đăng nhập
+        $user = auth('api')->user();
+        if(!$user){
+            return response()->json(['message' => 'Vui lòng đăng nhập.'], 401);
+        }
+        // Kiểm tra xem địa chỉ có thuộc về người dùng hay không
+        $address = Address::where('user_id', $user->id)->where('id', $id)->first();
+        if (!$address) {
+            return response()->json(['message' => 'Bạn không có địa chỉ này!'], 404);
+        }
+
+        if ($address->is_default) {
+            return response()->json(['message' => 'Địa chỉ này đã là địa chỉ mặc định.'], 400); // Trả về lỗi nếu địa chỉ đã là mặc định
+        }
+        // Hủy bỏ mặc định của các địa chỉ khác
+        Address::where('user_id', $user->id)->update(['is_default' => false]);
+
+        // Đặt địa chỉ này là mặc định
+        $address->update(['is_default' => true]);
+
+        return response()->json(['message' => 'Địa chỉ đã được cập nhật thành mặc định'], 200);
+    }
 
     /**
      * Store a newly created resource in storage.
@@ -189,15 +259,13 @@ class AddressController extends Controller
                 'district' => $request->district,
                 'ward' => $request->ward,
                 'detail_address' => $request->detail_address,
-                'is_default' => $request->is_default,
+                'is_default' => true,
             ]);
-
-            // Nếu `is_default` là true, cập nhật các địa chỉ khác thành không mặc định
-            if ($request->has('is_default') && $request->is_default) {
-                Address::where('user_id', $currentUser->id)
+            // Cập nhật các địa chỉ khác thành không mặc định
+            Address::where('user_id', $currentUser->id)
                     ->where('id', '!=', $newAddress->id)
                     ->update(['is_default' => false]);
-            }
+
 
             DB::commit();
 
@@ -333,83 +401,171 @@ class AddressController extends Controller
     /**
      * Update the specified resource in storage.
      */
+    /**
+     * @OA\Put(
+     *     path="/api/user/addresses/{id}",
+     *     summary="Cập nhật địa chỉ",
+     *     tags={"Address"},
+     *     security={{"Bearer": {}}},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         description="ID của địa chỉ cần cập nhật",
+     *         @OA\Schema(type="string")
+     *     ),
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"address_name", "phone_number", "city", "district", "ward", "detail_address"},
+     *             @OA\Property(property="address_name", type="string", example="123 Đường ABC"),
+     *             @OA\Property(property="phone_number", type="string", example="0123456789"),
+     *             @OA\Property(property="city", type="string", example="Thành phố HCM"),
+     *             @OA\Property(property="district", type="string", example="Quận 1"),
+     *             @OA\Property(property="ward", type="string", example="Phường B"),
+     *             @OA\Property(property="detail_address", type="string", example="Số 123, khu phố 1"),
+     *             @OA\Property(property="is_default", type="boolean", example=true),
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Cập nhật địa chỉ thành công",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="message", type="string", example="Cập nhật thông tin thành công."),
+     *             @OA\Property(property="data", type="object",
+     *                 @OA\Property(property="addresses", type="array",
+     *                     @OA\Items(ref="#/components/schemas/Address")
+     *                 )
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=401,
+     *         description="Không được phép truy cập",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=false),
+     *             @OA\Property(property="message", type="string", example="Bạn cần đăng nhập để xem thông tin.")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=403,
+     *         description="Không có quyền chỉnh sửa địa chỉ của người dùng khác",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=false),
+     *             @OA\Property(property="message", type="string", example="Bạn không có quyền chỉnh sửa địa chỉ của người dùng khác.")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Không tìm thấy địa chỉ",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=false),
+     *             @OA\Property(property="message", type="string", example="Không tìm thấy địa chỉ.")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=422,
+     *         description="Dữ liệu không hợp lệ",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=false),
+     *             @OA\Property(property="message", type="string", example="Dữ liệu không hợp lệ."),
+     *             @OA\Property(property="errors", type="object",
+     *                 @OA\Property(property="address_name", type="array",
+     *                     @OA\Items(type="string", example="Trường này là bắt buộc.")
+     *                 )
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=500,
+     *         description="Lỗi không xác định",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=false),
+     *             @OA\Property(property="message", type="string", example="Cập nhật thông tin thất bại."),
+     *             @OA\Property(property="error", type="string", example="Lý do lỗi")
+     *         )
+     *     )
+     * )
+     */
+
     public function update(AddressRequests $request, string $id)
     {
-//        // Lấy người dùng hiện tại từ token Bearer
-//        $currentUser = auth('api')->user();
-//
-//        // Kiểm tra xem người dùng hiện tại có phải là người được yêu cầu cập nhật không
-//        if ($currentUser->id != $id) {
-//            return response()->json([
-//                'success' => false,
-//                'message' => 'Bạn không có quyền chỉnh sửa thông tin của người dùng khác.'
-//            ], 403); // 403 Forbidden
-//        }
-//
-//        DB::beginTransaction();
-//        try {
-//           $address = Address::findOrFail($id);
-//
-//            // Kiểm tra nếu `is_default` là true, cập nhật các địa chỉ khác thành không mặc định
-//            if ($request->has('is_default') && $request->is_default) {
-//                Address::where('user_id', $currentUser->id)->update(['is_default' => false]);
-//            }
-//
-//
-//
-//            // Cập nhật hoặc tạo mới địa chỉ
-//            $address = Address::updateOrCreate(
-//                [
-//                    'user_id' => $currentUser->id,
-//                    'ward' => $request->ward,
-//                    'detail_address' => $request->detail_address,
-//                ],
-//                [
-//                    'address_name' => $request->address_name,
-//                    'phone_number' => $request->phone_number,
-//                    'city' => $request->city,
-//                    'district' => $request->district,
-//                    'ward' => $request->ward,
-//                    'is_default' => $request->is_default,
-//                ]
-//            );
-//
-//            // Load danh sách địa chỉ mới nhất
-//            $user->load(['addresses' => function ($query) {
-//                $query->latest('id');
-//            }]);
-//
-//            DB::commit();
-//
-//            return response()->json([
-//                'success' => true,
-//                'message' => 'Cập nhật thông tin thành công.',
-//                'data' => [
-//                    'addresses' => $user->addresses, // Trả về danh sách địa chỉ
-//                ]
-//            ], 200);
-//        } catch (ModelNotFoundException $e) {
-//            DB::rollBack();
-//            return response()->json([
-//                'success' => false,
-//                'message' => 'Không tìm thấy địa chỉ.',
-//            ], 404);
-//        } catch (ValidationException $e) {
-//            DB::rollBack();
-//            return response()->json([
-//                'success' => false,
-//                'message' => 'Dữ liệu không hợp lệ.',
-//                'errors' => $e->errors(),
-//            ], 422);
-//        } catch (Exception $e) {
-//            DB::rollBack();
-//            return response()->json([
-//                'success' => false,
-//                'message' => 'Cập nhật thông tin thất bại',
-//                'error' => $e->getMessage(),
-//            ], 500);
-//        }
+        // Lấy người dùng hiện tại từ token Bearer
+        $currentUser = auth('api')->user();
+
+        if (!$currentUser) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Bạn cần đăng nhập để xem thông tin.'
+            ], 401); // 401 Unauthorized
+        }
+
+        // Kiểm tra xem người dùng hiện tại có phải là chủ sở hữu của địa chỉ không
+        $address = Address::findOrFail($id);
+
+        if ($address->user_id != $currentUser->id) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Bạn không có quyền chỉnh sửa địa chỉ của người dùng khác.'
+            ], 403); // 403 Forbidden
+        }
+
+        DB::beginTransaction();
+        try {
+            // Kiểm tra nếu `is_default` là true, cập nhật các địa chỉ khác thành không mặc định
+            if ($request->has('is_default') && $request->is_default) {
+                Address::where('user_id', $currentUser->id)->update(['is_default' => false]);
+            }
+
+            // Cập nhật địa chỉ
+            $address->update([
+                'address_name' => $request->address_name,
+                'phone_number' => $request->phone_number,
+                'city' => $request->city,
+                'district' => $request->district,
+                'ward' => $request->ward,
+                'detail_address' => $request->detail_address,
+                'is_default' => $request->is_default,
+            ]);
+
+            // Load danh sách địa chỉ mới nhất
+            $currentUser->load(['addresses' => function ($query) {
+                $query->latest('id');
+            }]);
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Cập nhật thông tin thành công.',
+                'data' => [
+                    'addresses' => $currentUser->addresses, // Trả về danh sách địa chỉ
+                ]
+            ], 200);
+        } catch (ModelNotFoundException $e) {
+            DB::rollBack();
+            return response()->json([
+                'success' => false,
+                'message' => 'Không tìm thấy địa chỉ.',
+            ], 404);
+        } catch (ValidationException $e) {
+            DB::rollBack();
+            return response()->json([
+                'success' => false,
+                'message' => 'Dữ liệu không hợp lệ.',
+                'errors' => $e->errors(),
+            ], 422);
+        } catch (Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'success' => false,
+                'message' => 'Cập nhật thông tin thất bại.',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
     }
+
 
 
 
@@ -477,7 +633,7 @@ class AddressController extends Controller
 
             return response()->json(null, 204);
         } catch (Exception $e) {
-            return response()->json(['message' => 'Có lỗi xảy ra', 'error' => $e->getMessage()], 500, [], JSON_UNESCAPED_UNICOD);
+            return response()->json(['message' => 'Có lỗi xảy ra', 'error' => $e->getMessage()], 500, [], JSON_UNESCAPED_UNICODE);
         }
     }
 

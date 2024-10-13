@@ -10,11 +10,14 @@ return new class extends Migration
      * Run the migrations.
      */
     public function up(): void
-    {
-        Schema::table('addresses', function (Blueprint $table) {
+{
+    Schema::table('addresses', function (Blueprint $table) {
+        // Kiểm tra nếu cột Ward tồn tại trước khi đổi tên
+        if (Schema::hasColumn('addresses', 'Ward')) {
             $table->renameColumn('Ward', 'ward');
-        });
-    }
+        }
+    });
+}
 
     /**
      * Reverse the migrations.

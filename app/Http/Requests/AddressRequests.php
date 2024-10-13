@@ -23,7 +23,7 @@ class AddressRequests extends FormRequest
     {
         return [
             'address_name' => 'string|max:255|nullable',
-            'phone_number' => 'required|string|max:10',
+            'phone_number' => 'required|digits:10',
             'city' => 'required|string|max:255',
             'district' => 'required|string|max:255',
             'ward' => 'required|string|max:255',

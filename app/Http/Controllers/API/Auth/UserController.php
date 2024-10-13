@@ -8,6 +8,7 @@ use App\Models\User;
 use Exception;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
 
@@ -235,7 +236,7 @@ class UserController extends Controller
      *         in="path",
      *         required=true,
      *         description="ID của người dùng cần cập nhật",
-     *         @OA\Schema(type="integer")
+     *         @OA\Schema(type="bigint")
      *     ),
      *     @OA\RequestBody(
      *         required=true,
@@ -251,15 +252,17 @@ class UserController extends Controller
      *                     property="avatar",
      *                     type="file",
      *                     description="Ảnh đại diện của người dùng"
-     *                 ), @OA\Property(
-     *                     property="link_fb",
-     *                     type="file",
-     *                     description="link facebook"
-     *                 ), @OA\Property(
-     *                     property="link_tt",
-     *                     type="file",
-     *                     description="Link tiktok"
-     *                 )
+     *                 ),
+     *                  @OA\Property(
+     *                      property="link_fb",
+     *                      type="string",
+     *                      description="link facebook"
+     *                  ),
+     *                  @OA\Property(
+     *                      property="link_tt",
+     *                      type="string",
+     *                      description="link tiktok"
+     *                  )
      *             )
      *         )
      *     ),
@@ -361,6 +364,7 @@ class UserController extends Controller
             // Xử lý avatar
             if ($request->hasFile('avatar')) {
                 $data['avatar'] = $request->file('avatar')->store('avatars', 'public');
+                $data['avatar'] = asset('storage/' .  $data['avatar']);
                 $old_avatar = $user->avatar;
             } else {
                 $data['avatar'] = $user->avatar;
@@ -375,17 +379,15 @@ class UserController extends Controller
                 Storage::disk('public')->delete($old_avatar);
             }
 
-//
             DB::commit();
 
             $avatarUrl = Storage::disk('public')->url($user->avatar);
-
+            Log::info('Cập nhật người dùng thành công.', ['user_id' => $user->id]);
             return response()->json([
                 'success' => true,
                 'message' => 'Cập nhật thông tin thành công.',
                 'data' => [
                     'user' => $user,
-                    'avatar_url' => $avatarUrl,
                 ]
             ], 200);
         } catch (ModelNotFoundException $e) {
@@ -396,6 +398,7 @@ class UserController extends Controller
         } catch
         (ValidationException $e) {
             DB::rollBack();
+            Log::error('Lỗi khi cập nhật người dùng.', ['error' => $e->getMessage()]);
             return response()->json([
                 'success' => false,
                 'message' => 'Dữ liệu không hợp lệ.',
@@ -403,6 +406,7 @@ class UserController extends Controller
             ], 422);
         } catch (Exception $e) {
             DB::rollBack();
+            Log::error('Lỗi khi cập nhật người dùng.', ['error' => $e->getMessage()]);
             return response()->json([
                 'success' => false,
                 'message' => 'Cập nhật thông tin thất bại',

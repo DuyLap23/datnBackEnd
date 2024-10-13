@@ -7,11 +7,430 @@ info:
     email: email@example.com
   version: 1.0.0
 paths:
+  /api/addresses:
+    get:
+      tags:
+        - Address
+      summary: 'Lấy danh sách địa chỉ'
+      operationId: 05d45400dc99e36f78ac7453a329d22e
+      responses:
+        200:
+          description: 'Lấy danh sách địa chỉ thành công'
+          content:
+            application/json:
+              schema:
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: 'Lấy danh sách địa chỉ thành công.'
+                  addresses:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Address'
+                type: object
+        401:
+          description: 'Bạn cần đăng nhập để xem danh sách địa chỉ.'
+        404:
+          description: 'Không tìm thấy địa chỉ nào.'
+        422:
+          description: 'Yêu cầu không thể xử lý do đầu vào không hợp lệ.'
+        500:
+          description: 'Đã xảy ra lỗi không mong muốn.'
+      security:
+        -
+          Bearer: []
+    post:
+      tags:
+        - Address
+      summary: 'Thêm địa chỉ mới'
+      operationId: 94fa3d44216521505cefc876e95c85bd
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              required:
+                - address_name
+                - phone_number
+                - city
+                - district
+                - ward
+                - detail_address
+              properties:
+                address_name:
+                  type: string
+                  example: 'Nhà riêng'
+                phone_number:
+                  type: string
+                  example: '0123456789'
+                city:
+                  type: string
+                  example: 'Hà Nội'
+                district:
+                  type: string
+                  example: 'Hoàn Kiếm'
+                ward:
+                  type: string
+                  example: 'Tràng Tiền'
+                detail_address:
+                  type: string
+                  example: 'Số 1, phố Tràng Tiền'
+                is_default:
+                  description: 'Đặt địa chỉ này làm mặc định'
+                  type: boolean
+                  example: true
+              type: object
+      responses:
+        201:
+          description: 'Thêm địa chỉ thành công'
+          content:
+            application/json:
+              schema:
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: 'Thêm địa chỉ thành công.'
+                  data:
+                    $ref: '#/components/schemas/Address'
+                type: object
+        401:
+          description: 'Bạn cần đăng nhập để thêm địa chỉ.'
+        409:
+          description: 'Địa chỉ này đã tồn tại.'
+        422:
+          description: 'Dữ liệu không hợp lệ.'
+        500:
+          description: 'Thêm địa chỉ thất bại.'
+      security:
+        -
+          Bearer: []
+  '/api/addresses/{id}/default':
+    put:
+      tags:
+        - Address
+      summary: 'Đặt một địa chỉ mặc định'
+      description: 'Đặt một địa chỉ cụ thể làm địa chỉ mặc định cho người dùng đã xác thực. Nếu địa chỉ đã là mặc định, sẽ không thể thay đổi được.'
+      operationId: 44a401e1118ba806440879c91a4b27e3
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'ID của địa chỉ'
+          required: true
+          schema:
+            type: integer
+      responses:
+        200:
+          description: 'Đặt địa chỉ mặc định thành công'
+          content:
+            application/json:
+              schema:
+                properties:
+                  message:
+                    type: string
+                    example: 'Địa chỉ đã được cập nhật thành mặc định'
+                type: object
+        404:
+          description: 'Địa chỉ không tìm thấy hoặc không thuộc về người dùng'
+          content:
+            application/json:
+              schema:
+                properties:
+                  message:
+                    type: string
+                    example: 'Địa chỉ không tìm thấy hoặc không thuộc về người dùng.'
+                type: object
+        400:
+          description: 'Địa chỉ này đã là địa chỉ mặc định'
+          content:
+            application/json:
+              schema:
+                properties:
+                  message:
+                    type: string
+                    example: 'Địa chỉ này đã là địa chỉ mặc định.'
+                type: object
+        401:
+          description: 'Vui lòng đăng nhập'
+          content:
+            application/json:
+              schema:
+                properties:
+                  message:
+                    type: string
+                    example: 'Vui lòng đăng nhập.'
+                type: object
+      security:
+        -
+          Bearer: []
+  '/api/addresses/{id}':
+    get:
+      tags:
+        - Address
+      summary: 'Lấy thông tin địa chỉ'
+      description: 'Lấy thông tin chi tiết của một địa chỉ dựa trên ID. Cần đăng nhập để truy cập.'
+      operationId: getAddressById
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'ID của địa chỉ cần lấy thông tin.'
+          required: true
+          schema:
+            type: integer
+      responses:
+        200:
+          description: 'Lấy thông tin thành công.'
+          content:
+            application/json:
+              schema:
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: 'Lấy thông tin thành công'
+                  address:
+                    $ref: '#/components/schemas/Address'
+                type: object
+        401:
+          description: 'Bạn cần đăng nhập để xem thông tin.'
+          content:
+            application/json:
+              schema:
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: 'Bạn cần đăng nhập để xem thông tin.'
+                type: object
+        403:
+          description: 'Bạn không có quyền xem thông tin của người dùng khác.'
+          content:
+            application/json:
+              schema:
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: 'Bạn không có quyền xem thông tin của người dùng khác.'
+                type: object
+        404:
+          description: 'Không tồn tại địa chỉ này.'
+          content:
+            application/json:
+              schema:
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: 'Không tồn tại địa chỉ này.'
+                type: object
+        500:
+          description: 'Đã xảy ra lỗi không mong muốn.'
+          content:
+            application/json:
+              schema:
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: 'Đã xảy ra lỗi không mong muốn.'
+                type: object
+    delete:
+      tags:
+        - Address
+      summary: 'Xóa địa chỉ của người dùng'
+      operationId: fd6c07ccab4cab14b0f9d9124fc9f5bf
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'ID của địa chỉ cần xóa'
+          required: true
+          schema:
+            type: integer
+      responses:
+        204:
+          description: 'Xóa địa chỉ thành công'
+        403:
+          description: 'Không thể xóa địa chỉ mặc định'
+        404:
+          description: 'Người dùng không tồn tại hoặc địa chỉ không tồn tại'
+        500:
+          description: 'Có lỗi xảy ra'
+      security:
+        -
+          Bearer: []
+  '/api/user/addresses/{id}':
+    put:
+      tags:
+        - Address
+      summary: 'Cập nhật địa chỉ'
+      operationId: 5242da090ab08765fb380e7167aa47ac
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'ID của địa chỉ cần cập nhật'
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              required:
+                - address_name
+                - phone_number
+                - city
+                - district
+                - ward
+                - detail_address
+              properties:
+                address_name:
+                  type: string
+                  example: '123 Đường ABC'
+                phone_number:
+                  type: string
+                  example: '0123456789'
+                city:
+                  type: string
+                  example: 'Thành phố HCM'
+                district:
+                  type: string
+                  example: 'Quận 1'
+                ward:
+                  type: string
+                  example: 'Phường B'
+                detail_address:
+                  type: string
+                  example: 'Số 123, khu phố 1'
+                is_default:
+                  type: boolean
+                  example: true
+              type: object
+      responses:
+        200:
+          description: 'Cập nhật địa chỉ thành công'
+          content:
+            application/json:
+              schema:
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: 'Cập nhật thông tin thành công.'
+                  data:
+                    properties:
+                      addresses:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Address'
+                    type: object
+                type: object
+        401:
+          description: 'Không được phép truy cập'
+          content:
+            application/json:
+              schema:
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: 'Bạn cần đăng nhập để xem thông tin.'
+                type: object
+        403:
+          description: 'Không có quyền chỉnh sửa địa chỉ của người dùng khác'
+          content:
+            application/json:
+              schema:
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: 'Bạn không có quyền chỉnh sửa địa chỉ của người dùng khác.'
+                type: object
+        404:
+          description: 'Không tìm thấy địa chỉ'
+          content:
+            application/json:
+              schema:
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: 'Không tìm thấy địa chỉ.'
+                type: object
+        422:
+          description: 'Dữ liệu không hợp lệ'
+          content:
+            application/json:
+              schema:
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: 'Dữ liệu không hợp lệ.'
+                  errors:
+                    properties:
+                      address_name:
+                        type: array
+                        items:
+                          type: string
+                          example: 'Trường này là bắt buộc.'
+                    type: object
+                type: object
+        500:
+          description: 'Lỗi không xác định'
+          content:
+            application/json:
+              schema:
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: 'Cập nhật thông tin thất bại.'
+                  error:
+                    type: string
+                    example: 'Lý do lỗi'
+                type: object
+      security:
+        -
+          Bearer: []
   /api/auth/login:
     post:
       tags:
         - Auth
-      summary: 'Đăng nhập người dùng email và pass trong ví dụ là đúng chỉ cần nhấn đăng nhập!'
+      summary: 'Đăng nhập người dùng'
       operationId: 4f663801d7414019eacf471e345de8ff
       requestBody:
         required: true
@@ -51,7 +470,7 @@ paths:
                     type: integer
                     example: 3600
                 type: object
-        401:
+        400:
           description: 'Email không tồn tại hoặc mật khẩu không đúng'
           content:
             application/json:
@@ -61,13 +480,75 @@ paths:
                     type: string
                     example: 'Mật khẩu không đúng.'
                 type: object
-  /api/register:
+  /api/auth/refresh:
+    post:
+      tags:
+        - Auth
+      summary: 'Refresh token'
+      operationId: 81c8da7ecf34b62b0604d835d0ab1c04
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              required:
+                - refresh_token
+              properties:
+                refresh_token:
+                  description: 'JWT refresh token'
+                  type: string
+              type: object
+      responses:
+        200:
+          description: 'Token refreshed successfully'
+          content:
+            application/json:
+              schema:
+                properties:
+                  access_token:
+                    description: 'New JWT access token'
+                    type: string
+                  refresh_token:
+                    description: 'New JWT refresh token'
+                    type: string
+                  token_type:
+                    description: 'Type of the token'
+                    type: string
+                    example: bearer
+                  expires_in:
+                    description: 'Time in seconds before the token expires'
+                    type: integer
+                type: object
+        401:
+          description: 'Unauthorized, user not authenticated'
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    description: 'Error message'
+                    type: string
+                type: object
+        500:
+          description: 'Internal server error'
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    description: 'Error message'
+                    type: string
+                type: object
+      security:
+        -
+          bearerAuth: []
+  /api/auth/register:
     post:
       tags:
         - Auth
       summary: 'Đăng ký người dùng mới'
       description: 'Tạo một tài khoản người dùng mới.'
-      operationId: 97cd8d12c6b5cf0267b29ff739a126f8
+      operationId: de84cda3271107bdf3d3ae044d8afcf1
       requestBody:
         required: true
         content:
@@ -124,6 +605,127 @@ paths:
                     type: string
                     example: 'Email đã tồn tại.'
                 type: object
+  /api/auth/password/forgot:
+    post:
+      tags:
+        - Auth
+      summary: 'Gửi link reset mật khẩu đến email'
+      description: 'API để gửi email chứa link reset mật khẩu cho người dùng dựa trên địa chỉ email đã cung cấp.'
+      operationId: 032e1d2f1ee87d25991e6cfbd433468b
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              required:
+                - email
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: user@example.com
+              type: object
+      responses:
+        200:
+          description: 'Link reset mật khẩu đã được gửi đến email của bạn'
+          content:
+            application/json:
+              schema:
+                properties:
+                  message:
+                    type: string
+                    example: 'Link reset mật khẩu đã được gửi đến email của bạn'
+                type: object
+        422:
+          description: 'Email không hợp lệ'
+          content:
+            application/json:
+              schema:
+                properties:
+                  status:
+                    type: string
+                    example: error
+                  message:
+                    type: string
+                    example: 'Email không hợp lệ'
+                  errors:
+                    type: object
+                type: object
+        500:
+          description: 'Không thể gửi link reset mật khẩu'
+          content:
+            application/json:
+              schema:
+                properties:
+                  message:
+                    type: string
+                    example: 'Không thể gửi link reset mật khẩu'
+                type: object
+  /api/auth/password/reset:
+    post:
+      tags:
+        - Auth
+      summary: 'Đặt lại mật khẩu'
+      description: 'API cho phép người dùng đặt lại mật khẩu mới bằng cách cung cấp token, email, và mật khẩu mới.'
+      operationId: a1a0b93d598b907b0af3baa7be08852e
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              required:
+                - token
+                - email
+                - password
+                - password_confirmation
+              properties:
+                token:
+                  type: string
+                  example: abcdef123456
+                email:
+                  type: string
+                  format: email
+                  example: user@example.com
+                password:
+                  type: string
+                  format: password
+                  example: newpassword
+                password_confirmation:
+                  type: string
+                  format: password
+                  example: newpassword
+              type: object
+      responses:
+        200:
+          description: 'Mật khẩu đã được đặt lại thành công'
+          content:
+            application/json:
+              schema:
+                properties:
+                  message:
+                    type: string
+                    example: 'Mật khẩu đã được đặt lại thành công!'
+                type: object
+        422:
+          description: 'Dữ liệu không hợp lệ'
+          content:
+            application/json:
+              schema:
+                properties:
+                  message:
+                    type: string
+                    example: 'Dữ liệu không hợp lệ'
+                type: object
+        500:
+          description: 'Có lỗi xảy ra khi reset mật khẩu'
+          content:
+            application/json:
+              schema:
+                properties:
+                  message:
+                    type: string
+                    example: 'Có lỗi xảy ra khi reset mật khẩu.'
+                type: object
   /api/admin/users:
     get:
       tags:
@@ -148,12 +750,13 @@ paths:
                     items:
                       $ref: '#/components/schemas/User'
                 type: object
-  '/api/admin/users/{id}':
+  '/api/auth/users/{id}':
     get:
       tags:
         - User
       summary: 'Lấy thông tin người dùng'
-      operationId: 446d78481472e02655fae66451507750
+      description: 'Lấy thông tin chi tiết của người dùng, bao gồm cả địa chỉ liên kết. Chỉ admin hoặc chính người dùng có thể xem thông tin của họ.'
+      operationId: getUser
       parameters:
         -
           name: id
@@ -161,80 +764,25 @@ paths:
           description: 'ID của người dùng'
           required: true
           schema:
-            type: integer
+            type: string
       responses:
         200:
-          description: 'Thông tin người dùng được lấy thành công'
+          description: 'Lấy thông tin thành công'
           content:
             application/json:
               schema:
                 properties:
+                  success:
+                    type: boolean
+                    example: true
                   message:
                     type: string
                     example: 'Lấy thông tin thành công'
-                  success:
-                    type: boolean
-                    example: true
                   users:
                     $ref: '#/components/schemas/User'
                 type: object
-        404:
-          description: 'Người dùng không tìm thấy'
-          content:
-            application/json:
-              schema:
-                properties:
-                  message:
-                    type: string
-                    example: 'Người dùng không tìm thấy'
-                type: object
-    put:
-      tags:
-        - User
-      summary: 'Cập nhật thông tin người dùng'
-      operationId: fefd8767c242e6ddd08124c60fb12cd3
-      parameters:
-        -
-          name: id
-          in: path
-          description: 'ID của người dùng'
-          required: true
-          schema:
-            type: integer
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/UpdateProfileRequest'
-      responses:
-        200:
-          description: 'Cập nhật thông tin thành công'
-          content:
-            application/json:
-              schema:
-                properties:
-                  success:
-                    type: boolean
-                    example: true
-                  message:
-                    type: string
-                    example: 'Cập nhật thông tin thành công.'
-                  data:
-                    $ref: '#/components/schemas/User'
-                type: object
-        404:
-          description: 'Không thể thay đổi admin'
-          content:
-            application/json:
-              schema:
-                properties:
-                  message:
-                    type: string
-                    example: 'Không thể thay đổi admin'
-                type: object
-        500:
-          description: 'Có lỗi xảy ra'
+        403:
+          description: 'Người dùng không có quyền truy cập'
           content:
             application/json:
               schema:
@@ -244,14 +792,50 @@ paths:
                     example: false
                   message:
                     type: string
-                    example: 'Cập nhật thông tin thất bại'
-                  error:
+                    example: 'Bạn không có quyền xem thông tin của người dùng khác.'
+                type: object
+        401:
+          description: 'Chưa đăng nhập'
+          content:
+            application/json:
+              schema:
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
                     type: string
-                    example: 'Error message'
+                    example: 'Bạn cần đăng nhập để xem thông tin.'
+                type: object
+        404:
+          description: 'Không tìm thấy người dùng'
+          content:
+            application/json:
+              schema:
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: 'Không tồn tại người dùng này.'
+                type: object
+        500:
+          description: 'Lỗi máy chủ'
+          content:
+            application/json:
+              schema:
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: 'Đã xảy ra lỗi không mong muốn.'
                 type: object
       security:
         -
-          Bearer: []
+          bearerAuth: []
   /api/auth/profile:
     get:
       tags:
@@ -265,6 +849,19 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/User'
+        401:
+          description: 'Người dùng chưa đăng nhập'
+          content:
+            application/json:
+              schema:
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: 'Bạn cần đăng nhập để xem thông tin.'
+                type: object
         404:
           description: 'Người dùng không tìm thấy'
           content:
@@ -288,40 +885,140 @@ paths:
       security:
         -
           Bearer: []
-  '/api/users/{id}':
-    delete:
+  '/api/auth/profile/update/{id}':
+    put:
       tags:
         - User
-      summary: 'Xóa người dùng'
-      operationId: f76256c7d6f7eb6c155c7938efbff281
+      summary: 'Cập nhật thông tin người dùng'
+      operationId: 38045b28c1494391ea90eca9c9eae139
       parameters:
         -
           name: id
           in: path
-          description: 'ID của người dùng'
+          description: 'ID của người dùng cần cập nhật'
           required: true
           schema:
-            type: integer
+            type: bigint
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              properties:
+                name:
+                  description: 'Tên người dùng'
+                  type: string
+                avatar:
+                  description: 'Ảnh đại diện của người dùng'
+                  type: file
+                link_fb:
+                  description: 'link facebook'
+                  type: string
+                link_tt:
+                  description: 'link tiktok'
+                  type: string
+              type: object
       responses:
         200:
-          description: 'Xóa tài khoản thành công'
+          description: 'Cập nhật thông tin thành công'
           content:
             application/json:
               schema:
                 properties:
+                  success:
+                    type: boolean
+                    example: true
                   message:
                     type: string
-                    example: 'Xoá tài khoản thành công'
+                    example: 'Cập nhật thông tin thành công.'
+                  data:
+                    properties:
+                      user:
+                        $ref: '#/components/schemas/User'
+                      avatar_url:
+                        type: string
+                        example: 'http://example.com/storage/avatars/avatar.jpg'
+                    type: object
+                type: object
+        401:
+          description: 'Chưa đăng nhập'
+          content:
+            application/json:
+              schema:
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: 'Bạn cần đăng nhập để xem thông tin.'
+                type: object
+        403:
+          description: 'Người dùng không có quyền chỉnh sửa thông tin người khác'
+          content:
+            application/json:
+              schema:
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: 'Bạn không có quyền chỉnh sửa thông tin của người dùng khác.'
                 type: object
         404:
-          description: 'Người dùng không được tìm thấy'
+          description: 'Không thể thay đổi admin hoặc người dùng không tồn tại'
+          content:
+            application/json:
+              schema:
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: 'Không thể thay đổi admin'
+                type: object
+        409:
+          description: 'Địa chỉ này đã tồn tại'
           content:
             application/json:
               schema:
                 properties:
                   message:
                     type: string
-                    example: 'Người dùng không được tìm thấy'
+                    example: 'Địa chỉ này đã tồn tại.'
+                type: object
+        422:
+          description: 'Dữ liệu không hợp lệ'
+          content:
+            application/json:
+              schema:
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: 'Dữ liệu không hợp lệ.'
+                  errors:
+                    type: object
+                type: object
+        500:
+          description: 'Cập nhật thông tin thất bại'
+          content:
+            application/json:
+              schema:
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: 'Cập nhật thông tin thất bại'
+                  error:
+                    type: string
+                    example: 'Error message'
                 type: object
       security:
         -
@@ -361,6 +1058,9 @@ paths:
                     type: string
                     example: 'Lỗi không xác định.'
                 type: object
+      security:
+        -
+          Bearer: []
     post:
       tags:
         - Banners
@@ -370,66 +1070,49 @@ paths:
       requestBody:
         required: true
         content:
-          application/json:
+          multipart/form-data:
             schema:
               required:
-                - title
+                - name
                 - image
+                - link
               properties:
-                title:
+                name:
                   type: string
                   example: 'Tiêu đề banner'
                 image:
                   type: string
                   format: binary
-                  example: link/to/image.jpg
                 link:
                   type: string
                   example: 'http://example.com'
               type: object
       responses:
         201:
-          description: 'Banner được tạo thành công'
+          description: 'Banner tạo thành công'
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Banner'
+                properties:
+                  message:
+                    type: string
+                    example: 'Banner đã được tạo thành công'
+                  data:
+                    $ref: '#/components/schemas/Banner'
+                type: object
         400:
-          description: 'Dữ liệu đầu vào không hợp lệ'
+          description: 'Yêu cầu không hợp lệ'
           content:
             application/json:
               schema:
                 properties:
-                  success:
-                    type: boolean
-                    example: false
                   message:
                     type: string
-                    example: 'Dữ liệu không hợp lệ.'
-                  errors:
-                    type: array
-                    items:
-                      type: string
-                      example:
-                        - 'Tiêu đề là bắt buộc'
-                        - 'Hình ảnh không hợp lệ'
+                    example: 'Dữ liệu không hợp lệ'
                 type: object
-        500:
-          description: 'Lỗi khi tạo banner'
-          content:
-            application/json:
-              schema:
-                properties:
-                  success:
-                    type: boolean
-                    example: false
-                  message:
-                    type: string
-                    example: 'Tạo banner không thành công.'
-                  error:
-                    type: string
-                    example: 'Lý do lỗi'
-                type: object
+      security:
+        -
+          Bearer: []
   '/api/admin/banners/{id}':
     get:
       tags:
@@ -481,12 +1164,15 @@ paths:
                     type: string
                     example: 'Lý do lỗi'
                 type: object
-    put:
+      security:
+        -
+          Bearer: []
+    post:
       tags:
         - Banners
-      summary: 'Cập nhật một banner'
+      summary: 'Cập nhật thông tin một banner'
       description: 'Cập nhật thông tin của một banner dựa trên ID được cung cấp.'
-      operationId: b50086e26f296cde65beec89106f9dfa
+      operationId: fa0621e9ac6a783f0fd74b481e9ced0e
       parameters:
         -
           name: id
@@ -498,30 +1184,50 @@ paths:
       requestBody:
         required: true
         content:
-          application/json:
+          multipart/form-data:
             schema:
               required:
-                - title
+                - name
                 - image
+                - link
+                - _method
               properties:
-                title:
+                name:
                   type: string
-                  example: 'Tiêu đề banner đã cập nhật'
+                  example: 'Tiêu đề banner'
                 image:
                   type: string
                   format: binary
-                  example: link/to/image.jpg
                 link:
                   type: string
                   example: 'http://example.com'
+                _method:
+                  type: string
+                  example: PUT
               type: object
       responses:
         200:
-          description: 'Banner đã được cập nhật thành công'
+          description: 'Banner cập nhật thành công'
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Banner'
+                properties:
+                  message:
+                    type: string
+                    example: 'Banner đã được cập nhật thành công'
+                  data:
+                    $ref: '#/components/schemas/Banner'
+                type: object
+        400:
+          description: 'Yêu cầu không hợp lệ'
+          content:
+            application/json:
+              schema:
+                properties:
+                  message:
+                    type: string
+                    example: 'Dữ liệu không hợp lệ'
+                type: object
         404:
           description: 'Không tìm thấy banner'
           content:
@@ -535,27 +1241,14 @@ paths:
                     type: string
                     example: 'Banner không tồn tại.'
                 type: object
-        500:
-          description: 'Lỗi khi cập nhật banner'
-          content:
-            application/json:
-              schema:
-                properties:
-                  success:
-                    type: boolean
-                    example: false
-                  message:
-                    type: string
-                    example: 'Cập nhật banner không thành công.'
-                  error:
-                    type: string
-                    example: 'Lý do lỗi'
-                type: object
+      security:
+        -
+          Bearer: []
     delete:
       tags:
         - Banners
       summary: 'Xóa một banner'
-      description: 'Xóa banner dựa trên ID được cung cấp.'
+      description: 'Xóa một banner dựa trên ID được cung cấp.'
       operationId: 5b15edef32b534904a47e8ec29727e61
       parameters:
         -
@@ -597,22 +1290,443 @@ paths:
                     type: string
                     example: 'Lý do lỗi'
                 type: object
-  /api/admin/categories:
+      security:
+        -
+          Bearer: []
+  /api/admin/brands/:
+    post:
+      tags:
+        - Brand
+      summary: 'Thêm thương hiệu'
+      description: 'Thêm thương hiệu vào hệ thống.'
+      operationId: 0431b484f632b967655ba778a12bd945
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              properties:
+                name:
+                  description: 'Tên thương hiệu'
+                  type: string
+                  example: 'Thương hiệu 1'
+                image:
+                  description: 'Hình ảnh thương hiệu'
+                  type: string
+                  example: image.png
+              type: object
+      responses:
+        201:
+          description: 'Thành công'
+          content:
+            application/json:
+              schema:
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: 'Thêm thương hiệu thành công.'
+                  data:
+                    properties:
+                      brand:
+                        properties:
+                          id:
+                            type: bigint
+                            example: 1
+                          name:
+                            type: string
+                            example: 'Thương hiệu 1'
+                          image_url:
+                            type: string
+                            example: 'https://apitopdeal.shop/storage/brand/image.png'
+                        type: object
+                    type: object
+                type: object
+        500:
+          description: 'Thêm thương hiệu thất bại'
+          content:
+            application/json:
+              schema:
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: 'Thêm thương hiệu thất bại'
+                  error:
+                    type: string
+                    example: 'Error details...'
+                type: object
+      security:
+        -
+          Bearer: []
+  '/api/admin/brand/{id}':
+    get:
+      tags:
+        - Brand
+      summary: 'Lấy chi tiết thương hiệu'
+      operationId: 03efc00bb90c06be9d8b0081dd66509e
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'ID của thương hiệu'
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: 'Lấy thành công dữ liệu của thương hiệu'
+          content:
+            application/json:
+              schema:
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: 'Lấy thành công dữ liệu của bản ghi {id}'
+                  data:
+                    properties:
+                      id:
+                        type: integer
+                        example: 1
+                      name:
+                        type: string
+                        example: 'brand Name'
+                      image:
+                        type: string
+                        example: image.png
+                      description:
+                        type: string
+                        example: ''
+                      "\tdeleted_at":
+                        type: string
+                        example: ''
+                      deleted_at:
+                        type: string
+                        format: date-time
+                        example: '2024-09-19T12:34:56Z'
+                      created_at:
+                        type: string
+                        format: date-time
+                        example: '2024-09-19T12:34:56Z'
+                      updated_at:
+                        type: string
+                        format: date-time
+                        example: '2024-09-19T12:34:56Z'
+                    type: object
+                type: object
+        404:
+          description: 'Thương hiệu không tìm thấy'
+          content:
+            application/json:
+              schema:
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: 'Lấy dữ liệu không thành công'
+                  error:
+                    type: string
+                    example: 'No query results for model [Brand]'
+                type: object
+        500:
+          description: 'Lỗi server'
+          content:
+            application/json:
+              schema:
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: 'Lấy dữ liệu không thành công'
+                  error:
+                    type: string
+                    example: 'Server Error Message'
+                type: object
+      security:
+        -
+          Bearer: []
+    put:
+      tags:
+        - Brands
+      summary: 'Cập nhật thương hiệu'
+      operationId: 5d525a2a0d9844327611ddfdda66d375
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'ID của danh mục'
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              properties:
+                name:
+                  type: string
+                  example: 'Category Name'
+                image:
+                  type: string
+                  format: binary
+                  example: image.jpg
+                parent_id:
+                  type: string
+                  example: '1'
+              type: object
+      responses:
+        201:
+          description: 'Cập nhật thành công'
+          content:
+            application/json:
+              schema:
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: 'Lấy thành công dữ liệu của bản ghi {id}'
+                  data:
+                    properties:
+                      id:
+                        type: integer
+                        example: 1
+                      name:
+                        type: string
+                        example: 'brand Name'
+                      image:
+                        type: string
+                        example: image.png
+                      description:
+                        type: string
+                        example: ''
+                      "\tdeleted_at":
+                        type: string
+                        example: ''
+                      deleted_at:
+                        type: string
+                        format: date-time
+                        example: '2024-09-19T12:34:56Z'
+                      created_at:
+                        type: string
+                        format: date-time
+                        example: '2024-09-19T12:34:56Z'
+                      updated_at:
+                        type: string
+                        format: date-time
+                        example: '2024-09-19T12:34:56Z'
+                    type: object
+                type: object
+        404:
+          description: 'Danh mục không tìm thấy'
+          content:
+            application/json:
+              schema:
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: 'Cập nhật danh mục thất bại'
+                  error:
+                    type: string
+                    example: 'No query results for model [Category]'
+                type: object
+        500:
+          description: 'Lỗi server'
+          content:
+            application/json:
+              schema:
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: 'Cập nhật danh mục thất bại'
+                  error:
+                    type: string
+                    example: 'Server Error Message'
+                type: object
+      security:
+        -
+          Bearer: []
+  'api/admin/brands/{id}':
+    delete:
+      tags:
+        - brands
+      summary: 'Xóa danh mục'
+      operationId: a9976bff6784e806d6fe488811b3991b
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'ID của thương hiệu cần xóa'
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: 'Xóa thương hiệu thành công'
+          content:
+            application/json:
+              schema:
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: 'Xóa thương hiệu thành công.'
+                type: object
+        500:
+          description: 'Lỗi khi xóa thương hiệu'
+          content:
+            application/json:
+              schema:
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: 'Xóa thương hiệu không thành công.'
+                  error:
+                    type: string
+                    example: 'Lý do lỗi'
+                type: object
+      security:
+        -
+          Bearer: []
+  /api/carts:
+    get:
+      tags:
+        - Cart
+      summary: 'Hiển thị danh sách giỏ hàng của người dùng'
+      description: 'Lấy danh sách tất cả các sản phẩm trong giỏ hàng của người dùng hiện tại.'
+      operationId: 082ccb576b0f3887aeea5ab4ad1e76b8
+      responses:
+        200:
+          description: 'Danh sách giỏ hàng thành công'
+        401:
+          description: Unauthorized
+      security:
+        -
+          Bearer: []
+    post:
+      tags:
+        - Cart
+      summary: 'Thêm sản phẩm vào giỏ hàng'
+      description: 'Thêm một sản phẩm vào giỏ hàng của người dùng. Nếu sản phẩm đã tồn tại, số lượng sẽ được cập nhật.'
+      operationId: 2515b3b3df63e63629b891e129b55623
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              required:
+                - product_id
+                - quantity
+              properties:
+                product_id:
+                  description: 'ID của sản phẩm cần thêm vào giỏ hàng.'
+                  type: integer
+                quantity:
+                  description: 'Số lượng sản phẩm cần thêm. Phải lớn hơn 0.'
+                  type: integer
+              type: object
+      responses:
+        201:
+          description: 'Thêm sản phẩm thành công'
+        400:
+          description: 'Thông tin không hợp lệ'
+        401:
+          description: Unauthorized
+      security:
+        -
+          Bearer: []
+  '/api/carts/{id}':
+    put:
+      tags:
+        - Cart
+      summary: 'Cập nhật số lượng sản phẩm trong giỏ hàng'
+      description: 'Cập nhật số lượng của sản phẩm đã có trong giỏ hàng. Nếu số lượng không hợp lệ, trả về lỗi.'
+      operationId: 6b3288907562be31f345b214eb824d76
+      parameters:
+        -
+          name: id
+          in: path
+          required: true
+          schema:
+            description: 'ID của sản phẩm trong giỏ hàng cần cập nhật.'
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              required:
+                - quantity
+              properties:
+                quantity:
+                  description: 'Số lượng sản phẩm cần cập nhật. Phải lớn hơn 0.'
+                  type: integer
+              type: object
+      responses:
+        200:
+          description: 'Cập nhật sản phẩm thành công'
+        404:
+          description: 'Sản phẩm không tìm thấy'
+        401:
+          description: Unauthorized
+      security:
+        -
+          Bearer: []
+    delete:
+      tags:
+        - Cart
+      summary: 'Xóa sản phẩm khỏi giỏ hàng'
+      description: 'Xóa sản phẩm khỏi giỏ hàng của người dùng theo ID sản phẩm.'
+      operationId: 9a70a882e504ac01a01f1b44ff1d257e
+      parameters:
+        -
+          name: id
+          in: path
+          required: true
+          schema:
+            description: 'ID của sản phẩm trong giỏ hàng cần xóa.'
+            type: integer
+      responses:
+        204:
+          description: 'Xóa sản phẩm thành công'
+        404:
+          description: 'Sản phẩm không tìm thấy'
+        401:
+          description: Unauthorized
+      security:
+        -
+          Bearer: []
+  /api/categories:
     get:
       tags:
         - Category
       summary: 'Lấy danh sách danh mục'
-      description: 'Trả về danh sách tất cả các danh mục chính và danh mục cha.'
-      operationId: d89b639efbf71be315d56faeac8bcaf5
-      parameters:
-        -
-          name: page
-          in: query
-          description: 'Số trang hiện tại'
-          required: false
-          schema:
-            type: integer
-            example: 1
+      description: 'Trả về danh sách tất cả các danh mục chính và danh mục con.'
+      operationId: 8e17a9627dbed245cf032f867569cf11
       responses:
         200:
           description: 'Thành công'
@@ -626,75 +1740,71 @@ paths:
                   message:
                     type: string
                     example: 'Lấy thành công danh mục'
-                  data:
-                    properties:
-                      categories:
-                        properties:
-                          current_page:
-                            type: integer
-                            example: 1
-                          data:
-                            type: array
-                            items:
-                              properties:
-                                id:
-                                  type: integer
-                                  example: 1
-                                name:
-                                  type: string
-                                  example: 'Danh mục 1'
-                                image:
-                                  type: string
-                                  example: image.png
-                                parent_id:
-                                  type: integer
-                                  example: null
-                                  nullable: true
-                                children:
-                                  type: array
-                                  items:
-                                    properties:
-                                      id: { type: integer, example: 2 }
-                                      name: { type: string, example: 'Danh mục con 1' }
-                                      image: { type: string, example: child_image.png }
-                                      parent_id: { type: integer, example: 1 }
-                                    type: object
-                              type: object
-                          total:
-                            type: integer
-                            example: 10
-                          last_page:
-                            type: integer
-                            example: 1
-                          per_page:
-                            type: integer
-                            example: 10
-                          from:
-                            type: integer
-                            example: 1
-                          to:
-                            type: integer
-                            example: 10
-                        type: object
-                      categoryParent:
-                        type: array
-                        items:
-                          properties:
-                            id:
-                              type: integer
-                              example: 1
-                            name:
-                              type: string
-                              example: 'Danh mục cha'
-                            image:
-                              type: string
-                              example: parent_image.png
-                            parent_id:
-                              type: integer
-                              example: null
-                              nullable: true
-                          type: object
-                    type: object
+                  categories:
+                    type: array
+                    items:
+                      properties:
+                        id:
+                          type: integer
+                          example: 3
+                        name:
+                          type: string
+                          example: 'Category 2'
+                        slug:
+                          type: string
+                          example: ''
+                        image:
+                          type: string
+                          example: 'https://picsum.photos/200/300?random=2'
+                        parent_id:
+                          type: integer
+                          example: null
+                          nullable: true
+                        created_at:
+                          type: string
+                          format: date-time
+                          example: '2024-09-05T16:26:27.000000Z'
+                        updated_at:
+                          type: string
+                          format: date-time
+                          example: '2024-09-05T16:26:27.000000Z'
+                        deleted_at:
+                          type: string
+                          example: null
+                          nullable: true
+                        children:
+                          type: array
+                          items:
+                            properties:
+                              id:
+                                type: integer
+                                example: 9
+                              name:
+                                type: string
+                                example: 'Category 3'
+                              slug:
+                                type: string
+                                example: ''
+                              image:
+                                type: string
+                                example: 'https://picsum.photos/200/300?random=3'
+                              parent_id:
+                                type: integer
+                                example: 3
+                              created_at:
+                                type: string
+                                format: date-time
+                                example: '2024-09-05T16:26:27.000000Z'
+                              updated_at:
+                                type: string
+                                format: date-time
+                                example: '2024-09-05T16:26:27.000000Z'
+                              deleted_at:
+                                type: string
+                                example: null
+                                nullable: true
+                            type: object
+                      type: object
                 type: object
         500:
           description: 'Lỗi server'
@@ -712,9 +1822,25 @@ paths:
                     type: string
                     example: 'Server Error Message'
                 type: object
+  /api/admin/categories/trashed:
+    get:
+      tags:
+        - Category
+      summary: 'Lấy danh mục đã xóa'
+      operationId: 200c867867f83a7171472166eb9c5387
+      responses:
+        200:
+          description: 'Lấy thành công danh mục đã xóa.'
+        401:
+          description: 'Bạn cần đăng nhập để xem thông tin.'
+        404:
+          description: 'Không thể lấy được danh mục đã xóa.'
+        500:
+          description: 'Đã xảy ra lỗi không mong muốn.'
       security:
         -
           Bearer: []
+  /api/admin/categories:
     post:
       tags:
         - Category
@@ -732,13 +1858,13 @@ paths:
                   type: string
                   example: 'Danh mục 1'
                 image:
-                  description: 'Hình ảnh danh mục'
+                  description: 'Hình ảnh danh mục (đường dẫn ảnh)'
                   type: string
-                  example: image.png
+                  example: ''
                 parent_id:
-                  description: 'ID danh mục cha'
-                  type: bigint
-                  example: '1'
+                  description: 'ID danh mục cha (nếu có)'
+                  type: integer
+                  example: 1
               type: object
       responses:
         201:
@@ -758,16 +1884,33 @@ paths:
                       category:
                         properties:
                           id:
-                            type: bigint
-                            example: 1
+                            type: integer
+                            example: 2
                           name:
                             type: string
                             example: 'Danh mục 1'
-                          image_url:
+                          image:
+                            description: 'Để ở đây trống để test'
                             type: string
-                            example: 'https://apitopdeal.shop/storage/categories/image.png'
+                            example: ''
+                          parent_id:
+                            type: integer
+                            example: 1
                         type: object
                     type: object
+                type: object
+        403:
+          description: 'Truy cập bị từ chối (không phải admin)'
+          content:
+            application/json:
+              schema:
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: 'Bạn không phải admin.'
                 type: object
         500:
           description: 'Thêm danh mục thất bại'
@@ -783,7 +1926,7 @@ paths:
                     example: 'Thêm danh mục thất bại'
                   error:
                     type: string
-                    example: 'Error details...'
+                    example: 'Chi tiết lỗi...'
                 type: object
       security:
         -
@@ -825,10 +1968,13 @@ paths:
                         example: 'Category Name'
                       image:
                         type: string
-                        example: image.png
+                        example: 'http://127.0.0.1:8000/storage/categories/WH9uJPvTt5VjkpDr0dE5uEkeXaFtCKaOwuAups3C.jpg'
                       parent_id:
                         type: string
                         example: ''
+                      slug:
+                        type: string
+                        example: category-name
                       created_at:
                         type: string
                         format: date-time
@@ -878,15 +2024,16 @@ paths:
       tags:
         - Category
       summary: 'Cập nhật danh mục'
+      description: 'Cập nhật thông tin của một danh mục.'
       operationId: d68df7c013004912f5ea2f792573304a
       parameters:
         -
           name: id
           in: path
-          description: 'ID của danh mục'
+          description: 'ID của danh mục cần cập nhật'
           required: true
           schema:
-            type: string
+            type: integer
       requestBody:
         required: true
         content:
@@ -895,17 +2042,17 @@ paths:
               properties:
                 name:
                   type: string
-                  example: 'Category Name'
+                  example: 'Tên danh mục'
                 image:
                   type: string
                   format: binary
                   example: image.jpg
                 parent_id:
-                  type: string
-                  example: '1'
+                  type: integer
+                  example: 1
               type: object
       responses:
-        201:
+        200:
           description: 'Cập nhật thành công'
           content:
             application/json:
@@ -924,13 +2071,13 @@ paths:
                         example: 1
                       name:
                         type: string
-                        example: 'Category Name'
+                        example: 'Tên danh mục'
                       slug:
                         type: string
-                        example: category-name
+                        example: ten-danh-muc
                       image:
                         type: string
-                        example: path/to/image.jpg
+                        example: 'http://127.0.0.1:8000/storage/categories/image.jpg'
                       created_at:
                         type: string
                         format: date-time
@@ -952,10 +2099,23 @@ paths:
                     example: false
                   message:
                     type: string
-                    example: 'Cập nhật danh mục thất bại'
+                    example: 'Danh mục không tìm thấy'
                   error:
                     type: string
                     example: 'No query results for model [Category]'
+                type: object
+        400:
+          description: 'Thông tin không hợp lệ'
+          content:
+            application/json:
+              schema:
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: 'Danh mục cha không thể là danh mục con của một danh mục khác!'
                 type: object
         500:
           description: 'Lỗi server'
@@ -976,12 +2136,11 @@ paths:
       security:
         -
           Bearer: []
-  'api/admin/categories/{id}':
     delete:
       tags:
         - Category
       summary: 'Xóa danh mục'
-      operationId: 8ef4fc1e69fa1a5c85d87ec3f045cad4
+      operationId: 8a783e8811e5c895ed415a5ccdd8a734
       parameters:
         -
           name: id
@@ -991,7 +2150,7 @@ paths:
           schema:
             type: string
       responses:
-        200:
+        204:
           description: 'Xóa danh mục thành công'
           content:
             application/json:
@@ -1004,8 +2163,8 @@ paths:
                     type: string
                     example: 'Xóa danh mục thành công.'
                 type: object
-        500:
-          description: 'Lỗi khi xóa danh mục'
+        400:
+          description: 'Không thể xóa danh mục do liên quan đến các bản ghi khác'
           content:
             application/json:
               schema:
@@ -1015,10 +2174,474 @@ paths:
                     example: false
                   message:
                     type: string
-                    example: 'Xóa danh mục không thành công.'
+                    example: 'Không thể xóa danh mục này vì nó có liên quan đến các bản ghi khác.'
+                type: object
+        500:
+          description: 'Lỗi không xác định'
+          content:
+            application/json:
+              schema:
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: 'Xóa danh mục không thành công do lỗi không xác định.'
                   error:
                     type: string
                     example: 'Lý do lỗi'
+                type: object
+      security:
+        -
+          Bearer: []
+  /api/admin/comments:
+    get:
+      tags:
+        - 'Admin Comments'
+      summary: 'Lấy danh sách tất cả bình luận'
+      description: 'Trả về danh sách tất cả các bình luận trong hệ thống hoặc lọc theo sản phẩm và người dùng.'
+      operationId: 3e176f6e60251f991fe2ce2ebde1099d
+      parameters:
+        -
+          name: product_id
+          in: query
+          description: 'ID sản phẩm để lọc bình luận'
+          required: false
+          schema:
+            type: integer
+        -
+          name: user_id
+          in: query
+          description: 'ID người dùng để lọc bình luận'
+          required: false
+          schema:
+            type: integer
+      responses:
+        200:
+          description: 'Danh sách bình luận'
+          content:
+            application/json:
+              schema:
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Comment'
+                type: object
+        500:
+          description: 'Lỗi khi lấy danh sách bình luận'
+          content:
+            application/json:
+              schema:
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: 'Lỗi không xác định.'
+                type: object
+      security:
+        -
+          Bearer: []
+    post:
+      tags:
+        - 'Admin Comments'
+      summary: 'Tạo một bình luận mới'
+      description: 'Tạo một bình luận mới với nội dung, ID người dùng và ID sản phẩm đã cung cấp.'
+      operationId: e5ee2e94735d1b847f7f0ce0321e7a0c
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              required:
+                - content
+                - user_id
+                - product_id
+              properties:
+                content:
+                  type: string
+                  example: 'Nội dung bình luận'
+                user_id:
+                  type: integer
+                  example: 123
+                product_id:
+                  type: integer
+                  example: 456
+              type: object
+      responses:
+        201:
+          description: 'Bình luận được tạo thành công'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Comment'
+        400:
+          description: 'Dữ liệu đầu vào không hợp lệ'
+          content:
+            application/json:
+              schema:
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: 'Dữ liệu không hợp lệ.'
+                type: object
+        500:
+          description: 'Lỗi khi tạo bình luận'
+          content:
+            application/json:
+              schema:
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: 'Tạo bình luận không thành công.'
+                type: object
+      security:
+        -
+          Bearer: []
+  '/api/admin/comments/{id}':
+    get:
+      tags:
+        - 'Admin Comments'
+      summary: 'Lấy bình luận theo ID'
+      description: 'Lấy thông tin chi tiết của một bình luận dựa trên ID được cung cấp.'
+      operationId: 11bb0539b32c9a718800f6ad89540b50
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'ID của bình luận cần lấy'
+          required: true
+          schema:
+            type: integer
+      responses:
+        200:
+          description: 'Phản hồi thành công'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Comment'
+        404:
+          description: 'Không tìm thấy bình luận'
+          content:
+            application/json:
+              schema:
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: 'Bình luận không tồn tại.'
+                type: object
+      security:
+        -
+          Bearer: []
+    put:
+      tags:
+        - 'Admin Comments'
+      summary: 'Cập nhật một bình luận'
+      description: 'Cập nhật bình luận dựa trên ID đã cung cấp và nội dung mới.'
+      operationId: 6c10a368b8e9a01d30e1b6ed0265b466
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'ID của bình luận cần cập nhật'
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              required:
+                - content
+              properties:
+                content:
+                  type: string
+                  example: 'Nội dung bình luận đã cập nhật'
+              type: object
+      responses:
+        200:
+          description: 'Bình luận được cập nhật thành công'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Comment'
+        404:
+          description: 'Không tìm thấy bình luận'
+          content:
+            application/json:
+              schema:
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: 'Bình luận không tồn tại.'
+                type: object
+      security:
+        -
+          Bearer: []
+    delete:
+      tags:
+        - 'Admin Comments'
+      summary: 'Xóa bình luận'
+      description: 'Xóa một bình luận dựa trên ID được cung cấp.'
+      operationId: b637dd433d1077b9081b6dfbc70f786c
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'ID của bình luận cần xóa'
+          required: true
+          schema:
+            type: integer
+      responses:
+        204:
+          description: 'Bình luận đã được xóa thành công'
+        404:
+          description: 'Không tìm thấy bình luận'
+          content:
+            application/json:
+              schema:
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: 'Bình luận không tồn tại.'
+                type: object
+      security:
+        -
+          Bearer: []
+  /api/user/comments:
+    get:
+      tags:
+        - 'User Comments'
+      summary: 'Lấy danh sách bình luận của người dùng'
+      description: 'Trả về danh sách bình luận của người dùng đã đăng nhập.'
+      operationId: 56269984c073d6024b05399ee50a1a36
+      responses:
+        200:
+          description: 'Danh sách bình luận của người dùng'
+          content:
+            application/json:
+              schema:
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Comment'
+                type: object
+        500:
+          description: 'Lỗi khi lấy danh sách bình luận'
+          content:
+            application/json:
+              schema:
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: 'Lỗi không xác định.'
+                type: object
+      security:
+        -
+          Bearer: []
+    post:
+      tags:
+        - 'User Comments'
+      summary: 'Tạo bình luận mới'
+      description: 'Tạo một bình luận mới cho sản phẩm đã cung cấp.'
+      operationId: 4cb31a77dbf34f928307321adc786bf7
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              required:
+                - content
+                - product_id
+              properties:
+                content:
+                  type: string
+                  example: 'Nội dung bình luận'
+                product_id:
+                  type: integer
+                  example: 456
+              type: object
+      responses:
+        201:
+          description: 'Bình luận được tạo thành công'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Comment'
+        400:
+          description: 'Dữ liệu đầu vào không hợp lệ'
+          content:
+            application/json:
+              schema:
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: 'Dữ liệu không hợp lệ.'
+                type: object
+        500:
+          description: 'Lỗi khi tạo bình luận'
+          content:
+            application/json:
+              schema:
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: 'Tạo bình luận không thành công.'
+                type: object
+      security:
+        -
+          Bearer: []
+  '/api/user/comments/{id}':
+    get:
+      tags:
+        - 'User Comments'
+      summary: 'Lấy bình luận theo ID'
+      description: 'Lấy thông tin chi tiết của một bình luận dựa trên ID được cung cấp.'
+      operationId: 14e48af9db91208d9b0752ec71a971d1
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'ID của bình luận cần lấy'
+          required: true
+          schema:
+            type: integer
+      responses:
+        200:
+          description: 'Phản hồi thành công'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Comment'
+        404:
+          description: 'Không tìm thấy bình luận'
+          content:
+            application/json:
+              schema:
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: 'Bình luận không tồn tại.'
+                type: object
+      security:
+        -
+          Bearer: []
+    put:
+      tags:
+        - 'User Comments'
+      summary: 'Cập nhật bình luận'
+      description: 'Cập nhật bình luận dựa trên ID đã cung cấp và nội dung mới.'
+      operationId: 1f2ebac14195d9e5f9a4ba7e4b382aba
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'ID của bình luận cần cập nhật'
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              required:
+                - content
+              properties:
+                content:
+                  type: string
+                  example: 'Nội dung bình luận đã cập nhật'
+              type: object
+      responses:
+        200:
+          description: 'Bình luận được cập nhật thành công'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Comment'
+        404:
+          description: 'Không tìm thấy bình luận'
+          content:
+            application/json:
+              schema:
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: 'Bình luận không tồn tại.'
+                type: object
+      security:
+        -
+          Bearer: []
+    delete:
+      tags:
+        - 'User Comments'
+      summary: 'Xóa bình luận'
+      description: 'Xóa một bình luận dựa trên ID được cung cấp.'
+      operationId: d255cf759899fd070cf3357a5f3bde1b
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'ID của bình luận cần xóa'
+          required: true
+          schema:
+            type: integer
+      responses:
+        204:
+          description: 'Bình luận đã được xóa thành công'
+        404:
+          description: 'Không tìm thấy bình luận'
+          content:
+            application/json:
+              schema:
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: 'Bình luận không tồn tại.'
                 type: object
       security:
         -
@@ -1033,32 +2656,15 @@ components:
         name:
           type: string
           example: 'Nguyễn Văn A'
-        email:
-          type: string
-          example: email@example.com
         avatar:
           type: string
           example: path/to/avatar.png
-        addresses:
-          type: array
-          items:
-            $ref: '#/components/schemas/Address'
-      type: object
-    UpdateProfileRequest:
-      properties:
-        name:
+        link_fb:
           type: string
-          example: 'Nguyễn Văn A'
-        email:
+          example: 'https://github.com/DuyLap23/datnBackEnd'
+        link_tiktok:
           type: string
-          example: email@example.com
-        avatar:
-          type: string
-          example: path/to/avatar.png
-        addresses:
-          type: array
-          items:
-            $ref: '#/components/schemas/Address'
+          example: 'https://github.com/DuyLap23/datnBackEnd'
       type: object
     Address:
       properties:
@@ -1071,6 +2677,9 @@ components:
         address_name:
           type: string
           example: 'Số 1, Đường ABC'
+        phone_number:
+          type: string
+          example: '0123456789'
         city:
           type: string
           example: 'Hà Nội'
@@ -1096,17 +2705,33 @@ components:
           format: email
           example: user@example.com
       type: object
+    Category:
+      required:
+        - id
+        - name
+      properties:
+        id:
+          type: integer
+          example: 1
+        name:
+          type: string
+          example: 'Danh mục sản phẩm'
+        deleted_at:
+          type: string
+          format: date-time
+          example: '2024-10-08T00:00:00Z'
+      type: object
     Banner:
       type: object
       allOf:
         -
-          $ref: '#/components/schemas/ResetPasswordRequest'
+          $ref: '#/components/schemas/Category'
         -
           properties:
             id:
               type: integer
               example: 1
-            title:
+            name:
               type: string
               example: 'Tiêu đề banner'
             image:
@@ -1122,6 +2747,58 @@ components:
               type: string
               format: date-time
           type: object
+    Cart:
+      type: object
+      allOf:
+        -
+          $ref: '#/components/schemas/Category'
+        -
+          properties:
+            id:
+              type: integer
+              example: 1
+            user_id:
+              type: integer
+              example: 123
+            product_id:
+              type: integer
+              example: 456
+            quantity:
+              type: integer
+              example: 2
+            created_at:
+              type: string
+              format: date-time
+            updated_at:
+              type: string
+              format: date-time
+          type: object
+    Comment:
+      type: object
+      allOf:
+        -
+          $ref: '#/components/schemas/Category'
+        -
+          properties:
+            id:
+              type: integer
+              example: 1
+            content:
+              type: string
+              example: 'Nội dung bình luận'
+            user_id:
+              type: integer
+              example: 123
+            product_id:
+              type: integer
+              example: 456
+            created_at:
+              type: string
+              format: date-time
+            updated_at:
+              type: string
+              format: date-time
+          type: object
   securitySchemes:
     Bearer:
       type: http
@@ -1129,6 +2806,9 @@ components:
       bearerFormat: JWT
       scheme: bearer
 tags:
+  -
+    name: Address
+    description: Address
   -
     name: Auth
     description: Auth
@@ -1139,5 +2819,23 @@ tags:
     name: Banners
     description: Banners
   -
+    name: Brand
+    description: Brand
+  -
+    name: Brands
+    description: Brands
+  -
+    name: brands
+    description: brands
+  -
+    name: Cart
+    description: Cart
+  -
     name: Category
     description: Category
+  -
+    name: 'Admin Comments'
+    description: 'Admin Comments'
+  -
+    name: 'User Comments'
+    description: 'User Comments'

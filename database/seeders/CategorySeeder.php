@@ -17,13 +17,15 @@ class CategorySeeder extends Seeder
             Category::query()->create([
                 'name' => 'Category ' . $i,
                 'image' => 'https://picsum.photos/200/300?random=' . $i,
-                'parent_id' => null,
+                'slug' => 'category-' . $i,
+                'parent_id' => 0,
             ]);
         }
         for ($i = 0; $i < 5; $i++) {
             Category::query()->create([
                 'name' => 'Category ' . $i,
                 'image' => 'https://picsum.photos/200/300?random=' . $i,
+                'slug' => 'category-' . $i,
                 'parent_id' => rand(1, 5),
             ]);
         }

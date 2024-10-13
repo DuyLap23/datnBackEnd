@@ -15,14 +15,14 @@ class LoginController extends Controller
     /**
      * @OA\Post(
      *     path="/api/auth/login",
-     *     summary="Đăng nhập người dùng email và pass trong ví dụ là đúng chỉ cần nhấn đăng nhập!",
+     *     summary="Đăng nhập người dùng",
      *     tags={"Auth"},
      *     @OA\RequestBody(
      *         required=true,
      *         @OA\JsonContent(
      *             required={"email", "password"},
-     *             @OA\Property(property="email", type="string", format="email", example="hoangduylap124@gmail.com"),
-     *             @OA\Property(property="password", type="string", format="password", example="newpassword"),
+     *             @OA\Property(property="email", type="string", format="email", example="crawford.kunze@example.com"),
+     *             @OA\Property(property="password", type="string", format="password", example="password"),
      *         )
      *     ),
      *     @OA\Response(
@@ -36,7 +36,7 @@ class LoginController extends Controller
      *         )
      *     ),
      *     @OA\Response(
-     *         response=401,
+     *         response=400,
      *         description="Email không tồn tại hoặc mật khẩu không đúng",
      *         @OA\JsonContent(
      *             @OA\Property(property="message", type="string", example="Mật khẩu không đúng."),
@@ -58,14 +58,14 @@ class LoginController extends Controller
         if (!User::where('email', $credentials['email'])->exists()) {
             return response()->json([
                 'message' => 'Email không tồn tại.'
-            ], 401);
+            ], 400);
         }
 
         // Kiểm tra nếu thông tin đăng nhập không đúng
         if (!($token = auth('api')->attempt($credentials))) {
             return response()->json([
                 'message' => 'Mật khẩu không đúng.'
-            ], 401);
+            ], 400);
         }
 
         // Tạo refresh token

@@ -7,44 +7,18 @@ use App\Models\Comment;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
-/**
- * @OA\Schema(
- *     schema="Comment",
- *     type="object",
- *     @OA\Property(property="id", type="integer", example=1),
- *     @OA\Property(property="content", type="string", example="Nội dung bình luận"),
- *     @OA\Property(property="user_id", type="integer", example=123),
- *     @OA\Property(property="product_id", type="integer", example=456),
- *     @OA\Property(property="created_at", type="string", format="date-time"),
- *     @OA\Property(property="updated_at", type="string", format="date-time")
- * )
- */
-class CommentController extends Controller
+class UserCommentController extends Controller
 {
     /**
      * @OA\Get(
-     *     path="/api/admin/comments",
-     *     tags={"Admin Comments"},
-     *     summary="Lấy danh sách tất cả bình luận",
-     *      security={{"Bearer": {}}},
-     *     description="Trả về danh sách tất cả các bình luận trong hệ thống hoặc lọc theo sản phẩm và người dùng.",
-     *     @OA\Parameter(
-     *         name="product_id",
-     *         in="query",
-     *         description="ID sản phẩm để lọc bình luận",
-     *         required=false,
-     *         @OA\Schema(type="integer")
-     *     ),
-     *     @OA\Parameter(
-     *         name="user_id",
-     *         in="query",
-     *         description="ID người dùng để lọc bình luận",
-     *         required=false,
-     *         @OA\Schema(type="integer")
-     *     ),
+     *     path="/api/user/comments",
+     *     tags={"User Comments"},
+     *     summary="Lấy danh sách bình luận của người dùng",
+     *     security={{"Bearer": {}}},
+     *     description="Trả về danh sách bình luận của người dùng đã đăng nhập.",
      *     @OA\Response(
      *         response=200,
-     *         description="Danh sách bình luận",
+     *         description="Danh sách bình luận của người dùng",
      *         @OA\JsonContent(
      *             @OA\Property(property="success", type="boolean", example=true),
      *             @OA\Property(property="data", type="array", @OA\Items(ref="#/components/schemas/Comment"))
@@ -62,36 +36,25 @@ class CommentController extends Controller
      */
     public function index(Request $request)
     {
-
-        // Lọc theo product_id và user_id nếu có
-        $query = Comment::query();
-
-        if ($request->has('product_id')) {
-            $query->where('product_id', $request->input('product_id'));
-        }
-
-        if ($request->has('user_id')) {
-            $query->where('user_id', $request->input('user_id'));
-        }
-
-        $comments = $query->get();
+        // Lấy danh sách bình luận của người dùng đã đăng nhập
+        $userId = Auth::id();
+        $comments = Comment::where('user_id', $userId)->get();
 
         return response()->json(['success' => true, 'data' => $comments]);
     }
 
     /**
      * @OA\Post(
-     *     path="/api/admin/comments",
-     *      tags={"Admin Comments"},
-     *     summary="Tạo một bình luận mới",
-     *      security={{"Bearer": {}}},
-     *     description="Tạo một bình luận mới với nội dung, ID người dùng và ID sản phẩm đã cung cấp.",
+     *     path="/api/user/comments",
+     *     tags={"User Comments"},
+     *     summary="Tạo bình luận mới",
+     *     security={{"Bearer": {}}},
+     *     description="Tạo một bình luận mới cho sản phẩm đã cung cấp.",
      *     @OA\RequestBody(
      *         required=true,
      *         @OA\JsonContent(
-     *             required={"content", "user_id", "product_id"},
+     *             required={"content", "product_id"},
      *             @OA\Property(property="content", type="string", example="Nội dung bình luận"),
-     *             @OA\Property(property="user_id", type="integer", example=123),
      *             @OA\Property(property="product_id", type="integer", example=456)
      *         )
      *     ),
@@ -122,13 +85,12 @@ class CommentController extends Controller
     {
         $request->validate([
             'content' => 'required|string|max:500',
-            'user_id' => 'required|integer|exists:users,id',
             'product_id' => 'required|integer|exists:products,id',
         ]);
 
         $comment = new Comment();
         $comment->content = $request->content;
-        $comment->user_id = $request->user_id;
+        $comment->user_id = Auth::id(); 
         $comment->product_id = $request->product_id;
         $comment->save();
 
@@ -137,10 +99,10 @@ class CommentController extends Controller
 
     /**
      * @OA\Get(
-     *     path="/api/admin/comments/{id}",
-     *     tags={"Admin Comments"},
+     *     path="/api/user/comments/{id}",
+     *     tags={"User Comments"},
      *     summary="Lấy bình luận theo ID",
-     *      security={{"Bearer": {}}},
+     *     security={{"Bearer": {}}},
      *     description="Lấy thông tin chi tiết của một bình luận dựa trên ID được cung cấp.",
      *     @OA\Parameter(
      *         name="id",
@@ -166,9 +128,8 @@ class CommentController extends Controller
      */
     public function show($id)
     {
-
         try {
-            $comment = Comment::findOrFail($id);
+            $comment = Comment::where('id', $id)->where('user_id', Auth::id())->firstOrFail();
             return response()->json(['success' => true, 'data' => $comment]);
         } catch (\Exception $e) {
             return response()->json(['success' => false, 'message' => 'Bình luận không tồn tại.'], 404);
@@ -177,10 +138,10 @@ class CommentController extends Controller
 
     /**
      * @OA\Put(
-     *     path="/api/admin/comments/{id}", 
-     *      tags={"Admin Comments"},
-     *     summary="Cập nhật một bình luận",
-     *      security={{"Bearer": {}}},
+     *     path="/api/user/comments/{id}",
+     *     tags={"User Comments"},
+     *     summary="Cập nhật bình luận",
+     *     security={{"Bearer": {}}},
      *     description="Cập nhật bình luận dựa trên ID đã cung cấp và nội dung mới.",
      *     @OA\Parameter(
      *         name="id",
@@ -218,7 +179,7 @@ class CommentController extends Controller
         ]);
 
         try {
-            $comment = Comment::findOrFail($id);
+            $comment = Comment::where('id', $id)->where('user_id', Auth::id())->firstOrFail();
             $comment->content = $request->content;
             $comment->save();
 
@@ -230,10 +191,10 @@ class CommentController extends Controller
 
     /**
      * @OA\Delete(
-     *     path="/api/admin/comments/{id}",
-     *      tags={"Admin Comments"},
+     *     path="/api/user/comments/{id}",
+     *     tags={"User Comments"},
      *     summary="Xóa bình luận",
-     *      security={{"Bearer": {}}},
+     *     security={{"Bearer": {}}},
      *     description="Xóa một bình luận dựa trên ID được cung cấp.",
      *     @OA\Parameter(
      *         name="id",
@@ -259,10 +220,9 @@ class CommentController extends Controller
     public function destroy($id)
     {
         try {
-            $comment = Comment::findOrFail($id);
+            $comment = Comment::where('id', $id)->where('user_id', Auth::id())->firstOrFail();
             $comment->delete();
-
-            return response()->json(['success' => true, 'message' => 'Bình luận đã được xóa thành công.'], 204);
+            return response()->json(['success' => true]);
         } catch (\Exception $e) {
             return response()->json(['success' => false, 'message' => 'Bình luận không tồn tại.'], 404);
         }
