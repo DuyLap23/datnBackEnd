@@ -61,9 +61,7 @@ Route::group(
 
     }
 );
-// Route không cần check đăng nhập 
-Route::get('products', [ProductController::class, 'index']);
-Route::get('products/{id}', [ProductController::class, 'show']);
+
 
 //NHỮNG ROUTER CẦN CHECK ĐĂNG NHẬP
 Route::group(
