@@ -116,7 +116,8 @@ Route::post('voucher', [VouCherController::class, 'store']);
 Route::put('voucher/{id}', [VouCherController::class, 'update']);
 Route::get('voucher/{id}', [VouCherController::class, 'show']);
 Route::delete('voucher/{id}', [VouCherController::class, 'destroy']);
-
+Route::get('products', [ProductController::class, 'index']);
+Route::get('products/{id}', [ProductController::class, 'show']);
 
 Route::group(
     [
@@ -128,6 +129,7 @@ Route::group(
         Route::apiResource('order/items', OrderItemController::class);
         Route::apiResource('favourites', FavouriteListController::class);
         Route::apiResource('carts', CartController::class);
+        
     }
 );
 
@@ -137,8 +139,7 @@ Route::group(
 
     ],
     function ($router) {
-        Route::get('products', [ProductController::class, 'index']);
-        Route::get('products/{id}', [ProductController::class, 'show']);
+       
         Route::post('carts', [CartController::class, 'store']);
         Route::get('carts', [CartController::class, 'index']);
         Route::post('orders', [OrderController::class, 'store']);
