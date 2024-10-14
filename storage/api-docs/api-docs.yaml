@@ -1404,21 +1404,6 @@ paths:
                       description:
                         type: string
                         example: ''
-                      "\tdeleted_at":
-                        type: string
-                        example: ''
-                      deleted_at:
-                        type: string
-                        format: date-time
-                        example: '2024-09-19T12:34:56Z'
-                      created_at:
-                        type: string
-                        format: date-time
-                        example: '2024-09-19T12:34:56Z'
-                      updated_at:
-                        type: string
-                        format: date-time
-                        example: '2024-09-19T12:34:56Z'
                     type: object
                 type: object
         404:
@@ -1458,7 +1443,7 @@ paths:
           Bearer: []
     put:
       tags:
-        - Brands
+        - Brand
       summary: 'Cập nhật thương hiệu'
       operationId: 5d525a2a0d9844327611ddfdda66d375
       parameters:
@@ -1513,21 +1498,6 @@ paths:
                       description:
                         type: string
                         example: ''
-                      "\tdeleted_at":
-                        type: string
-                        example: ''
-                      deleted_at:
-                        type: string
-                        format: date-time
-                        example: '2024-09-19T12:34:56Z'
-                      created_at:
-                        type: string
-                        format: date-time
-                        example: '2024-09-19T12:34:56Z'
-                      updated_at:
-                        type: string
-                        format: date-time
-                        example: '2024-09-19T12:34:56Z'
                     type: object
                 type: object
         404:
@@ -1568,7 +1538,7 @@ paths:
   'api/admin/brands/{id}':
     delete:
       tags:
-        - brands
+        - Brand
       summary: 'Xóa danh mục'
       operationId: a9976bff6784e806d6fe488811b3991b
       parameters:
@@ -1616,12 +1586,25 @@ paths:
     get:
       tags:
         - Cart
-      summary: 'Hiển thị danh sách giỏ hàng của người dùng'
-      description: 'Lấy danh sách tất cả các sản phẩm trong giỏ hàng của người dùng hiện tại.'
-      operationId: 082ccb576b0f3887aeea5ab4ad1e76b8
+      summary: 'Lấy danh sách sản phẩm trong giỏ hàng'
+      description: 'Lấy danh sách tất cả sản phẩm trong giỏ hàng của người dùng.'
+      operationId: 21230eed0aee13cda3136751f37a4439
       responses:
         200:
-          description: 'Danh sách giỏ hàng thành công'
+          description: 'Danh sách sản phẩm trong giỏ hàng'
+          content:
+            application/json:
+              schema:
+                properties:
+                  cart_items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Cart'
+                  total_price:
+                    description: 'Tổng giá trị của sản phẩm trong giỏ hàng'
+                    type: number
+                    format: float
+                type: object
         401:
           description: Unauthorized
       security:
@@ -1648,60 +1631,61 @@ paths:
                 quantity:
                   description: 'Số lượng sản phẩm cần thêm. Phải lớn hơn 0.'
                   type: integer
+                color:
+                  description: 'Màu sắc của sản phẩm.'
+                  type: string
+                size:
+                  description: 'Kích thước của sản phẩm.'
+                  type: string
               type: object
       responses:
         201:
           description: 'Thêm sản phẩm thành công'
         400:
           description: 'Thông tin không hợp lệ'
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+                    example: 'Số lượng sản phẩm vượt quá giới hạn cho phép.'
+                type: object
+        404:
+          description: 'Sản phẩm không tồn tại'
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+                    example: 'Sản phẩm không tồn tại.'
+                type: object
         401:
           description: Unauthorized
+        500:
+          description: 'Có lỗi xảy ra khi thêm sản phẩm'
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+                    example: 'Có lỗi xảy ra khi thêm sản phẩm.'
+                  details:
+                    type: string
+                    example: 'Chi tiết lỗi.'
+                type: object
       security:
         -
           Bearer: []
   '/api/carts/{id}':
-    put:
-      tags:
-        - Cart
-      summary: 'Cập nhật số lượng sản phẩm trong giỏ hàng'
-      description: 'Cập nhật số lượng của sản phẩm đã có trong giỏ hàng. Nếu số lượng không hợp lệ, trả về lỗi.'
-      operationId: 6b3288907562be31f345b214eb824d76
-      parameters:
-        -
-          name: id
-          in: path
-          required: true
-          schema:
-            description: 'ID của sản phẩm trong giỏ hàng cần cập nhật.'
-            type: integer
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              required:
-                - quantity
-              properties:
-                quantity:
-                  description: 'Số lượng sản phẩm cần cập nhật. Phải lớn hơn 0.'
-                  type: integer
-              type: object
-      responses:
-        200:
-          description: 'Cập nhật sản phẩm thành công'
-        404:
-          description: 'Sản phẩm không tìm thấy'
-        401:
-          description: Unauthorized
-      security:
-        -
-          Bearer: []
     delete:
       tags:
         - Cart
       summary: 'Xóa sản phẩm khỏi giỏ hàng'
       description: 'Xóa sản phẩm khỏi giỏ hàng của người dùng theo ID sản phẩm.'
-      operationId: 9a70a882e504ac01a01f1b44ff1d257e
+      operationId: b22009110008b97b4c82e3333bc4bf24
       parameters:
         -
           name: id
@@ -2430,6 +2414,988 @@ paths:
       security:
         -
           Bearer: []
+  /api/favourites:
+    get:
+      tags:
+        - Favourites
+      summary: 'Lấy danh sách sản phẩm yêu thích'
+      operationId: c1e2cb9515ed511825fa500f937b1809
+      responses:
+        200:
+          description: 'Danh sách sản phẩm yêu thích'
+      security:
+        -
+          Bearer: []
+    post:
+      tags:
+        - Favourites
+      summary: 'Thêm sản phẩm vào danh sách yêu thích'
+      operationId: 15931ec5307051f588b1fe7017dbb547
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              properties:
+                product_id:
+                  type: integer
+                  example: 1
+              type: object
+      responses:
+        201:
+          description: 'Sản phẩm đã được thêm vào yêu thích'
+      security:
+        -
+          Bearer: []
+  '/api/favourites/{id}':
+    delete:
+      tags:
+        - Favourites
+      summary: 'Xóa sản phẩm khỏi danh sách yêu thích'
+      operationId: 59da34692a6fef9bb39ed3c02fb656b8
+      parameters:
+        -
+          name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            example: 1
+      responses:
+        200:
+          description: 'Sản phẩm đã được xóa khỏi danh sách yêu thích'
+      security:
+        -
+          Bearer: []
+  /api/product-colors:
+    get:
+      tags:
+        - 'Product Colors'
+      summary: 'Lấy danh sách màu sắc sản phẩm'
+      operationId: c3c7e5e32777e9671bc6a85dcabbff0d
+      responses:
+        200:
+          description: 'Thành công'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  properties:
+                    id:
+                      type: integer
+                      example: 1
+                    name:
+                      type: string
+                      example: Đỏ
+                  type: object
+    post:
+      tags:
+        - 'Product Colors'
+      summary: 'Thêm màu sắc mới'
+      operationId: 5111a3dc6f48062bb4d8182913ecf46c
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              properties:
+                name:
+                  type: string
+                  example: 'Xanh lá'
+              type: object
+      responses:
+        201:
+          description: 'Tạo thành công'
+          content:
+            application/json:
+              schema:
+                properties:
+                  id:
+                    type: integer
+                    example: 2
+                  name:
+                    type: string
+                    example: 'Xanh lá'
+                type: object
+        422:
+          description: 'Dữ liệu không hợp lệ'
+          content:
+            application/json:
+              schema:
+                properties:
+                  message:
+                    type: string
+                    example: 'Validation failed'
+                  errors:
+                    type: object
+                type: object
+  '/api/product-colors/{id}':
+    get:
+      tags:
+        - 'Product Colors'
+      summary: 'Lấy chi tiết màu sắc'
+      operationId: 6520b6390ae04f0597550ac1597b0444
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'ID của màu sắc'
+          required: true
+          schema:
+            type: integer
+      responses:
+        200:
+          description: 'Thành công'
+          content:
+            application/json:
+              schema:
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    properties:
+                      id:
+                        type: integer
+                        example: 1
+                      name:
+                        type: string
+                        example: Đỏ
+                    type: object
+                type: object
+        404:
+          description: 'Không tìm thấy'
+          content:
+            application/json:
+              schema:
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: 'Không tìm thấy màu sắc.'
+                type: object
+    put:
+      tags:
+        - 'Product Colors'
+      summary: 'Cập nhật màu sắc'
+      operationId: be0bd9a452ae2ea24a698a2fa0089883
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'ID của màu sắc'
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              properties:
+                name:
+                  type: string
+                  example: 'Xanh dương'
+              type: object
+      responses:
+        200:
+          description: 'Cập nhật thành công'
+          content:
+            application/json:
+              schema:
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: 'Màu sắc đã được cập nhật thành công.'
+                  data:
+                    properties:
+                      id:
+                        type: integer
+                        example: 1
+                      name:
+                        type: string
+                        example: 'Xanh dương'
+                    type: object
+                type: object
+        404:
+          description: 'Không tìm thấy'
+          content:
+            application/json:
+              schema:
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: 'Không tìm thấy màu sắc.'
+                type: object
+        422:
+          description: 'Dữ liệu không hợp lệ'
+          content:
+            application/json:
+              schema:
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: 'Dữ liệu không hợp lệ.'
+                  errors:
+                    type: object
+                type: object
+    delete:
+      tags:
+        - 'Product Colors'
+      summary: 'Xóa màu sắc'
+      operationId: 826f7e3de8089792f4867dfa42308288
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'ID của màu sắc'
+          required: true
+          schema:
+            type: integer
+      responses:
+        200:
+          description: 'Xóa thành công'
+          content:
+            application/json:
+              schema:
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: 'Màu sắc đã được xóa thành công.'
+                type: object
+        404:
+          description: 'Không tìm thấy'
+          content:
+            application/json:
+              schema:
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: 'Không tìm thấy màu sắc.'
+                type: object
+  /api/admin/products:
+    post:
+      tags:
+        - Product
+      summary: 'Thêm sản phẩm mới'
+      description: 'Thêm sản phẩm vào hệ thống với các biến thể và thẻ.'
+      operationId: b114a4e638eb751912f27bab4dfcca12
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              properties:
+                name:
+                  description: 'Tên sản phẩm'
+                  type: string
+                  example: 'Sản phẩm A'
+                price:
+                  description: 'Giá sản phẩm'
+                  type: number
+                  format: float
+                  example: 199000
+                is_active:
+                  description: 'Trạng thái hoạt động của sản phẩm'
+                  type: boolean
+                  example: true
+                is_new:
+                  description: 'Sản phẩm mới'
+                  type: boolean
+                  example: true
+                is_show_home:
+                  description: 'Hiển thị trên trang chủ'
+                  type: boolean
+                  example: false
+                img_thumbnail:
+                  description: 'Ảnh thumbnail của sản phẩm'
+                  type: string
+                  format: binary
+                  example: thumbnail.png
+                product_variants:
+                  type: array
+                  items:
+                    properties:
+                      product_size_id:
+                        description: 'ID kích thước sản phẩm'
+                        type: integer
+                        example: 1
+                      product_color_id:
+                        description: 'ID màu sắc sản phẩm'
+                        type: integer
+                        example: 2
+                      quantity:
+                        description: 'Số lượng biến thể'
+                        type: integer
+                        example: 10
+                      image:
+                        description: 'Hình ảnh biến thể sản phẩm'
+                        type: string
+                        format: binary
+                        example: variant_image.png
+                    type: object
+                tags:
+                  type: array
+                  items:
+                    description: 'ID thẻ liên kết với sản phẩm'
+                    type: integer
+                    example: 1
+              type: object
+      responses:
+        201:
+          description: 'Thêm sản phẩm thành công'
+          content:
+            application/json:
+              schema:
+                properties:
+                  id:
+                    type: integer
+                    example: 1
+                  name:
+                    type: string
+                    example: 'Sản phẩm A'
+                  price:
+                    type: number
+                    format: float
+                    example: 199000
+                  category:
+                    properties:
+                      name:
+                        type: string
+                        example: 'Danh mục 1'
+                    type: object
+                  brand:
+                    properties:
+                      name:
+                        type: string
+                        example: 'Thương hiệu A'
+                    type: object
+                  tags:
+                    type: array
+                    items:
+                      properties:
+                        name:
+                          type: string
+                          example: 'Thẻ 1'
+                      type: object
+                  product_images:
+                    type: array
+                    items:
+                      properties:
+                        url:
+                          type: string
+                          example: 'https://apitopdeal.shop/storage/products/thumbnail.png'
+                      type: object
+                  product_variants:
+                    type: array
+                    items:
+                      properties:
+                        product_size:
+                          properties:
+                            name:
+                              type: string
+                              example: 'Size M'
+                          type: object
+                        product_color:
+                          properties:
+                            name:
+                              type: string
+                              example: 'Màu Đỏ'
+                          type: object
+                        quantity:
+                          type: integer
+                          example: 10
+                        image_url:
+                          type: string
+                          example: 'https://apitopdeal.shop/storage/products/variant_image.png'
+                      type: object
+                type: object
+        500:
+          description: 'Thêm sản phẩm thất bại'
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+                    example: 'Lỗi thêm sản phẩm: {error details}'
+                type: object
+      security:
+        -
+          Bearer: []
+  '/api/admin/product/{id}':
+    get:
+      tags:
+        - Product
+      summary: 'Lấy chi tiết sản phẩm'
+      operationId: ecfd329d22f936a7e51144d7ed2c3d69
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'ID của sản phẩm'
+          required: true
+          schema:
+            type: integer
+      responses:
+        200:
+          description: 'Lấy thành công dữ liệu của sản phẩm'
+          content:
+            application/json:
+              schema:
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: 'Lấy thành công dữ liệu của sản phẩm {id}'
+                  data:
+                    properties:
+                      id:
+                        type: integer
+                        example: 1
+                      name:
+                        type: string
+                        example: 'Tên sản phẩm'
+                      img_thumbnail:
+                        type: string
+                        example: thumbnail.png
+                      is_active:
+                        type: boolean
+                        example: true
+                      is_new:
+                        type: boolean
+                        example: false
+                      is_show_home:
+                        type: boolean
+                        example: true
+                      category:
+                        properties:
+                          id:
+                            type: integer
+                            example: 1
+                          name:
+                            type: string
+                            example: 'Danh mục sản phẩm'
+                        type: object
+                      brand:
+                        properties:
+                          id:
+                            type: integer
+                            example: 1
+                          name:
+                            type: string
+                            example: 'Thương hiệu sản phẩm'
+                        type: object
+                      tags:
+                        type: array
+                        items:
+                          type: string
+                          example: 'Tag 1'
+                      productImages:
+                        type: array
+                        items:
+                          properties:
+                            id:
+                              type: integer
+                              example: 1
+                            image_url:
+                              type: string
+                              example: image1.png
+                          type: object
+                      productVariants:
+                        type: array
+                        items:
+                          properties:
+                            id:
+                              type: integer
+                              example: 1
+                            product_size_id:
+                              type: integer
+                              example: 1
+                            product_color_id:
+                              type: integer
+                              example: 2
+                            quantity:
+                              type: integer
+                              example: 10
+                            image:
+                              type: string
+                              example: variant_image.png
+                          type: object
+                    type: object
+                type: object
+        404:
+          description: 'Sản phẩm không tìm thấy'
+          content:
+            application/json:
+              schema:
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: 'Sản phẩm không tìm thấy.'
+                  error:
+                    type: string
+                    example: 'No query results for model [Product]'
+                type: object
+        500:
+          description: 'Lỗi server'
+          content:
+            application/json:
+              schema:
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: 'Lỗi khi lấy thông tin sản phẩm.'
+                  error:
+                    type: string
+                    example: 'Server Error Message'
+                type: object
+      security:
+        -
+          Bearer: []
+    put:
+      tags:
+        - Product
+      summary: 'Cập nhật thông tin sản phẩm'
+      operationId: 24b0bf291f5b21f57384d8f1ace9afdb
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'ID của sản phẩm'
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              properties:
+                name:
+                  type: string
+                  example: 'Tên sản phẩm'
+                is_active:
+                  type: boolean
+                  example: true
+                is_new:
+                  type: boolean
+                  example: false
+                is_show_home:
+                  type: boolean
+                  example: true
+                img_thumbnail:
+                  type: string
+                  format: binary
+                  example: thumbnail.png
+                product_variants:
+                  type: array
+                  items:
+                    properties:
+                      product_size_id:
+                        type: integer
+                        example: 1
+                      product_color_id:
+                        type: integer
+                        example: 2
+                      quantity:
+                        type: integer
+                        example: 10
+                      image:
+                        type: string
+                        format: binary
+                        example: variant_image.png
+                      old_image:
+                        type: string
+                        example: old_image.png
+                    type: object
+                tags:
+                  type: array
+                  items:
+                    type: integer
+                    example: 1
+              type: object
+      responses:
+        200:
+          description: 'Cập nhật thành công thông tin sản phẩm'
+          content:
+            application/json:
+              schema:
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: 'Cập nhật thành công sản phẩm {id}'
+                  data:
+                    properties:
+                      id:
+                        type: integer
+                        example: 1
+                      name:
+                        type: string
+                        example: 'Tên sản phẩm'
+                      img_thumbnail:
+                        type: string
+                        example: thumbnail.png
+                      is_active:
+                        type: boolean
+                        example: true
+                      is_new:
+                        type: boolean
+                        example: false
+                      is_show_home:
+                        type: boolean
+                        example: true
+                      tags:
+                        type: array
+                        items:
+                          type: integer
+                          example: 1
+                      productVariants:
+                        type: array
+                        items:
+                          properties:
+                            id:
+                              type: integer
+                              example: 1
+                            product_size_id:
+                              type: integer
+                              example: 1
+                            product_color_id:
+                              type: integer
+                              example: 2
+                            quantity:
+                              type: integer
+                              example: 10
+                            image:
+                              type: string
+                              example: variant_image.png
+                          type: object
+                    type: object
+                type: object
+        404:
+          description: 'Sản phẩm không tìm thấy'
+          content:
+            application/json:
+              schema:
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: 'Cập nhật không thành công'
+                  error:
+                    type: string
+                    example: 'No query results for model [Product]'
+                type: object
+        500:
+          description: 'Lỗi server'
+          content:
+            application/json:
+              schema:
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: 'Cập nhật không thành công'
+                  error:
+                    type: string
+                    example: 'Server Error Message'
+                type: object
+      security:
+        -
+          Bearer: []
+  '/api/admin/products/{id}':
+    delete:
+      tags:
+        - Product
+      summary: 'Xóa sản phẩm'
+      operationId: 75b10f3b0d30e4cb4e9ebfcd9a1ea2a8
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'ID của sản phẩm cần xóa'
+          required: true
+          schema:
+            type: integer
+      responses:
+        200:
+          description: 'Xóa sản phẩm thành công'
+          content:
+            application/json:
+              schema:
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: 'Xóa sản phẩm thành công.'
+                type: object
+        500:
+          description: 'Lỗi khi xóa sản phẩm'
+          content:
+            application/json:
+              schema:
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: 'Xóa sản phẩm không thành công.'
+                  error:
+                    type: string
+                    example: 'Lý do lỗi'
+                type: object
+      security:
+        -
+          Bearer: []
+  /api/product-sizes:
+    get:
+      tags:
+        - 'Product Sizes'
+      summary: 'Lấy danh sách kích thước sản phẩm'
+      operationId: dc265d968a1d13294e25b98fb474bd59
+      responses:
+        200:
+          description: 'Thành công'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  properties:
+                    id:
+                      type: integer
+                      example: 1
+                    name:
+                      type: string
+                      example: S
+                    type:
+                      type: integer
+                      example: 1
+                  type: object
+    post:
+      tags:
+        - 'Product Sizes'
+      summary: 'Thêm kích thước mới'
+      operationId: b22769e616980915be3211859eafc918
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              properties:
+                name:
+                  type: string
+                  example: M
+                type:
+                  type: integer
+                  example: 1
+              type: object
+      responses:
+        201:
+          description: 'Tạo thành công'
+          content:
+            application/json:
+              schema:
+                properties:
+                  id:
+                    type: integer
+                    example: 2
+                  name:
+                    type: string
+                    example: M
+                  type:
+                    type: integer
+                    example: 1
+                type: object
+        422:
+          description: 'Dữ liệu không hợp lệ'
+          content:
+            application/json:
+              schema:
+                properties:
+                  message:
+                    type: string
+                    example: 'Validation failed'
+                  errors:
+                    type: object
+                type: object
+  '/api/product-sizes/{id}':
+    get:
+      tags:
+        - 'Product Sizes'
+      summary: 'Lấy chi tiết kích thước'
+      operationId: 08727bcb605dc02588334f174249a8da
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'ID của kích thước'
+          required: true
+          schema:
+            type: integer
+      responses:
+        200:
+          description: 'Thành công'
+          content:
+            application/json:
+              schema:
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    properties:
+                      id:
+                        type: integer
+                        example: 1
+                      name:
+                        type: string
+                        example: S
+                      type:
+                        type: integer
+                        example: 1
+                    type: object
+                type: object
+        404:
+          description: 'Không tìm thấy'
+          content:
+            application/json:
+              schema:
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: 'Không tìm thấy kích thước.'
+                type: object
+    put:
+      tags:
+        - 'Product Sizes'
+      summary: 'Cập nhật kích thước'
+      operationId: ea5c046077f32299b0bb6e36134a498a
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'ID của kích thước'
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              properties:
+                name:
+                  type: string
+                  example: L
+                type:
+                  type: integer
+                  example: 2
+              type: object
+      responses:
+        200:
+          description: 'Cập nhật thành công'
+          content:
+            application/json:
+              schema:
+                properties:
+                  id:
+                    type: integer
+                    example: 1
+                  name:
+                    type: string
+                    example: L
+                  type:
+                    type: integer
+                    example: 2
+                type: object
+        404:
+          description: 'Không tìm thấy'
+          content:
+            application/json:
+              schema:
+                properties:
+                  message:
+                    type: string
+                    example: 'Size not found'
+                type: object
+        422:
+          description: 'Dữ liệu không hợp lệ'
+          content:
+            application/json:
+              schema:
+                properties:
+                  message:
+                    type: string
+                    example: 'Validation failed'
+                  errors:
+                    type: object
+                type: object
+    delete:
+      tags:
+        - 'Product Sizes'
+      summary: 'Xóa kích thước'
+      operationId: 84de855d19eb4ed6432666acaa54a5d1
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'ID của kích thước'
+          required: true
+          schema:
+            type: integer
+      responses:
+        204:
+          description: 'Xóa thành công'
+        404:
+          description: 'Không tìm thấy'
+          content:
+            application/json:
+              schema:
+                properties:
+                  message:
+                    type: string
+                    example: 'Size not found'
+                type: object
   /api/user/comments:
     get:
       tags:
@@ -2705,6 +3671,66 @@ components:
           format: email
           example: user@example.com
       type: object
+    Product:
+      required:
+        - name
+        - price
+        - is_active
+        - product_variants
+      properties:
+        id:
+          type: integer
+          example: 1
+        name:
+          type: string
+          example: 'Sản phẩm A'
+        price:
+          type: number
+          format: float
+          example: 199000
+        is_active:
+          type: boolean
+          example: true
+        is_new:
+          type: boolean
+          example: true
+        is_show_home:
+          type: boolean
+          example: false
+        img_thumbnail:
+          type: string
+          example: path/to/thumbnail.png
+        product_variants:
+          type: array
+          items:
+            properties:
+              product_size_id:
+                type: integer
+                example: 1
+              product_color_id:
+                type: integer
+                example: 2
+              quantity:
+                type: integer
+                example: 10
+              image:
+                type: string
+                example: path/to/variant_image.png
+            type: object
+        tags:
+          type: array
+          items:
+            type: integer
+            example: 1
+        product_images:
+          type: array
+          items:
+            properties:
+              url:
+                type: string
+                example: 'https://apitopdeal.shop/storage/products/thumbnail.png'
+            type: object
+      type: object
     Category:
       required:
         - id
@@ -2799,6 +3825,15 @@ components:
               type: string
               format: date-time
           type: object
+    ProductSize:
+      properties:
+        id:
+          type: integer
+          example: 1
+        name:
+          type: string
+          example: L
+      type: object
   securitySchemes:
     Bearer:
       type: http
@@ -2822,12 +3857,6 @@ tags:
     name: Brand
     description: Brand
   -
-    name: Brands
-    description: Brands
-  -
-    name: brands
-    description: brands
-  -
     name: Cart
     description: Cart
   -
@@ -2836,6 +3865,18 @@ tags:
   -
     name: 'Admin Comments'
     description: 'Admin Comments'
+  -
+    name: Favourites
+    description: Favourites
+  -
+    name: 'Product Colors'
+    description: 'Product Colors'
+  -
+    name: Product
+    description: Product
+  -
+    name: 'Product Sizes'
+    description: 'Product Sizes'
   -
     name: 'User Comments'
     description: 'User Comments'

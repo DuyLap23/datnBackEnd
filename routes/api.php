@@ -157,10 +157,11 @@ Route::get('products/{id}', [ProductController::class, 'show']);
 // CUSTOMER
 Route::group(
     [
-        'middleware' => ['auth:api', 'role:customer,admin,staff'],
+        'middleware' => ['role:customer,admin,staff'],
     ],
     function ($router) {
 
+<<<<<<< HEAD
 
         Route::post('carts', [CartController::class, 'store']);
         Route::get('carts', [CartController::class, 'index']);
@@ -169,6 +170,8 @@ Route::group(
 
 
         Route::post('carts', [CartController::class, 'addProductToCart'])->name('carts.store');
+=======
+>>>>>>> 35cf48bc09a36eaecfb05a56c1ea3db8186a0763
         Route::post('/carts', [CartController::class, 'addProductToCart']);
         Route::delete('/carts/{id}', [CartController::class, 'deleteProductFromCart']);
         Route::get('/carts', [CartController::class, 'listProductsInCart']);
@@ -184,6 +187,10 @@ Route::group(
         Route::get('/user/comments/{id}', [UserCommentController::class, 'show']);
         Route::put('/user/comments/{id}', [UserCommentController::class, 'update']);
         Route::delete('/user/comments/{id}', [UserCommentController::class, 'destroy']);
+
+        Route::get('/favourites', [FavouriteListController::class, 'index']);
+        Route::post('/favourites', [FavouriteListController::class, 'store']);
+        Route::delete('/favourites/{id}', [FavouriteListController::class, 'destroy']);
 
     }
 );
