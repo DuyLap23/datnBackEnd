@@ -109,11 +109,12 @@ class ProductSeeder extends Seeder
 
         }
 //seed variant size color
+        $data = []; // Tạo mảng trống để lưu tất cả các bản ghi
         for ($productID = 1; $productID < 101; $productID++) {
-            $data = [];
             for ($sizeID = 1; $sizeID < 6; $sizeID++) {
                 for ($colorID = 1; $colorID < 7; $colorID++) {
-                    $data = [
+                    // Thu thập dữ liệu vào mảng $data
+                    $data[] = [
                         'product_id' => $productID,
                         'product_size_id' => $sizeID,
                         'product_color_id' => $colorID,
@@ -122,9 +123,12 @@ class ProductSeeder extends Seeder
                     ];
                 }
             }
-            DB::table('product_variants')->insert($data);
         }
 
-    }
+// Sau khi hoàn thành vòng lặp, chèn tất cả dữ liệu vào bảng
+        DB::table('product_variants')->insert($data);
+
+
+    }git
 
 }
