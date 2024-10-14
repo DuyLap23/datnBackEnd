@@ -30,26 +30,14 @@ class ProductSeeder extends Seeder
         Tag::factory(15)->create();
 
 //        seed size
-        $clothingSizes = ['S', 'M', 'L', 'XL', 'XXL'];
-        $shoeSizes = [39, 40, 41, 42, 43];
+        foreach(['S','M','L','XL','XXL'] as $size) {
 
-        foreach (['1', '2'] as $type) {
-            if ($type === '1') {
-                foreach ($clothingSizes as $size) {
-                    ProductSize::query()->create([
-                        'name' => $size,
-                        'type' => $type, // Loại quần áo
-                    ]);
-                }
-            } else {
-                foreach ($shoeSizes as $size) {
-                    ProductSize::query()->create([
-                        'name' => $size,
-                        'type' => $type, // Loại giày
-                    ]);
-                }
-            }
+            ProductSize::query()->create([
+
+                'name'=> $size
+            ]);
         }
+
 
 
 //        seed color

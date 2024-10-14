@@ -474,7 +474,8 @@ class ProductController extends Controller
                 'category',
                 'brand',
                 'tags',
-                'variants'
+                'productVariants.productColor',
+                'productVariants.productSize'
             ]);
 
             return response()->json($productData, 200);
