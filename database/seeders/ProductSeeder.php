@@ -129,6 +129,6 @@ class ProductSeeder extends Seeder
         DB::table('product_variants')->insert($data);
 
 
-    }git
+    }
 
 }

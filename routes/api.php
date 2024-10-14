@@ -161,7 +161,6 @@ Route::group(
     ],
     function ($router) {
 
-<<<<<<< HEAD
 
         Route::post('carts', [CartController::class, 'store']);
         Route::get('carts', [CartController::class, 'index']);
@@ -170,8 +169,7 @@ Route::group(
 
 
         Route::post('carts', [CartController::class, 'addProductToCart'])->name('carts.store');
-=======
->>>>>>> 35cf48bc09a36eaecfb05a56c1ea3db8186a0763
+
         Route::post('/carts', [CartController::class, 'addProductToCart']);
         Route::delete('/carts/{id}', [CartController::class, 'deleteProductFromCart']);
         Route::get('/carts', [CartController::class, 'listProductsInCart']);

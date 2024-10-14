@@ -2,8 +2,8 @@ diff a/routes/api.php b/routes/api.php	(rejected hunks)
 @@ -162,15 +162,14 @@
       ],
       function ($router) {
-  
- +       
+
+ +
  +        Route::post('carts', [CartController::class, 'store']);
  +        Route::get('carts', [CartController::class, 'index']);
  +        Route::post('orders', [OrderController::class, 'store']);
@@ -15,3 +15,4 @@ diff a/routes/api.php b/routes/api.php	(rejected hunks)
           Route::post('/carts', [CartController::class, 'addProductToCart']);
           Route::delete('/carts/{id}', [CartController::class, 'deleteProductFromCart']);
           Route::get('/carts', [CartController::class, 'listProductsInCart']);
+
