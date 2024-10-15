@@ -10,9 +10,7 @@ use App\Http\Controllers\API\BrandController;
 use App\Http\Controllers\API\CartController;
 use App\Http\Controllers\API\CategoryController;
 use App\Http\Controllers\API\CommentController;
-use App\Http\Controllers\API\FavouriteListController;
 use App\Http\Controllers\API\OrderController;
-use App\Http\Controllers\API\OrderItemController;
 use App\Http\Controllers\API\ProductColorController;
 use App\Http\Controllers\API\ProductController;
 use App\Http\Controllers\API\ProductImageController;
@@ -104,9 +102,9 @@ Route::group(
         Route::apiResource('voucher', VouCherController::class);
         Route::apiResource('brands', BrandController::class);
         Route::apiResource('tags', TagController::class);
-       
-        Route::post('products', [ProductController::class, 'store']); 
-        Route::put('products/{id}', [ProductController::class, 'update']); 
+
+        Route::post('products', [ProductController::class, 'store']);
+        Route::put('products/{id}', [ProductController::class, 'update']);
         Route::delete('products/{id}', [ProductController::class, 'destroy']);
         Route::apiResource('product/colors', ProductColorController::class);
         Route::apiResource('product/sizes', ProductSizeController::class);
@@ -141,36 +139,36 @@ Route::get('products/{id}', [ProductController::class, 'show']);
 
 
 //STAFF
-Route::group(
-    [
-        'middleware' => ['auth:api', 'role:staff'],
-        'prefix' => 'staff',
-    ],
-    function ($router) {
-        Route::apiResource('orders', OrderController::class);
-        Route::apiResource('order/items', OrderItemController::class);
-        Route::apiResource('favourites', FavouriteListController::class);
-        Route::apiResource('carts', CartController::class);
-        
-    }
-);
+//Route::group(
+//    [
+//        'middleware' => ['auth:api', 'role:staff'],
+//        'prefix' => 'staff',
+//    ],
+//    function ($router) {
+//        Route::apiResource('orders', OrderController::class);
+//        Route::apiResource('order/items', OrderItemController::class);
+//        Route::apiResource('favourites', FavouriteListController::class);
+//        Route::apiResource('carts', CartController::class);
+//
+//    }
+//);
 
 // CUSTOMER
 Route::group(
     [
-        'middleware' => ['auth:api', 'role:customer,admin,staff'],
+        'middleware' => ['role:customer,admin,staff'],
     ],
     function ($router) {
 
-       
+
         Route::post('carts', [CartController::class, 'store']);
         Route::get('carts', [CartController::class, 'index']);
         Route::post('orders', [OrderController::class, 'store']);
         Route::get('orders/{id}', [OrderController::class, 'show']);
 
 
-        
         Route::post('carts', [CartController::class, 'addProductToCart'])->name('carts.store');
+
         Route::post('/carts', [CartController::class, 'addProductToCart']);
         Route::delete('/carts/{id}', [CartController::class, 'deleteProductFromCart']);
         Route::get('/carts', [CartController::class, 'listProductsInCart']);
@@ -186,6 +184,10 @@ Route::group(
         Route::get('/user/comments/{id}', [UserCommentController::class, 'show']);
         Route::put('/user/comments/{id}', [UserCommentController::class, 'update']);
         Route::delete('/user/comments/{id}', [UserCommentController::class, 'destroy']);
+
+        Route::get('/favourites', [FavouriteListController::class, 'index']);
+        Route::post('/favourites', [FavouriteListController::class, 'store']);
+        Route::delete('/favourites/{id}', [FavouriteListController::class, 'destroy']);
 
     }
 );

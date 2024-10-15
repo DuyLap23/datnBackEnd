@@ -474,7 +474,6 @@ class ProductController extends Controller
                 'category',
                 'brand',
                 'tags',
-                'productImages',
                 'productVariants.productColor',
                 'productVariants.productSize'
             ]);
