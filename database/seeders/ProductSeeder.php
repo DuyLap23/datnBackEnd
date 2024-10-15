@@ -30,26 +30,14 @@ class ProductSeeder extends Seeder
         Tag::factory(15)->create();
 
 //        seed size
-        $clothingSizes = ['S', 'M', 'L', 'XL', 'XXL'];
-        $shoeSizes = [39, 40, 41, 42, 43];
+        foreach(['S','M','L','XL','XXL'] as $size) {
 
-        foreach (['1', '2'] as $type) {
-            if ($type === '1') {
-                foreach ($clothingSizes as $size) {
-                    ProductSize::query()->create([
-                        'name' => $size,
-                        'type' => $type, // Loại quần áo
-                    ]);
-                }
-            } else {
-                foreach ($shoeSizes as $size) {
-                    ProductSize::query()->create([
-                        'name' => $size,
-                        'type' => $type, // Loại giày
-                    ]);
-                }
-            }
+            ProductSize::query()->create([
+
+                'name'=> $size
+            ]);
         }
+
 
 
 //        seed color
@@ -109,11 +97,12 @@ class ProductSeeder extends Seeder
 
         }
 //seed variant size color
+        $data = []; // Tạo mảng trống để lưu tất cả các bản ghi
         for ($productID = 1; $productID < 101; $productID++) {
-            $data = [];
             for ($sizeID = 1; $sizeID < 6; $sizeID++) {
                 for ($colorID = 1; $colorID < 7; $colorID++) {
-                    $data = [
+                    // Thu thập dữ liệu vào mảng $data
+                    $data[] = [
                         'product_id' => $productID,
                         'product_size_id' => $sizeID,
                         'product_color_id' => $colorID,
@@ -122,8 +111,11 @@ class ProductSeeder extends Seeder
                     ];
                 }
             }
-            DB::table('product_variants')->insert($data);
         }
+
+// Sau khi hoàn thành vòng lặp, chèn tất cả dữ liệu vào bảng
+        DB::table('product_variants')->insert($data);
+
 
     }
 

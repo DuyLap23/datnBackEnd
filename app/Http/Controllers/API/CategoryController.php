@@ -736,6 +736,20 @@ class CategoryController extends Controller
 
     public function destroy(string $id)
     {
+        $currentUser = auth('api')->user();
+        if (!$currentUser) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Bạn chưa đăng nhập.',
+            ],401);
+        }
+        if (!$currentUser || !$currentUser->isAdmin()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Bạn không phải admin.'
+            ], 403); // 403 Forbidden
+        }
+
         try {
             // Tìm danh mục theo ID, nếu không tìm thấy sẽ ném ngoại lệ
             $model = Category::findOrFail($id);
@@ -756,7 +770,7 @@ class CategoryController extends Controller
                     'success' => true,
                     'message' => 'Xóa danh mục thành công.',
                 ],
-                204 // Trả về mã 200 cho thành công
+                204 // Trả về mã 204 (No Content) cho thành công
             );
 
         } catch (\Illuminate\Database\QueryException $e) {
@@ -778,23 +792,22 @@ class CategoryController extends Controller
             return response()->json(
                 [
                     'success' => false,
-                    'message' => 'Xóa danh mục không thành công do lỗi không xác định.',
+                    'message' => 'Có lỗi xảy ra khi xóa danh mục.',
                 ],
-                500 // Trả về mã 500 cho lỗi không xác định
+                400 // Trả về mã 400 thay vì 500
             );
-        } catch (\Exception $e) {
-            // Ghi log lỗi
-            Log::error("Lỗi không xác định khi xóa danh mục ID {$id}: " . $e->getMessage());
-
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            // Xử lý ngoại lệ khi không tìm thấy danh mục
             return response()->json(
                 [
                     'success' => false,
-                    'message' => 'Xóa danh mục không thành công do lỗi không xác định.',
+                    'message' => 'Danh mục không tồn tại.',
                 ],
-                500 // Trả về mã 500 cho lỗi không xác định
+                404 // Trả về mã 404 cho lỗi không tìm thấy
             );
         }
     }
+
 
 
 
