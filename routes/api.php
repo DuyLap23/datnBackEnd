@@ -104,8 +104,12 @@ Route::group(
         Route::apiResource('brands', BrandController::class);
         Route::apiResource('tags', TagController::class);
 
+        Route::post('products', [ProductController::class, 'store']); 
+        Route::put('products/{id}', [ProductController::class, 'update']); 
+
         Route::post('products', [ProductController::class, 'store']);
         Route::put('products/{id}', [ProductController::class, 'update']);
+
         Route::delete('products/{id}', [ProductController::class, 'destroy']);
         Route::apiResource('product/colors', ProductColorController::class);
         Route::apiResource('product/sizes', ProductSizeController::class);
@@ -135,6 +139,7 @@ Route::post('voucher', [VouCherController::class, 'store']);
 Route::put('voucher/{id}', [VouCherController::class, 'update']);
 Route::get('voucher/{id}', [VouCherController::class, 'show']);
 Route::delete('voucher/{id}', [VouCherController::class, 'destroy']);
+
 
 Route::post('/vnpay/create-payment', [VNPayController::class, 'createPayment']);
 Route::get('/vnpay/return', [VNPayController::class, 'paymentReturn']);
