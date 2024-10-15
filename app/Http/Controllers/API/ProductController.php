@@ -20,86 +20,179 @@ use Illuminate\Database\Eloquent\ModelNotFoundException;
 class ProductController extends Controller
 {
 
-   /**
- * @OA\Schema(
- *     schema="Product",
- *     type="object",
- *     description="Product model",
- *     @OA\Property(property="id", type="integer", example=1),
- *     @OA\Property(property="name", type="string", example="Sample Product"),
- *     @OA\Property(property="price", type="number", format="float", example=99.99),
- *     @OA\Property(property="description", type="string", example="Product description"),
- *     @OA\Property(property="category", ref="#/components/schemas/Category"),
- *     @OA\Property(property="brand", ref="#/components/schemas/Brand"),
- *     @OA\Property(property="tags", type="array", @OA\Items(ref="#/components/schemas/Tag")),
- *     @OA\Property(property="productImages", type="array", @OA\Items(ref="#/components/schemas/ProductImage")),
- *     @OA\Property(property="productVariants", type="array", @OA\Items(ref="#/components/schemas/ProductVariant")),
- * )
- */
+    /**
+     * @OA\Get(
+     *     path="/api/products",
+     *     summary="Lấy danh sách sản phẩm",
+     *     description="Trả về danh sách tất cả các sản phẩm cùng với các thông tin liên quan.",
+     *     tags={"Product"},
+     *     @OA\Response(
+     *         response=200,
+     *         description="Thành công",
+     *         @OA\JsonContent(
+     *             @OA\Property(
+     *                 property="success",
+     *                 type="boolean",
+     *                 example=true,
+     *             ),
+     *             @OA\Property(
+     *                 property="message",
+     *                 type="string",
+     *                 example="Lấy thành công sản phẩm",
+     *             ),
+     *             @OA\Property(
+     *                 property="products",
+     *                 type="array",
+     *                 @OA\Items(
+     *                     @OA\Property(
+     *                         property="id",
+     *                         type="integer",
+     *                         example=1,
+     *                     ),
+     *                     @OA\Property(
+     *                         property="name",
+     *                         type="string",
+     *                         example="Product Name",
+     *                     ),
+     *                     @OA\Property(
+     *                         property="description",
+     *                         type="string",
+     *                         example="Mô tả sản phẩm.",
+     *                     ),
+     *                     @OA\Property(
+     *                         property="price",
+     *                         type="number",
+     *                         format="float",
+     *                         example=99.99,
+     *                     ),
+     *                     @OA\Property(
+     *                         property="category",
+     *                         type="object",
+     *                         @OA\Property(
+     *                             property="id",
+     *                             type="integer",
+     *                             example=2,
+     *                         ),
+     *                         @OA\Property(
+     *                             property="name",
+     *                             type="string",
+     *                             example="Category Name",
+     *                         ),
+     *                     ),
+     *                     @OA\Property(
+     *                         property="brand",
+     *                         type="object",
+     *                         @OA\Property(
+     *                             property="id",
+     *                             type="integer",
+     *                             example=1,
+     *                         ),
+     *                         @OA\Property(
+     *                             property="name",
+     *                             type="string",
+     *                             example="Brand Name",
+     *                         ),
+     *                     ),
+     *                     @OA\Property(
+     *                         property="tags",
+     *                         type="array",
+     *                         @OA\Items(
+     *                             @OA\Property(
+     *                                 property="id",
+     *                                 type="integer",
+     *                                 example=1,
+     *                             ),
+     *                             @OA\Property(
+     *                                 property="name",
+     *                                 type="string",
+     *                                 example="Tag Name",
+     *                             ),
+     *                         )
+     *                     ),
+     *                     @OA\Property(
+     *                         property="productImages",
+     *                         type="array",
+     *                         @OA\Items(
+     *                             @OA\Property(
+     *                                 property="url",
+     *                                 type="string",
+     *                                 example="https://picsum.photos/200/300?random=1",
+     *                             ),
+     *                         )
+     *                     ),
+     *                     @OA\Property(
+     *                         property="productVariants",
+     *                         type="array",
+     *                         @OA\Items(
+     *                             @OA\Property(
+     *                                 property="id",
+     *                                 type="integer",
+     *                                 example=1,
+     *                             ),
+     *                             @OA\Property(
+     *                                 property="price",
+     *                                 type="number",
+     *                                 format="float",
+     *                                 example=99.99,
+     *                             ),
+     *                             @OA\Property(
+     *                                 property="productColor",
+     *                                 type="object",
+     *                                 @OA\Property(
+     *                                     property="id",
+     *                                     type="integer",
+     *                                     example=1,
+     *                                 ),
+     *                                 @OA\Property(
+     *                                     property="name",
+     *                                     type="string",
+     *                                     example="Red",
+     *                                 ),
+     *                             ),
+     *                             @OA\Property(
+     *                                 property="productSize",
+     *                                 type="object",
+     *                                 @OA\Property(
+     *                                     property="id",
+     *                                     type="integer",
+     *                                     example=1,
+     *                                 ),
+     *                                 @OA\Property(
+     *                                     property="name",
+     *                                     type="string",
+     *                                     example="L",
+     *                                 ),
+     *                             ),
+     *                         ),
+     *                     ),
+     *                 )
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=500,
+     *         description="Lỗi server",
+     *         @OA\JsonContent(
+     *             @OA\Property(
+     *                 property="success",
+     *                 type="boolean",
+     *                 example=false,
+     *             ),
+     *             @OA\Property(
+     *                 property="message",
+     *                 type="string",
+     *                 example="Lỗi khi lấy danh sách sản phẩm.",
+     *             ),
+     *             @OA\Property(
+     *                 property="error",
+     *                 type="string",
+     *                 example="Server Error Message",
+     *             ),
+     *         )
+     *     )
+     * )
+     */
 
-/**
- * @OA\Schema(
- *     schema="Category",
- *     type="object",
- *     @OA\Property(property="id", type="integer", example=1),
- *     @OA\Property(property="name", type="string", example="Category Name")
- * )
- */
-
-/**
- * @OA\Schema(
- *     schema="Brand",
- *     type="object",
- *     @OA\Property(property="id", type="integer", example=1),
- *     @OA\Property(property="name", type="string", example="Brand Name")
- * )
- */
-
-/**
- * @OA\Schema(
- *     schema="Tag",
- *     type="object",
- *     @OA\Property(property="id", type="integer", example=1),
- *     @OA\Property(property="name", type="string", example="Tag Name")
- * )
- */
-
-/**
- * @OA\Schema(
- *     schema="ProductImage",
- *     type="object",
- *     @OA\Property(property="id", type="integer", example=1),
- *     @OA\Property(property="url", type="string", example="https://example.com/image.jpg")
- * )
- */
-
-/**
- * @OA\Schema(
- *     schema="ProductVariant",
- *     type="object",
- *     @OA\Property(property="id", type="integer", example=1),
- *     @OA\Property(property="productColor", ref="#/components/schemas/ProductColor"),
- *     @OA\Property(property="productSize", ref="#/components/schemas/ProductSize")
- * )
- */
-
-/**
- * @OA\Schema(
- *     schema="ProductColor",
- *     type="object",
- *     @OA\Property(property="id", type="integer", example=1),
- *     @OA\Property(property="name", type="string", example="Red")
- * )
- */
-
-/**
- * @OA\Schema(
- *     schema="ProductSize",
- *     type="object",
- *     @OA\Property(property="id", type="integer", example=1),
- *     @OA\Property(property="name", type="string", example="L")
- * )
- */
 
     public function index()
     {
@@ -118,7 +211,7 @@ class ProductController extends Controller
             [
                 'success' => true,
                 'message' => 'Lấy thành công sản phẩm',
-                'categories' =>  $products,
+                'products' =>  $products,
             ],
             200,
         );
@@ -474,6 +567,7 @@ class ProductController extends Controller
                 'category',
                 'brand',
                 'tags',
+                'productImages',
                 'productVariants.productColor',
                 'productVariants.productSize'
             ]);
