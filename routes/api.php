@@ -109,7 +109,6 @@ Route::group(
         Route::put('products/{id}', [ProductController::class, 'update']); 
         Route::delete('products/{id}', [ProductController::class, 'destroy']);
         Route::apiResource('product/colors', ProductColorController::class);
-        Route::apiResource('product/images', ProductImageController::class);
         Route::apiResource('product/sizes', ProductSizeController::class);
         Route::apiResource('product/variants', ProductVariantController::class);
 
