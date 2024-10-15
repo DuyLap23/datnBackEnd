@@ -743,7 +743,7 @@ class CategoryController extends Controller
                 'message' => 'Bạn chưa đăng nhập.',
             ],401);
         }
-        if ($currentUser->isAdmin()) {
+        if (!$currentUser || !$currentUser->isAdmin()) {
             return response()->json([
                 'success' => false,
                 'message' => 'Bạn không phải admin.'
