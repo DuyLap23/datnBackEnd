@@ -19,6 +19,7 @@ use App\Http\Controllers\API\ProductVariantController;
 use App\Http\Controllers\API\TagController;
 use App\Http\Controllers\Api\UserCommentController;
 use App\Http\Controllers\API\VouCherController;
+use App\Http\Controllers\Order\VnpayController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -135,9 +136,9 @@ Route::post('voucher', [VouCherController::class, 'store']);
 Route::put('voucher/{id}', [VouCherController::class, 'update']);
 Route::get('voucher/{id}', [VouCherController::class, 'show']);
 Route::delete('voucher/{id}', [VouCherController::class, 'destroy']);
-Route::get('products', [ProductController::class, 'index']);
-Route::get('products/{id}', [ProductController::class, 'show']);
 
+Route::post('/vnpay/create-payment', [VNPayController::class, 'createPayment']);
+Route::get('/vnpay/return', [VNPayController::class, 'paymentReturn']);
 
 //STAFF
 //Route::group(
@@ -189,6 +190,8 @@ Route::group(
         Route::get('/favourites', [FavouriteListController::class, 'index']);
         Route::post('/favourites', [FavouriteListController::class, 'store']);
         Route::delete('/favourites/{id}', [FavouriteListController::class, 'destroy']);
+
+
 
     }
 );
