@@ -211,21 +211,45 @@ public function deleteProductFromCart($id)
  */
 public function listProductsInCart(Request $request)
 {
-
     if (!Auth::check()) {
         return response()->json(['message' => 'Vui lòng đăng nhập'], 401);
     }
-    // Lấy danh sách sản phẩm trong giỏ hàng của người dùng
-    $cartItems = Cart::where('user_id', $request->user()->id)->get();
+
+    // Lấy danh sách sản phẩm trong giỏ hàng của người dùng cùng với thông tin sản phẩm
+    $cartItems = Cart::where('user_id', $request->user()->id)
+        ->with(['product' => function ($query) {
+            $query->select('id', 'name', 'slug', 'sku', 'img_thumbnail', 'price_regular', 'price_sale', 'description');
+        }])
+        ->get();
 
     // Tính tổng tiền của sản phẩm trong giỏ hàng
     $totalPrice = $cartItems->sum(function ($cartItem) {
-        return $cartItem->price * $cartItem->quantity; 
+        $price = $cartItem->product->price_sale > 0 ? $cartItem->product->price_sale : $cartItem->product->price_regular;
+        return $price * $cartItem->quantity; 
     });
 
+    // Trả về danh sách sản phẩm trong giỏ hàng và tổng tiền
     return response()->json([
-        'cart_items' => $cartItems,
-        'total_price' => $totalPrice 
+        'cart_items' => $cartItems->map(function ($cartItem) {
+            $product = $cartItem->product;
+            return [
+                'id' => $cartItem->id,
+                'product_id' => $product->id,
+                'name' => $product->name,
+                'slug' => $product->slug,
+                'sku' => $product->sku,
+                'img_thumbnail' => $product->img_thumbnail,
+                'quantity' => $cartItem->quantity,
+                'color' => $cartItem->color, 
+                'size' => $cartItem->size, 
+                'price_regular' => $product->price_regular, 
+                'price_sale' => $product->price_sale, 
+                'price' => $product->price_sale > 0 ? $product->price_sale : $product->price_regular,
+                'total' => ($product->price_sale > 0 ? $product->price_sale : $product->price_regular) * $cartItem->quantity,
+                'description' => $product->description,
+            ];
+        }),
+        'total_price' => $totalPrice,
     ], 200);
 }
 
