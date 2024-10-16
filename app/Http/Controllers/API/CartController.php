@@ -253,6 +253,98 @@ public function listProductsInCart(Request $request)
     ], 200);
 }
 
+/**
+ * @OA\Patch(
+ *     path="/api/cart/{id}/quantity",
+ *     operationId="updateCartItemQuantity",
+ *     tags={"Cart"},
+ *     summary="Cập nhật số lượng sản phẩm trong giỏ hàng",
+ *     description="Cập nhật số lượng của sản phẩm trong giỏ hàng của người dùng đã đăng nhập.",
+ *     @OA\Parameter(
+ *         name="id",
+ *         in="path",
+ *         required=true,
+ *         @OA\Schema(type="integer")
+ *     ),
+ *     @OA\RequestBody(
+ *         required=true,
+ *         @OA\JsonContent(
+ *             required={"quantity"},
+ *             @OA\Property(property="quantity", type="integer", example=2, description="Số lượng sản phẩm cần cập nhật"),
+ *         )
+ *     ),
+ *     @OA\Response(
+ *         response=200,
+ *         description="Cập nhật thành công",
+ *         @OA\JsonContent(
+ *             @OA\Property(property="message", type="string", example="Cập nhật số lượng thành công"),
+ *             @OA\Property(property="cart_item", type="object", ref="#/components/schemas/CartItem")
+ *         )
+ *     ),
+ *     @OA\Response(
+ *         response=401,
+ *         description="Người dùng chưa đăng nhập",
+ *         @OA\JsonContent(
+ *             @OA\Property(property="message", type="string", example="Vui lòng đăng nhập")
+ *         )
+ *     ),
+ *     @OA\Response(
+ *         response=404,
+ *         description="Không tìm thấy sản phẩm trong giỏ hàng",
+ *         @OA\JsonContent(
+ *             @OA\Property(property="message", type="string", example="Sản phẩm không tìm thấy trong giỏ hàng")
+ *         )
+ *     )
+ * )
+ */
+public function updateCartItemQuantity(Request $request, $cartItemId)
+{
+    if (!Auth::check()) {
+        return response()->json(['message' => 'Vui lòng đăng nhập'], 401);
+    }
+
+    // Xác thực dữ liệu đầu vào
+    $validatedData = $request->validate([
+        'quantity' => 'required|integer|min:1|max:100', // Số lượng hợp lệ từ 1 đến 100
+    ]);
+
+    // Tìm kiếm sản phẩm trong giỏ hàng
+    $cartItem = Cart::where('user_id', $request->user()->id)
+        ->where('id', $cartItemId)
+        ->first();
+
+    if (!$cartItem) {
+        return response()->json(['message' => 'Sản phẩm không tồn tại trong giỏ hàng.'], 404);
+    }
+
+    // Kiểm tra tồn kho của sản phẩm
+    $productVariant = ProductVariant::where('product_id', $cartItem->product_id)
+        ->where('product_color_id', $cartItem->color_id)
+        ->where('product_size_id', $cartItem->size_id)
+        ->first();
+
+    if (!$productVariant || $productVariant->quantity < $validatedData['quantity']) {
+        return response()->json(['message' => 'Số lượng sản phẩm không đủ.'], 400);
+    }
+
+    // Cập nhật số lượng
+    $cartItem->quantity = $validatedData['quantity'];
+    $cartItem->save();
+
+    // Tính lại tổng tiền
+    $cartItems = Cart::where('user_id', $request->user()->id)->get();
+    $totalPrice = $cartItems->sum(function ($item) {
+        $price = $item->product->price_sale > 0 ? $item->product->price_sale : $item->product->price_regular;
+        return $price * $item->quantity;
+    });
+
+    // Trả về thông tin đã cập nhật
+    return response()->json([
+        'message' => 'Cập nhật số lượng thành công.',
+        'cart_item' => $cartItem,
+        'total_price' => $totalPrice
+    ], 200);
+}
 
     
 
