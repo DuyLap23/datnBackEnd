@@ -460,10 +460,9 @@ class CategoryController extends Controller
      */
     /**
      * @OA\Get(
-     *     path="/api/admin/categories/{id}",
-     *     summary="Lấy chi tiết danh mục",
+     *     path="/api/categories/{id}",
+     *     summary="Lấy chi tiết danh mục hoặc lấy sản phẩm theo danh mục",
      *     tags={"Category"},
-     *     security={{"Bearer": {}}},
      *     @OA\Parameter(
      *         name="id",
      *         in="path",
@@ -516,8 +515,7 @@ class CategoryController extends Controller
 //            $category = Category::findOrFail($id);
             $category = Category::query()
                 ->with(['children', 'products'])
-                ->findOrFail($id)
-                ->toArray();
+                ->findOrFail($id);
 
 
             return response()->json(
