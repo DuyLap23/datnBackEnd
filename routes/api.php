@@ -178,7 +178,6 @@ Route::group(
         Route::post('/carts', [CartController::class, 'addProductToCart']);
         Route::delete('/carts/{id}', [CartController::class, 'deleteProductFromCart']);
         Route::get('/carts', [CartController::class, 'listProductsInCart']);
-        Route::delete('carts/{id}', [CartController::class, 'destroy'])->name('carts.destroy');
         Route::post('orders', [OrderController::class, 'store'])->name('orders.store');
         Route::get('orders/{id}', [OrderController::class, 'show'])->name('orders.show');
         Route::get('orders', [OrderController::class, 'index'])->name('orders.index');
