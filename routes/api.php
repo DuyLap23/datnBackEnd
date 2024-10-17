@@ -167,8 +167,6 @@ Route::group(
     function ($router) {
 
 
-        Route::post('carts', [CartController::class, 'store']);
-        Route::get('carts', [CartController::class, 'index']);
         Route::post('orders', [OrderController::class, 'store']);
         Route::get('orders/{id}', [OrderController::class, 'show']);
 
