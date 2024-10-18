@@ -144,6 +144,11 @@ Route::delete('voucher/{id}', [VouCherController::class, 'destroy']);
 Route::post('/vnpay/create-payment', [VNPayController::class, 'createPayment']);
 Route::get('/vnpay/return', [VNPayController::class, 'paymentReturn']);
 
+Route::get('/user/comments', [UserCommentController::class, 'index']);
+Route::post('/user/comments', [UserCommentController::class, 'store']);
+Route::get('/user/comments/{id}', [UserCommentController::class, 'show']);
+Route::put('/user/comments/{id}', [UserCommentController::class, 'update']);
+Route::delete('/user/comments/{id}', [UserCommentController::class, 'destroy']);
 //STAFF
 //Route::group(
 //    [
@@ -181,12 +186,6 @@ Route::group(
         Route::get('orders', [OrderController::class, 'index'])->name('orders.index');
         Route::put('orders/{id}', [OrderController::class, 'update'])->name('orders.update');
         Route::delete('orders/{id}', [OrderController::class, 'destroy'])->name('orders.destroy');
-
-        Route::get('/user/comments', [UserCommentController::class, 'index']);
-        Route::post('/user/comments', [UserCommentController::class, 'store']);
-        Route::get('/user/comments/{id}', [UserCommentController::class, 'show']);
-        Route::put('/user/comments/{id}', [UserCommentController::class, 'update']);
-        Route::delete('/user/comments/{id}', [UserCommentController::class, 'destroy']);
 
         Route::get('/favourites', [FavouriteListController::class, 'index']);
         Route::post('/favourites', [FavouriteListController::class, 'store']);
