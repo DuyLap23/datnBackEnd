@@ -255,10 +255,11 @@ public function listProductsInCart(Request $request)
 
 /**
  * @OA\Patch(
- *     path="/api/cart/{id}/quantity",
+ *     path="/api/cart/{id}",
  *     operationId="updateCartItemQuantity",
  *     tags={"Cart"},
  *     summary="Cập nhật số lượng sản phẩm trong giỏ hàng",
+ *     security={{"Bearer": {}}},
  *     description="Cập nhật số lượng của sản phẩm trong giỏ hàng của người dùng đã đăng nhập.",
  *     @OA\Parameter(
  *         name="id",
@@ -278,7 +279,7 @@ public function listProductsInCart(Request $request)
  *         description="Cập nhật thành công",
  *         @OA\JsonContent(
  *             @OA\Property(property="message", type="string", example="Cập nhật số lượng thành công"),
- *             @OA\Property(property="cart_item", type="object", ref="#/components/schemas/CartItem")
+ *             @OA\Property(property="cart_item", type="object", ref="#/components/schemas/Cart")
  *         )
  *     ),
  *     @OA\Response(
@@ -310,22 +311,20 @@ public function updateCartItemQuantity(Request $request, $cartItemId)
 
     // Tìm kiếm sản phẩm trong giỏ hàng
     $cartItem = Cart::where('user_id', $request->user()->id)
-        ->where('id', $cartItemId)
+        ->where('product_id', $cartItemId)
         ->first();
 
     if (!$cartItem) {
         return response()->json(['message' => 'Sản phẩm không tồn tại trong giỏ hàng.'], 404);
     }
 
-    // Kiểm tra tồn kho của sản phẩm
-    $productVariant = ProductVariant::where('product_id', $cartItem->product_id)
-        ->where('product_color_id', $cartItem->color_id)
-        ->where('product_size_id', $cartItem->size_id)
-        ->first();
+  // Kiểm tra tồn kho của sản phẩm
+    $productVariant = ProductVariant::where('product_id', $cartItem->product_id)->first();
 
     if (!$productVariant || $productVariant->quantity < $validatedData['quantity']) {
         return response()->json(['message' => 'Số lượng sản phẩm không đủ.'], 400);
     }
+
 
     // Cập nhật số lượng
     $cartItem->quantity = $validatedData['quantity'];

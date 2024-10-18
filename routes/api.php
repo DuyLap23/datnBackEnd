@@ -10,6 +10,7 @@ use App\Http\Controllers\API\BrandController;
 use App\Http\Controllers\API\CartController;
 use App\Http\Controllers\API\CategoryController;
 use App\Http\Controllers\API\CommentController;
+use App\Http\Controllers\API\FavouriteListController;
 use App\Http\Controllers\API\OrderController;
 use App\Http\Controllers\API\ProductColorController;
 use App\Http\Controllers\API\ProductController;
@@ -175,11 +176,11 @@ Route::group(
         Route::get('orders/{id}', [OrderController::class, 'show']);
 
 
-        Route::post('carts', [CartController::class, 'addProductToCart'])->name('carts.store');
-
         Route::post('/carts', [CartController::class, 'addProductToCart']);
         Route::delete('/carts/{id}', [CartController::class, 'deleteProductFromCart']);
         Route::get('/carts', [CartController::class, 'listProductsInCart']);
+        Route::patch('/cart/{id}', [CartController::class, 'updateCartItemQuantity']);
+
         Route::post('orders', [OrderController::class, 'store'])->name('orders.store');
         Route::get('orders/{id}', [OrderController::class, 'show'])->name('orders.show');
         Route::get('orders', [OrderController::class, 'index'])->name('orders.index');

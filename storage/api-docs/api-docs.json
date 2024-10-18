@@ -2573,6 +2573,104 @@
                 ]
             }
         },
+        "/api/cart/{id}": {
+            "patch": {
+                "tags": [
+                    "Cart"
+                ],
+                "summary": "Cập nhật số lượng sản phẩm trong giỏ hàng",
+                "description": "Cập nhật số lượng của sản phẩm trong giỏ hàng của người dùng đã đăng nhập.",
+                "operationId": "updateCartItemQuantity",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "quantity"
+                                ],
+                                "properties": {
+                                    "quantity": {
+                                        "description": "Số lượng sản phẩm cần cập nhật",
+                                        "type": "integer",
+                                        "example": 2
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Cập nhật thành công",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Cập nhật số lượng thành công"
+                                        },
+                                        "cart_item": {
+                                            "$ref": "#/components/schemas/Cart"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Người dùng chưa đăng nhập",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Vui lòng đăng nhập"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Không tìm thấy sản phẩm trong giỏ hàng",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Sản phẩm không tìm thấy trong giỏ hàng"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ]
+            }
+        },
         "/api/categories": {
             "get": {
                 "tags": [
@@ -2879,13 +2977,13 @@
                 ]
             }
         },
-        "/api/admin/categories/{id}": {
+        "/api/categories/{id}": {
             "get": {
                 "tags": [
                     "Category"
                 ],
-                "summary": "Lấy chi tiết danh mục",
-                "operationId": "750a18271e2c072d45518d1e5bf4d065",
+                "summary": "Lấy chi tiết danh mục hoặc lấy sản phẩm theo danh mục",
+                "operationId": "6a038665b20191638e1608ea8897bf64",
                 "parameters": [
                     {
                         "name": "id",
@@ -3001,13 +3099,10 @@
                             }
                         }
                     }
-                },
-                "security": [
-                    {
-                        "Bearer": []
-                    }
-                ]
-            },
+                }
+            }
+        },
+        "/api/admin/categories/{id}": {
             "put": {
                 "tags": [
                     "Category"
