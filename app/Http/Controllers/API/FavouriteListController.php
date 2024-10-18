@@ -7,15 +7,78 @@ use App\Models\FavouriteList;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
+
+
+
+/**
+ * @OA\Schema(
+ *     schema="Favourite",
+ *     type="object",
+ *     title="Favourite",
+ *     required={"id", "user_id", "product_id"},
+ *     @OA\Property(
+ *         property="id",
+ *         type="integer",
+ *         format="int64",
+ *         description="ID của sản phẩm yêu thích"
+ *     ),
+ *     @OA\Property(
+ *         property="user_id",
+ *         type="integer",
+ *         format="int64",
+ *         description="ID của người dùng"
+ *     ),
+ *     @OA\Property(
+ *         property="product_id",
+ *         type="integer",
+ *         format="int64",
+ *         description="ID của sản phẩm"
+ *     ),
+ *     @OA\Property(
+ *         property="created_at",
+ *         type="string",
+ *         format="date-time",
+ *         description="Ngày tạo bản ghi"
+ *     ),
+ *     @OA\Property(
+ *         property="updated_at",
+ *         type="string",
+ *         format="date-time",
+ *         description="Ngày cập nhật bản ghi"
+ *     )
+ * )
+ */
+
 class FavouriteListController extends Controller
 {
-    /**
+     /**
      * @OA\Get(
      *     path="/api/favourites",
      *     tags={"Favourites"},
      *     summary="Lấy danh sách sản phẩm yêu thích",
      *     security={{"Bearer": {}}},
-     *     @OA\Response(response=200, description="Danh sách sản phẩm yêu thích"),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Danh sách sản phẩm yêu thích",
+     *         @OA\JsonContent(
+     *             type="array",
+     *             @OA\Items(ref="#/components/schemas/Favourite")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=401,
+     *         description="Unauthorized",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="Vui lòng đăng nhập")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Không có sản phẩm yêu thích nào",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="Không có sản phẩm yêu thích nào")
+     *         )
+     *     )
      * )
      */
     public function index()
@@ -25,8 +88,17 @@ class FavouriteListController extends Controller
         }
         
         $favorites = FavouriteList::where('user_id', Auth::id())->with('product')->get();
-        return response()->json($favorites);
+
+        if ($favorites->isEmpty()) {
+            return response()->json(['message' => 'Không có sản phẩm yêu thích nào'], 404);
+        }
+
+        return response()->json([
+            'status' => 'success',
+            'data' => $favorites
+        ], 200);
     }
+
 
     /**
      * @OA\Post(

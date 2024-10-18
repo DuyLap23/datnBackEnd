@@ -2484,6 +2484,32 @@ paths:
       responses:
         200:
           description: 'Danh sách sản phẩm yêu thích'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Favourite'
+        401:
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                properties:
+                  message:
+                    type: string
+                    example: 'Vui lòng đăng nhập'
+                type: object
+        404:
+          description: 'Không có sản phẩm yêu thích nào'
+          content:
+            application/json:
+              schema:
+                properties:
+                  message:
+                    type: string
+                    example: 'Không có sản phẩm yêu thích nào'
+                type: object
       security:
         -
           Bearer: []
@@ -4005,6 +4031,39 @@ components:
               type: string
               format: date-time
             updated_at:
+              type: string
+              format: date-time
+          type: object
+    Favourite:
+      title: Favourite
+      required:
+        - id
+        - user_id
+        - product_id
+      type: object
+      allOf:
+        -
+          $ref: '#/components/schemas/Category'
+        -
+          properties:
+            id:
+              description: 'ID của sản phẩm yêu thích'
+              type: integer
+              format: int64
+            user_id:
+              description: 'ID của người dùng'
+              type: integer
+              format: int64
+            product_id:
+              description: 'ID của sản phẩm'
+              type: integer
+              format: int64
+            created_at:
+              description: 'Ngày tạo bản ghi'
+              type: string
+              format: date-time
+            updated_at:
+              description: 'Ngày cập nhật bản ghi'
               type: string
               format: date-time
           type: object
