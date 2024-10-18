@@ -12,6 +12,7 @@ use App\Http\Controllers\API\CategoryController;
 use App\Http\Controllers\API\CommentController;
 use App\Http\Controllers\API\FavouriteListController;
 use App\Http\Controllers\API\OrderController;
+use App\Http\Controllers\Api\OrderManagementController;
 use App\Http\Controllers\API\ProductColorController;
 use App\Http\Controllers\API\ProductController;
 use App\Http\Controllers\API\ProductImageController;
@@ -130,6 +131,16 @@ Route::group(
         Route::put('banners/{id}', [BannerMktController::class, 'update']);
         Route::get('banners/{id}', [BannerMktController::class, 'show']);
         Route::delete('banners/{id}', [BannerMktController::class, 'destroy']);
+
+        Route::get('/orders', [OrderManagementController::class, 'index']);
+        Route::get('/orders/{id}', [OrderManagementController::class, 'show']);
+        Route::put('/orders/{id}/status', [OrderManagementController::class, 'updateStatus']);
+        Route::put('/orders/{id}', [OrderManagementController::class, 'update']);
+        Route::post('/orders/{id}/refund', [OrderManagementController::class, 'refund']);
+        Route::delete('/orders/{id}', [OrderManagementController::class, 'destroy']);
+        Route::get('/orders/{id}/tracking', [OrderManagementController::class, 'tracking']);
+        Route::get('/orders/search', [OrderManagementController::class, 'search']);
+        Route::get('/orders/filter', [OrderManagementController::class, 'filterByDate']);
 
 
     }
