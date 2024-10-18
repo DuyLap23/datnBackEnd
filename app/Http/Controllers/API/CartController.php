@@ -96,8 +96,22 @@ public function addProductToCart(Request $request)
       ->where('product_size_id', $sizeId)
       ->first();
 
+        // Kiểm tra xem biến thể sản phẩm có tồn tại không
         if (!$productVariant) {
-            return response()->json(['error' => 'Biến thể sản phẩm không tồn tại.'], 404);
+            // Kiểm tra màu sắc
+            $colorExists = ProductColor::find($colorId);
+            if (!$colorExists) {
+                return response()->json(['error' => 'Màu sắc không tồn tại.'], 404);
+            }
+
+            // Kiểm tra kích thước
+            $sizeExists = ProductSize::find($sizeId);
+            if (!$sizeExists) {
+                return response()->json(['error' => 'Kích thước không tồn tại.'], 404);
+            }
+
+            // Nếu cả màu sắc và kích thước đều tồn tại nhưng không tìm thấy biến thể
+            return response()->json(['error' => 'Không tìm thấy biến thể cho màu sắc và kích thước đã chọn.'], 404);
         }
 
         // Kiểm tra số lượng có đủ không
@@ -311,11 +325,11 @@ public function updateCartItemQuantity(Request $request, $cartItemId)
 
     // Tìm kiếm sản phẩm trong giỏ hàng
     $cartItem = Cart::where('user_id', $request->user()->id)
-        ->where('product_id', $cartItemId)
+        ->where('id', $cartItemId)
         ->first();
 
     if (!$cartItem) {
-        return response()->json(['message' => 'Sản phẩm không tồn tại trong giỏ hàng.'], 404);
+        return response()->json(['message' => 'Giỏ hàng không tồn tại trong .'], 404);
     }
 
   // Kiểm tra tồn kho của sản phẩm
