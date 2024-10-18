@@ -107,11 +107,11 @@ public function addProductToCart(Request $request)
             // Kiểm tra kích thước
             $sizeExists = ProductSize::find($sizeId);
             if (!$sizeExists) {
-                return response()->json(['error' => 'Kích thước không tồn tại.'], 404);
+                return response()->json(['error' => 'Size không tồn tại.'], 404);
             }
 
             // Nếu cả màu sắc và kích thước đều tồn tại nhưng không tìm thấy biến thể
-            return response()->json(['error' => 'Không tìm thấy biến thể cho màu sắc và kích thước đã chọn.'], 404);
+            return response()->json(['error' => 'Không tìm thấy sản phẩm có màu sắc và sze đã chọn.'], 404);
         }
 
         // Kiểm tra số lượng có đủ không
