@@ -72,13 +72,22 @@ public function addProductToCart(Request $request)
     if (!Auth::check()) {
         return response()->json(['message' => 'Vui lòng đăng nhập'], 401);
     }
-    // Kiểm tra và xác thực dữ liệu
-    $validatedData = $request->validate([
-        'product_id' => 'required|integer|exists:products,id', 
-        'quantity' => 'required|integer|min:1|max:100', 
-        'color' => 'nullable|string',
-        'size' => 'nullable|string',
-    ]);
+    try {
+        $validatedData = $request->validate([
+            'product_id' => 'required|integer|exists:products,id',
+            'quantity' => 'required|integer|min:1|max:100',
+            'color' => 'required|string',
+            'size' => 'required|string',
+        ], [
+            'product_id.required' => 'Bạn chưa chọn sản phẩm.',
+            'quantity.required' => 'Bạn chưa chọn số lượng.',
+            'color.required' => 'Bạn chưa chọn màu sắc.',
+            'size.required' => 'Bạn chưa chọn kích thước.',
+        ]);
+    } catch (\Illuminate\Validation\ValidationException $e) {
+        return response()->json(['errors' => $e->errors()], 422, [], JSON_UNESCAPED_UNICODE);
+    }
+    
 
         // Kiểm tra tồn tại sản phẩm
         $product = Product::find($validatedData['product_id']);
