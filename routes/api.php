@@ -19,6 +19,7 @@ use App\Http\Controllers\API\TagController;
 use App\Http\Controllers\Api\UserCommentController;
 use App\Http\Controllers\API\VouCherController;
 use App\Http\Controllers\Order\OrderController;
+use App\Http\Controllers\Order\OrderManagementController;
 use App\Http\Controllers\Order\VnpayController;
 use Illuminate\Support\Facades\Route;
 
@@ -88,7 +89,7 @@ Route::get('products/{id}', [ProductController::class,'show'])->name('products.s
 //ADMIN
 Route::group(
     [
-        'middleware' => ['auth:api', 'role:admin', 'admin'],
+        'middleware' => ['role:admin', 'admin'],
         'prefix' => 'admin',
     ],
     function ($router) {
@@ -130,6 +131,16 @@ Route::group(
         Route::get('banners/{id}', [BannerMktController::class, 'show']);
         Route::delete('banners/{id}', [BannerMktController::class, 'destroy']);
 
+        Route::get('/orders', [OrderManagementController::class, 'index']);
+        Route::get('/orders/{id}', [OrderManagementController::class, 'show']);
+        Route::put('/orders/{id}/status', [OrderManagementController::class, 'updateStatus']);
+        Route::put('/orders/{id}', [OrderManagementController::class, 'update']);
+        Route::post('/orders/{id}/refund', [OrderManagementController::class, 'refund']);
+        Route::delete('/orders/{id}', [OrderManagementController::class, 'destroy']);
+        Route::get('/orders/{id}/tracking', [OrderManagementController::class, 'tracking']);
+        Route::get('/orders/search', [OrderManagementController::class, 'search']);
+        Route::get('/orders/filter', [OrderManagementController::class, 'filterByDate']);
+
 
     }
 );
@@ -143,6 +154,10 @@ Route::delete('voucher/{id}', [VouCherController::class, 'destroy']);
 
 Route::post('/vnpay/create-payment', [VNPayController::class, 'createPayment']);
 Route::get('/vnpay/return', [VNPayController::class, 'paymentReturn']);
+
+Route::get('/user/comments', [UserCommentController::class, 'index']);
+Route::post('/user/comments', [UserCommentController::class, 'store']);
+Route::get('/user/comments/{id}', [UserCommentController::class, 'show']);
 
 //STAFF
 //Route::group(
@@ -162,35 +177,23 @@ Route::get('/vnpay/return', [VNPayController::class, 'paymentReturn']);
 // CUSTOMER
 Route::group(
     [
-        'middleware' => ['role:customer,admin,staff'],
+        'middleware' => ['role:admin,customer,staff'],
     ],
     function ($router) {
 
-        Route::post('carts', [CartController::class, 'store']);
-        Route::get('carts', [CartController::class, 'index']);
+        Route::post('orders', [OrderController::class, 'save']);
 
-
-        Route::post('carts', [CartController::class, 'addProductToCart'])->name('carts.store');
         Route::post('/carts', [CartController::class, 'addProductToCart']);
         Route::delete('/carts/{id}', [CartController::class, 'deleteProductFromCart']);
         Route::get('/carts', [CartController::class, 'listProductsInCart']);
-        Route::delete('carts/{id}', [CartController::class, 'destroy'])->name('carts.destroy');
+        Route::patch('/cart/{id}', [CartController::class, 'updateCartItemQuantity']);
 
-        Route::post('orders', [OrderController::class, 'order']);
-
-        Route::get('/user/comments', [UserCommentController::class, 'index']);
-        Route::post('/user/comments', [UserCommentController::class, 'store']);
-        Route::get('/user/comments/{id}', [UserCommentController::class, 'show']);
         Route::put('/user/comments/{id}', [UserCommentController::class, 'update']);
         Route::delete('/user/comments/{id}', [UserCommentController::class, 'destroy']);
 
-         Route::get('/favourites', [FavouriteListController::class, 'index']);
-         Route::post('/favourites', [FavouriteListController::class, 'store']);
-         Route::delete('/favourites/{id}', [FavouriteListController::class, 'destroy']);
-
-
+        Route::get('/favourites', [FavouriteListController::class, 'index']);
+        Route::post('/favourites', [FavouriteListController::class, 'store']);
+        Route::delete('/favourites/{id}', [FavouriteListController::class, 'destroy']);
 
     }
 );
-
-

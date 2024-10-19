@@ -72,13 +72,22 @@ public function addProductToCart(Request $request)
     if (!Auth::check()) {
         return response()->json(['message' => 'Vui lòng đăng nhập'], 401);
     }
-    // Kiểm tra và xác thực dữ liệu
-    $validatedData = $request->validate([
-        'product_id' => 'required|integer|exists:products,id', 
-        'quantity' => 'required|integer|min:1|max:100', 
-        'color' => 'nullable|string',
-        'size' => 'nullable|string',
-    ]);
+    try {
+        $validatedData = $request->validate([
+            'product_id' => 'required|integer|exists:products,id',
+            'quantity' => 'required|integer|min:1|max:100',
+            'color' => 'required|string',
+            'size' => 'required|string',
+        ], [
+            'product_id.required' => 'Bạn chưa chọn sản phẩm.',
+            'quantity.required' => 'Bạn chưa chọn số lượng.',
+            'color.required' => 'Bạn chưa chọn màu sắc.',
+            'size.required' => 'Bạn chưa chọn kích thước.',
+        ]);
+    } catch (\Illuminate\Validation\ValidationException $e) {
+        return response()->json(['errors' => $e->errors()], 422, [], JSON_UNESCAPED_UNICODE);
+    }
+    
 
         // Kiểm tra tồn tại sản phẩm
         $product = Product::find($validatedData['product_id']);
@@ -96,8 +105,22 @@ public function addProductToCart(Request $request)
       ->where('product_size_id', $sizeId)
       ->first();
 
+        // Kiểm tra xem biến thể sản phẩm có tồn tại không
         if (!$productVariant) {
-            return response()->json(['error' => 'Biến thể sản phẩm không tồn tại.'], 404);
+            // Kiểm tra màu sắc
+            $colorExists = ProductColor::find($colorId);
+            if (!$colorExists) {
+                return response()->json(['error' => 'Màu sắc không tồn tại.'], 404);
+            }
+
+            // Kiểm tra kích thước
+            $sizeExists = ProductSize::find($sizeId);
+            if (!$sizeExists) {
+                return response()->json(['error' => 'Size không tồn tại.'], 404);
+            }
+
+            // Nếu cả màu sắc và kích thước đều tồn tại nhưng không tìm thấy biến thể
+            return response()->json(['error' => 'Không tìm thấy sản phẩm có màu sắc và sze đã chọn.'], 404);
         }
 
         // Kiểm tra số lượng có đủ không
@@ -211,24 +234,139 @@ public function deleteProductFromCart($id)
  */
 public function listProductsInCart(Request $request)
 {
-
     if (!Auth::check()) {
         return response()->json(['message' => 'Vui lòng đăng nhập'], 401);
     }
-    // Lấy danh sách sản phẩm trong giỏ hàng của người dùng
-    $cartItems = Cart::where('user_id', $request->user()->id)->get();
+
+    // Lấy danh sách sản phẩm trong giỏ hàng của người dùng cùng với thông tin sản phẩm
+    $cartItems = Cart::where('user_id', $request->user()->id)
+        ->with(['product' => function ($query) {
+            $query->select('id', 'name', 'slug', 'sku', 'img_thumbnail', 'price_regular', 'price_sale', 'description');
+        }])
+        ->get();
 
     // Tính tổng tiền của sản phẩm trong giỏ hàng
     $totalPrice = $cartItems->sum(function ($cartItem) {
-        return $cartItem->price * $cartItem->quantity; 
+        $price = $cartItem->product->price_sale > 0 ? $cartItem->product->price_sale : $cartItem->product->price_regular;
+        return $price * $cartItem->quantity; 
     });
 
+    // Trả về danh sách sản phẩm trong giỏ hàng và tổng tiền
     return response()->json([
-        'cart_items' => $cartItems,
-        'total_price' => $totalPrice 
+        'cart_items' => $cartItems->map(function ($cartItem) {
+            $product = $cartItem->product;
+            return [
+                'id' => $cartItem->id,
+                'product_id' => $product->id,
+                'name' => $product->name,
+                'slug' => $product->slug,
+                'sku' => $product->sku,
+                'img_thumbnail' => $product->img_thumbnail,
+                'quantity' => $cartItem->quantity,
+                'color' => $cartItem->color, 
+                'size' => $cartItem->size, 
+                'price_regular' => $product->price_regular, 
+                'price_sale' => $product->price_sale, 
+                'price' => $product->price_sale > 0 ? $product->price_sale : $product->price_regular,
+                'total' => ($product->price_sale > 0 ? $product->price_sale : $product->price_regular) * $cartItem->quantity,
+                'description' => $product->description,
+            ];
+        }),
+        'total_price' => $totalPrice,
     ], 200);
 }
 
+/**
+ * @OA\Patch(
+ *     path="/api/cart/{id}",
+ *     operationId="updateCartItemQuantity",
+ *     tags={"Cart"},
+ *     summary="Cập nhật số lượng sản phẩm trong giỏ hàng",
+ *     security={{"Bearer": {}}},
+ *     description="Cập nhật số lượng của sản phẩm trong giỏ hàng của người dùng đã đăng nhập.",
+ *     @OA\Parameter(
+ *         name="id",
+ *         in="path",
+ *         required=true,
+ *         @OA\Schema(type="integer")
+ *     ),
+ *     @OA\RequestBody(
+ *         required=true,
+ *         @OA\JsonContent(
+ *             required={"quantity"},
+ *             @OA\Property(property="quantity", type="integer", example=2, description="Số lượng sản phẩm cần cập nhật"),
+ *         )
+ *     ),
+ *     @OA\Response(
+ *         response=200,
+ *         description="Cập nhật thành công",
+ *         @OA\JsonContent(
+ *             @OA\Property(property="message", type="string", example="Cập nhật số lượng thành công"),
+ *             @OA\Property(property="cart_item", type="object", ref="#/components/schemas/Cart")
+ *         )
+ *     ),
+ *     @OA\Response(
+ *         response=401,
+ *         description="Người dùng chưa đăng nhập",
+ *         @OA\JsonContent(
+ *             @OA\Property(property="message", type="string", example="Vui lòng đăng nhập")
+ *         )
+ *     ),
+ *     @OA\Response(
+ *         response=404,
+ *         description="Không tìm thấy sản phẩm trong giỏ hàng",
+ *         @OA\JsonContent(
+ *             @OA\Property(property="message", type="string", example="Sản phẩm không tìm thấy trong giỏ hàng")
+ *         )
+ *     )
+ * )
+ */
+public function updateCartItemQuantity(Request $request, $cartItemId)
+{
+    if (!Auth::check()) {
+        return response()->json(['message' => 'Vui lòng đăng nhập'], 401);
+    }
+
+    // Xác thực dữ liệu đầu vào
+    $validatedData = $request->validate([
+        'quantity' => 'required|integer|min:1|max:100', // Số lượng hợp lệ từ 1 đến 100
+    ]);
+
+    // Tìm kiếm sản phẩm trong giỏ hàng
+    $cartItem = Cart::where('user_id', $request->user()->id)
+        ->where('id', $cartItemId)
+        ->first();
+
+    if (!$cartItem) {
+        return response()->json(['message' => 'Giỏ hàng không tồn tại trong .'], 404);
+    }
+
+  // Kiểm tra tồn kho của sản phẩm
+    $productVariant = ProductVariant::where('product_id', $cartItem->product_id)->first();
+
+    if (!$productVariant || $productVariant->quantity < $validatedData['quantity']) {
+        return response()->json(['message' => 'Số lượng sản phẩm không đủ.'], 400);
+    }
+
+
+    // Cập nhật số lượng
+    $cartItem->quantity = $validatedData['quantity'];
+    $cartItem->save();
+
+    // Tính lại tổng tiền
+    $cartItems = Cart::where('user_id', $request->user()->id)->get();
+    $totalPrice = $cartItems->sum(function ($item) {
+        $price = $item->product->price_sale > 0 ? $item->product->price_sale : $item->product->price_regular;
+        return $price * $item->quantity;
+    });
+
+    // Trả về thông tin đã cập nhật
+    return response()->json([
+        'message' => 'Cập nhật số lượng thành công.',
+        'cart_item' => $cartItem,
+        'total_price' => $totalPrice
+    ], 200);
+}
 
     
 

@@ -19,10 +19,9 @@ return new class extends Migration
             $table->foreignIdFor(User::class)->constrained();
             $table->foreignIdFor(Address::class)->constrained();
             $table->string('payment_method');
-            $table->enum('payment_status', [Order::STARTUS_PAYMENT_UNPAID, Order::STARTUS_PAYMENT_PAID, Order::STARTUS_PAYMENT_FAILED])->default(Order::STARTUS_PAYMENT_UNPAID);
+            $table->enum('payment_status', [Order::STATUS_PAYMENT_UNPAID, Order::STATUS_PAYMENT_PAID, Order::STATUS_PAYMENT_FAILED])->default(Order::STATUS_PAYMENT_UNPAID);
             $table->enum('order_status', [Order::STATUS_ORDER_PENDING,
                 Order::STATUS_ORDER_PROCESSING,
-                Order::STATUS_ORDER_SHIPPED,
                 Order::STATUS_ORDER_SHIPPING,
                 Order::STATUS_ORDER_DELIVERED,
                 Order::STATUS_ORDER_CANCELLED])

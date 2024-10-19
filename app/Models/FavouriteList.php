@@ -12,5 +12,13 @@ class FavouriteList extends Model
         'user_id',
         'product_id',
     ];
-
+/**
+     * Định nghĩa mối quan hệ với model Product.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     */
+    public function product()
+    {
+        return $this->belongsTo(Product::class, 'product_id');
+    }
 }

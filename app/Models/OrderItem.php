@@ -8,13 +8,20 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class OrderItem extends Model
 {
+
     use HasFactory, softDeletes;
+
+    protected $table = 'order_items';
+
 
     protected $fillable = [
         'order_id',
-        'product_variant_id',
+        'product_id',
         'quantity',
         'price',
+        'size',
+        'color',
+
     ];
 
     public function order()
@@ -22,8 +29,5 @@ class OrderItem extends Model
         return $this->belongsTo(Order::class);
     }
 
-    public function productVariant()
-    {
-        return $this->belongsTo(ProductVariant::class);
-    }
+
 }

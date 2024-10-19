@@ -5,9 +5,11 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+
 class Order extends Model
 {
-    use HasFactory, softDeletes;
+    use HasFactory, SoftDeletes; // Đã sửa lỗi ở đây
+
     protected $fillable = [
         'user_id',
         'address_id',
@@ -32,27 +34,28 @@ class Order extends Model
     {
         return $this->hasMany(OrderItem::class);
     }
-//['pending', 'completed', 'failed']
-    const STARTUS_ORDER =   [
+
+    const STATUS_ORDER = [
         'pending' => 'Chờ xác nhận',
-        'comfirmed' => 'Đã xác nhận',
-        'preparing' => 'Đang chuẩn bị hàng ',
-        'shipping' => 'Đang vận chuyển',
-        'delevered' => 'Đã giao hàng',
-        'cancel' => 'Đã hủy'
+        'processing' => 'Đã xác nhận',
+        'shipped' => 'Đang vận chuyển',
+        'delivered' => 'Đã giao hàng',
+        'cancelled' => 'Đã hủy'
     ];
-    const STARTUS_PAYMENT =   [
+
+    const STATUS_PAYMENT = [
         'unpaid' => 'Chưa thanh toán',
         'paid' => 'Đã thanh toán',
         'failed' => 'Thanh toán thất bại'
     ];
+
+    // Các trạng thái đơn lẻ
     const STATUS_ORDER_PENDING = 'pending';
     const STATUS_ORDER_PROCESSING = 'processing';
-    const STATUS_ORDER_SHIPPED = 'shipped';
     const STATUS_ORDER_SHIPPING = 'shipping';
     const STATUS_ORDER_DELIVERED = 'delivered';
     const STATUS_ORDER_CANCELLED = 'cancelled';
-    const STARTUS_PAYMENT_UNPAID = 'unpaid';
-    const STARTUS_PAYMENT_PAID = 'paid';
-    const STARTUS_PAYMENT_FAILED = 'failed';
+    const STATUS_PAYMENT_UNPAID = 'unpaid';
+    const STATUS_PAYMENT_PAID = 'paid';
+    const STATUS_PAYMENT_FAILED = 'failed';
 }
