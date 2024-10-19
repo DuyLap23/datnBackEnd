@@ -12,7 +12,7 @@ class OrderManagementController extends Controller
 {
 /**
  * @OA\Get(
- *     path="/api/orders",
+ *     path="/api/admin/orders",
  *     summary="Get all orders",
  *     tags={"Orders Management"},
  *     security={{"Bearer": {}}},
@@ -54,7 +54,7 @@ public function index()
  * @OA\Get(
  *     path="/api/admin/orders/{id}",
  *     summary="Lấy chi tiết đơn hàng theo ID",
- *     tags={"Orders"},
+ *     tags={"Orders Management"},
  *     security={{"Bearer": {}}},
  *     @OA\Parameter(
  *         name="id",
@@ -100,26 +100,31 @@ public function index()
  * )
  */
 
-    public function detall($id)
-    {
-       
-    if (!Auth::check()) {
-        return response()->json(['message' => 'Vui lòng đăng nhập'], 401);
-    }
-
-    $order = Order::with(['orderItems', 'address', 'user'])->find($id); 
-
-
-    if (!$order) {
-        return response()->json(['message' => 'Không tìm thấy đơn hàng'], 404);
-    }
-
-
-    return response()->json([
+ public function detall($id)
+ {
+     if (!Auth::check()) {
+         return response()->json(['message' => 'Vui lòng đăng nhập'], 401);
+     }
+ 
+     $order = Order::with(['orderItems', 'address', 'user'])->find($id);
+ 
+     if (!$order) {
+         return response()->json(['message' => 'Không tìm thấy đơn hàng'], 404);
+     }
+ 
+     return response()->json([
         'id' => $order->id,
-        'name' => $order->user->name, 
+        'name' => $order->user ? $order->user->name : 'N/A',
         'total_amount' => $order->total_amount,
-        'address' => $order->address->address_name,
+        'address' => $order->address ? [
+            'id' => $order->address->id,
+            'address_name' => $order->address->address_name,
+            'phone_number' => $order->address->phone_number,
+            'city' => $order->address->city,
+            'district' => $order->address->district,
+            'ward' => $order->address->ward,
+            'detail_address' => $order->address->detail_address,
+        ] : 'N/A',
         'payment_method' => $order->payment_method,
         'payment_status' => $order->payment_status,
         'order_status' => $order->order_status,
@@ -139,17 +144,62 @@ public function index()
             ];
         }),
     ]);
-    }
+    
+ }
+ 
+/**
+ * @OA\Patch(
+ *     path="/api/admin/orders/{id}/status",
+ *     tags={"Orders Management"},
+ *     security={{"Bearer": {}}},
+ *     summary="Cập nhật trạng thái đơn hàng",
+ *     description="Cập nhật trạng thái của đơn hàng theo ID.",
+ *     operationId="updateOrderStatus",
+ *     @OA\Parameter(
+ *         name="id",
+ *         in="path",
+ *         required=true,
+ *         description="ID của đơn hàng cần cập nhật.",
+ *         @OA\Schema(type="integer")
+ *     ),
+ *     @OA\RequestBody(
+ *         required=true,
+ *         @OA\JsonContent(
+ *             @OA\Property(property="order_status", type="string", example="completed"),
+ *         ),
+ *     ),
+ *     @OA\Response(
+ *         response=200,
+ *         description="Cập nhật trạng thái đơn hàng thành công.",
+ *         @OA\JsonContent(
+ *             @OA\Property(property="message", type="string", example="Cập nhật trạng thái đơn hàng thành công.")
+ *         ),
+ *     ),
+ *     @OA\Response(
+ *         response=404,
+ *         description="Không tìm thấy đơn hàng.",
+ *         @OA\JsonContent(
+ *             @OA\Property(property="message", type="string", example="Không tìm thấy đơn hàng.")
+ *         ),
+ *     ),
+ *     @OA\Response(
+ *         response=400,
+ *         description="Dữ liệu không hợp lệ.",
+ *         @OA\JsonContent(
+ *             @OA\Property(property="message", type="string", example="Dữ liệu không hợp lệ.")
+ *         ),
+ *     )
+ * )
+ */
+public function updateStatus(Request $request, $id)
+{
+    $order = Order::findOrFail($id);
+    $order->order_status = $request->input('order_status');
+    $order->save();
 
-    // Cập nhật trạng thái đơn hàng
-    public function updateStatus(Request $request, $id)
-    {
-        $order = Order::findOrFail($id);
-        $order->order_status = $request->input('order_status');
-        $order->save();
+    return response()->json(['message' => 'Cập nhật trạng thái đơn hàng thành công.']);
+}
 
-        return response()->json(['message' => 'Cập nhật trạng thái đơn hàng thành công.']);
-    }
 
     // Cập nhật thông tin đơn hàng
     public function update(Request $request, $id)
