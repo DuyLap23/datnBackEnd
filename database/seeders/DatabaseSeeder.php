@@ -21,7 +21,8 @@ class DatabaseSeeder extends Seeder
         // ]);
         $this->call([
             CategorySeeder::class,
-            UserSeeder::class,  VoucherSeeder::class, BrandSeeder::class,ProductSeeder::class
+            UserSeeder::class,  VoucherSeeder::class, BrandSeeder::class,ProductSeeder::class, OrdersTableSeeder::class,
+            OrderItemsTableSeeder::class,
         ]);
     }
 }
