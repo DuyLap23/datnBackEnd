@@ -132,7 +132,7 @@ Route::group(
         Route::delete('banners/{id}', [BannerMktController::class, 'destroy']);
 
         Route::get('/orders', [OrderManagementController::class, 'index']);
-        Route::get('/orders/{id}', [OrderManagementController::class, 'show']);
+        Route::get('/orders/{id}', [OrderManagementController::class, 'detall']);
         Route::put('/orders/{id}/status', [OrderManagementController::class, 'updateStatus']);
         Route::put('/orders/{id}', [OrderManagementController::class, 'update']);
         Route::post('/orders/{id}/refund', [OrderManagementController::class, 'refund']);
