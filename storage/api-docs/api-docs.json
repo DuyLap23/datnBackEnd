@@ -3842,13 +3842,13 @@
                 ]
             }
         },
-        "/api/orders": {
+        "/api/admin/orders": {
             "get": {
                 "tags": [
                     "Orders Management"
                 ],
                 "summary": "Get all orders",
-                "operationId": "f01566649a14652d39bedeb16eef1d5f",
+                "operationId": "e2c23676e9350a3e91cf2c0d3a35a3d4",
                 "responses": {
                     "200": {
                         "description": "Successful retrieval of all orders",
@@ -3906,7 +3906,7 @@
         "/api/admin/orders/{id}": {
             "get": {
                 "tags": [
-                    "Orders"
+                    "Orders Management"
                 ],
                 "summary": "Lấy chi tiết đơn hàng theo ID",
                 "operationId": "36f60c377a0f3c1b6fcdf710ac98a898",
@@ -4043,6 +4043,98 @@
                     },
                     "404": {
                         "description": "Không tìm thấy đơn hàng"
+                    }
+                },
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ]
+            }
+        },
+        "/api/admin/orders/{id}/status": {
+            "patch": {
+                "tags": [
+                    "Orders Management"
+                ],
+                "summary": "Cập nhật trạng thái đơn hàng",
+                "description": "Cập nhật trạng thái của đơn hàng theo ID.",
+                "operationId": "updateOrderStatus",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID của đơn hàng cần cập nhật.",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "order_status": {
+                                        "type": "string",
+                                        "example": "completed"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Cập nhật trạng thái đơn hàng thành công.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Cập nhật trạng thái đơn hàng thành công."
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Không tìm thấy đơn hàng.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Không tìm thấy đơn hàng."
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Dữ liệu không hợp lệ.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Dữ liệu không hợp lệ."
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
                     }
                 },
                 "security": [
@@ -6329,10 +6421,6 @@
         {
             "name": "Orders Management",
             "description": "Orders Management"
-        },
-        {
-            "name": "Orders",
-            "description": "Orders"
         },
         {
             "name": "Product Colors",
