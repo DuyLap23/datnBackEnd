@@ -443,6 +443,7 @@ class CategoryController extends Controller
             );
         } catch (\Exception $exception) {
             DB::rollBack();
+
             return response()->json(
                 [
                     'success' => false,
@@ -514,7 +515,7 @@ class CategoryController extends Controller
         try {
 //            $category = Category::findOrFail($id);
             $category = Category::query()
-                ->with(['children', 'products'])
+                ->with(['children.products'])
                 ->findOrFail($id);
 
 
