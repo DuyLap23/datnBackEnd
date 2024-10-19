@@ -2879,13 +2879,13 @@
                 ]
             }
         },
-        "/api/admin/categories/{id}": {
+        "/api/categories/{id}": {
             "get": {
                 "tags": [
                     "Category"
                 ],
-                "summary": "Lấy chi tiết danh mục",
-                "operationId": "750a18271e2c072d45518d1e5bf4d065",
+                "summary": "Lấy chi tiết danh mục hoặc lấy sản phẩm theo danh mục",
+                "operationId": "6a038665b20191638e1608ea8897bf64",
                 "parameters": [
                     {
                         "name": "id",
@@ -3001,13 +3001,10 @@
                             }
                         }
                     }
-                },
-                "security": [
-                    {
-                        "Bearer": []
-                    }
-                ]
-            },
+                }
+            }
+        },
+        "/api/admin/categories/{id}": {
             "put": {
                 "tags": [
                     "Category"

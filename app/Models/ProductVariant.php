@@ -21,7 +21,7 @@ class ProductVariant extends Model
     {
         return $this->belongsTo(Product::class);
     }
-    
+
     public function productColor()
     {
         return $this->belongsTo(ProductColor::class);
@@ -31,9 +31,13 @@ class ProductVariant extends Model
     {
         return $this->belongsTo(ProductSize::class);
     }
-    
+
     public function productImages()
     {
         return $this->hasMany(ProductImage::class);
+    }
+    public function orderItems()
+    {
+        return $this->hasMany(OrderItem::class);
     }
 }
