@@ -2557,7 +2557,7 @@ paths:
   /api/orders:
     get:
       tags:
-        - Orders
+        - 'Orders Management'
       summary: 'Get all orders'
       operationId: f01566649a14652d39bedeb16eef1d5f
       responses:
@@ -2594,6 +2594,118 @@ paths:
                   type: object
         404:
           description: 'No orders found'
+      security:
+        -
+          Bearer: []
+  '/api/admin/orders/{id}':
+    get:
+      tags:
+        - Orders
+      summary: 'Lấy chi tiết đơn hàng theo ID'
+      operationId: 36f60c377a0f3c1b6fcdf710ac98a898
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'ID của đơn hàng'
+          required: true
+          schema:
+            type: integer
+      responses:
+        200:
+          description: 'Lấy thành công chi tiết đơn hàng'
+          content:
+            application/json:
+              schema:
+                properties:
+                  id:
+                    description: 'ID đơn hàng'
+                    type: integer
+                    example: 1
+                  name:
+                    description: 'Tên khách hàng'
+                    type: string
+                    example: 'Nguyễn Văn A'
+                  total_amount:
+                    description: 'Tổng số tiền đơn hàng'
+                    type: number
+                    format: float
+                    example: 150
+                  address:
+                    description: 'Địa chỉ giao hàng'
+                    type: string
+                    example: 'Địa chỉ'
+                  payment_method:
+                    description: 'Phương thức thanh toán'
+                    type: string
+                    example: 'Thẻ tín dụng'
+                  payment_status:
+                    description: 'Trạng thái thanh toán'
+                    type: string
+                    example: 'Đã thanh toán'
+                  order_status:
+                    description: 'Trạng thái đơn hàng'
+                    type: string
+                    example: 'Hoàn thành'
+                  note:
+                    description: 'Ghi chú của đơn hàng'
+                    type: string
+                    example: 'Ghi chú'
+                  created_at:
+                    description: 'Thời gian tạo đơn hàng'
+                    type: string
+                    format: date-time
+                    example: '2024-10-19T12:00:00Z'
+                  updated_at:
+                    description: 'Thời gian cập nhật đơn hàng'
+                    type: string
+                    format: date-time
+                    example: '2024-10-19T12:00:00Z'
+                  order_items:
+                    type: array
+                    items:
+                      properties:
+                        order_id:
+                          description: 'ID đơn hàng'
+                          type: integer
+                          example: 1
+                        product_id:
+                          description: 'ID sản phẩm'
+                          type: integer
+                          example: 101
+                        quantity:
+                          description: 'Số lượng sản phẩm'
+                          type: integer
+                          example: 2
+                        price:
+                          description: 'Giá của sản phẩm'
+                          type: number
+                          format: float
+                          example: 75
+                        size:
+                          description: 'Kích thước của sản phẩm'
+                          type: string
+                          example: L
+                        color:
+                          description: 'Màu sắc của sản phẩm'
+                          type: string
+                          example: Đỏ
+                        created_at:
+                          description: 'Thời gian tạo sản phẩm trong đơn hàng'
+                          type: string
+                          format: date-time
+                          example: '2024-10-19T12:00:00Z'
+                        updated_at:
+                          description: 'Thời gian cập nhật sản phẩm trong đơn hàng'
+                          type: string
+                          format: date-time
+                          example: '2024-10-19T12:00:00Z'
+                      type: object
+                type: object
+        401:
+          description: 'Không được phép'
+        404:
+          description: 'Không tìm thấy đơn hàng'
       security:
         -
           Bearer: []
@@ -4144,6 +4256,9 @@ tags:
   -
     name: Favourites
     description: Favourites
+  -
+    name: 'Orders Management'
+    description: 'Orders Management'
   -
     name: Orders
     description: Orders
