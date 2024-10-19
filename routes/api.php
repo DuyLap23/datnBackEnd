@@ -178,7 +178,7 @@ Route::get('/user/comments/{id}', [UserCommentController::class, 'show']);
 // CUSTOMER
 Route::group(
     [
-        'middleware' => ['role:customer,admin,staff'],
+        'middleware' => ['role:admin,customer,staff'],
     ],
     function ($router) {
 
