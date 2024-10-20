@@ -108,8 +108,9 @@ class OrderManagementController extends Controller
     $order = Order::with(['orderItems', 'address', 'user'])->findOrFail($id); 
 
     return response()->json([
-        'id' => $order->id,
+        'order_id' => $order->id,
         'name' => $order->user ? $order->user->name : 'N/A',
+        'email' => $order->user ? $order->user->email : 'N/A',
         'total_amount' => $order->total_amount,
         'address' => $order->address ? [
             'id' => $order->address->id,
