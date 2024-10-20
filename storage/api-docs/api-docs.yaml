@@ -2554,220 +2554,6 @@ paths:
       security:
         -
           Bearer: []
-  /api/admin/orders:
-    get:
-      tags:
-        - 'Orders Management'
-      summary: 'Get all orders'
-      operationId: e2c23676e9350a3e91cf2c0d3a35a3d4
-      responses:
-        200:
-          description: 'Successful retrieval of all orders'
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  properties:
-                    id:
-                      description: 'Order ID'
-                      type: integer
-                      example: 1
-                    customer_name:
-                      description: 'Customer name'
-                      type: string
-                      example: 'Nguyễn Văn A'
-                    total_amount:
-                      description: 'Total order amount'
-                      type: number
-                      format: float
-                      example: 150
-                    order_status:
-                      description: 'Order status'
-                      type: string
-                      example: completed
-                    created_at:
-                      description: 'Order creation timestamp'
-                      type: string
-                      format: date-time
-                      example: '2024-10-19T12:00:00Z'
-                  type: object
-        404:
-          description: 'No orders found'
-      security:
-        -
-          Bearer: []
-  '/api/admin/orders/{id}':
-    get:
-      tags:
-        - 'Orders Management'
-      summary: 'Lấy chi tiết đơn hàng theo ID'
-      operationId: 36f60c377a0f3c1b6fcdf710ac98a898
-      parameters:
-        -
-          name: id
-          in: path
-          description: 'ID của đơn hàng'
-          required: true
-          schema:
-            type: integer
-      responses:
-        200:
-          description: 'Lấy thành công chi tiết đơn hàng'
-          content:
-            application/json:
-              schema:
-                properties:
-                  id:
-                    description: 'ID đơn hàng'
-                    type: integer
-                    example: 1
-                  name:
-                    description: 'Tên khách hàng'
-                    type: string
-                    example: 'Nguyễn Văn A'
-                  total_amount:
-                    description: 'Tổng số tiền đơn hàng'
-                    type: number
-                    format: float
-                    example: 150
-                  address:
-                    description: 'Địa chỉ giao hàng'
-                    type: string
-                    example: 'Địa chỉ'
-                  payment_method:
-                    description: 'Phương thức thanh toán'
-                    type: string
-                    example: 'Thẻ tín dụng'
-                  payment_status:
-                    description: 'Trạng thái thanh toán'
-                    type: string
-                    example: 'Đã thanh toán'
-                  order_status:
-                    description: 'Trạng thái đơn hàng'
-                    type: string
-                    example: 'Hoàn thành'
-                  note:
-                    description: 'Ghi chú của đơn hàng'
-                    type: string
-                    example: 'Ghi chú'
-                  created_at:
-                    description: 'Thời gian tạo đơn hàng'
-                    type: string
-                    format: date-time
-                    example: '2024-10-19T12:00:00Z'
-                  updated_at:
-                    description: 'Thời gian cập nhật đơn hàng'
-                    type: string
-                    format: date-time
-                    example: '2024-10-19T12:00:00Z'
-                  order_items:
-                    type: array
-                    items:
-                      properties:
-                        order_id:
-                          description: 'ID đơn hàng'
-                          type: integer
-                          example: 1
-                        product_id:
-                          description: 'ID sản phẩm'
-                          type: integer
-                          example: 101
-                        quantity:
-                          description: 'Số lượng sản phẩm'
-                          type: integer
-                          example: 2
-                        price:
-                          description: 'Giá của sản phẩm'
-                          type: number
-                          format: float
-                          example: 75
-                        size:
-                          description: 'Kích thước của sản phẩm'
-                          type: string
-                          example: L
-                        color:
-                          description: 'Màu sắc của sản phẩm'
-                          type: string
-                          example: Đỏ
-                        created_at:
-                          description: 'Thời gian tạo sản phẩm trong đơn hàng'
-                          type: string
-                          format: date-time
-                          example: '2024-10-19T12:00:00Z'
-                        updated_at:
-                          description: 'Thời gian cập nhật sản phẩm trong đơn hàng'
-                          type: string
-                          format: date-time
-                          example: '2024-10-19T12:00:00Z'
-                      type: object
-                type: object
-        401:
-          description: 'Không được phép'
-        404:
-          description: 'Không tìm thấy đơn hàng'
-      security:
-        -
-          Bearer: []
-  '/api/admin/orders/{id}/status':
-    patch:
-      tags:
-        - 'Orders Management'
-      summary: 'Cập nhật trạng thái đơn hàng'
-      description: 'Cập nhật trạng thái của đơn hàng theo ID.'
-      operationId: updateOrderStatus
-      parameters:
-        -
-          name: id
-          in: path
-          description: 'ID của đơn hàng cần cập nhật.'
-          required: true
-          schema:
-            type: integer
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              properties:
-                order_status:
-                  type: string
-                  example: completed
-              type: object
-      responses:
-        200:
-          description: 'Cập nhật trạng thái đơn hàng thành công.'
-          content:
-            application/json:
-              schema:
-                properties:
-                  message:
-                    type: string
-                    example: 'Cập nhật trạng thái đơn hàng thành công.'
-                type: object
-        404:
-          description: 'Không tìm thấy đơn hàng.'
-          content:
-            application/json:
-              schema:
-                properties:
-                  message:
-                    type: string
-                    example: 'Không tìm thấy đơn hàng.'
-                type: object
-        400:
-          description: 'Dữ liệu không hợp lệ.'
-          content:
-            application/json:
-              schema:
-                properties:
-                  message:
-                    type: string
-                    example: 'Dữ liệu không hợp lệ.'
-                type: object
-      security:
-        -
-          Bearer: []
   /api/product-colors:
     get:
       tags:
@@ -4035,6 +3821,161 @@ paths:
       security:
         -
           Bearer: []
+  /api/admin/orders:
+    get:
+      tags:
+        - 'Orders Management'
+      summary: 'Get all orders'
+      operationId: 1ceaf2955581e5cc90bc8092b99dad23
+      responses:
+        200:
+          description: 'Successful retrieval of all orders'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  properties:
+                    id:
+                      description: 'Order ID'
+                      type: integer
+                      example: 1
+                    customer_name:
+                      description: 'Customer name'
+                      type: string
+                      example: 'Nguyễn Văn A'
+                    total_amount:
+                      description: 'Total order amount'
+                      type: number
+                      format: float
+                      example: 150
+                    order_status:
+                      description: 'Order status'
+                      type: string
+                      example: completed
+                    created_at:
+                      description: 'Order creation timestamp'
+                      type: string
+                      format: date-time
+                      example: '2024-10-19T12:00:00Z'
+                  type: object
+        404:
+          description: 'No orders found'
+      security:
+        -
+          Bearer: []
+  '/api/admin/orders/{id}':
+    get:
+      tags:
+        - 'Orders Management'
+      summary: 'Lấy chi tiết đơn hàng theo ID'
+      operationId: d76874e121b897ea2690260464da05e9
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'ID của đơn hàng'
+          required: true
+          schema:
+            type: integer
+      responses:
+        200:
+          description: 'Lấy thành công chi tiết đơn hàng'
+          content:
+            application/json:
+              schema:
+                properties:
+                  id:
+                    description: 'ID đơn hàng'
+                    type: integer
+                    example: 1
+                  name:
+                    description: 'Tên khách hàng'
+                    type: string
+                    example: 'Nguyễn Văn A'
+                  total_amount:
+                    description: 'Tổng số tiền đơn hàng'
+                    type: number
+                    format: float
+                    example: 150
+                  address:
+                    description: 'Địa chỉ giao hàng'
+                    type: string
+                    example: 'Địa chỉ'
+                  payment_method:
+                    description: 'Phương thức thanh toán'
+                    type: string
+                    example: 'Thẻ tín dụng'
+                  payment_status:
+                    description: 'Trạng thái thanh toán'
+                    type: string
+                    example: 'Đã thanh toán'
+                  order_status:
+                    description: 'Trạng thái đơn hàng'
+                    type: string
+                    example: 'Hoàn thành'
+                  note:
+                    description: 'Ghi chú của đơn hàng'
+                    type: string
+                    example: 'Ghi chú'
+                  created_at:
+                    description: 'Thời gian tạo đơn hàng'
+                    type: string
+                    format: date-time
+                    example: '2024-10-19T12:00:00Z'
+                  updated_at:
+                    description: 'Thời gian cập nhật đơn hàng'
+                    type: string
+                    format: date-time
+                    example: '2024-10-19T12:00:00Z'
+                  order_items:
+                    type: array
+                    items:
+                      properties:
+                        order_id:
+                          description: 'ID đơn hàng'
+                          type: integer
+                          example: 1
+                        product_id:
+                          description: 'ID sản phẩm'
+                          type: integer
+                          example: 101
+                        quantity:
+                          description: 'Số lượng sản phẩm'
+                          type: integer
+                          example: 2
+                        price:
+                          description: 'Giá của sản phẩm'
+                          type: number
+                          format: float
+                          example: 75
+                        size:
+                          description: 'Kích thước của sản phẩm'
+                          type: string
+                          example: L
+                        color:
+                          description: 'Màu sắc của sản phẩm'
+                          type: string
+                          example: Đỏ
+                        created_at:
+                          description: 'Thời gian tạo sản phẩm trong đơn hàng'
+                          type: string
+                          format: date-time
+                          example: '2024-10-19T12:00:00Z'
+                        updated_at:
+                          description: 'Thời gian cập nhật sản phẩm trong đơn hàng'
+                          type: string
+                          format: date-time
+                          example: '2024-10-19T12:00:00Z'
+                      type: object
+                type: object
+        401:
+          description: 'Không được phép'
+        404:
+          description: 'Không tìm thấy đơn hàng'
+      security:
+        -
+          Bearer: []
 components:
   schemas:
     User:
@@ -4316,9 +4257,6 @@ tags:
     name: Favourites
     description: Favourites
   -
-    name: 'Orders Management'
-    description: 'Orders Management'
-  -
     name: 'Product Colors'
     description: 'Product Colors'
   -
@@ -4330,3 +4268,6 @@ tags:
   -
     name: 'User Comments'
     description: 'User Comments'
+  -
+    name: 'Orders Management'
+    description: 'Orders Management'
