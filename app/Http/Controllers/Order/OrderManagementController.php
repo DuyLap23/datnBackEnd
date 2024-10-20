@@ -141,17 +141,80 @@ class OrderManagementController extends Controller
         }),
     ]);
 }
-
-    // Cập nhật trạng thái đơn hàng
-    public function updateStatus(Request $request, $id)
-    {
-        $order = Order::findOrFail($id);
-        $order->order_status = $request->input('order_status');
-        $order->save();
-
-        return response()->json(['message' => 'Cập nhật trạng thái đơn hàng thành công.']);
+/**
+ * @OA\Patch(
+ *     path="/api/admin/orders/{id}/status",
+ *     summary="Cập nhật trạng thái đơn hàng",
+ *     description="Cập nhật trạng thái của một đơn hàng. Chỉ có admin mới có quyền thực hiện chức năng này.",
+ *     tags={"Orders Management"},
+ *     security={{"Bearer": {}}},
+ *     @OA\Parameter(
+ *         name="id",
+ *         in="path",
+ *         required=true,
+ *         @OA\Schema(
+ *             type="integer",
+ *             format="int64",
+ *             example=1
+ *         )
+ *     ),
+ *     @OA\RequestBody(
+ *         required=true,
+ *         @OA\JsonContent(
+ *             @OA\Property(property="order_status", type="string", example="pending", description="Trạng thái đơn hàng mới.")
+ *         )
+ *     ),
+ *     @OA\Response(
+ *         response=200,
+ *         description="Cập nhật trạng thái đơn hàng thành công.",
+ *         @OA\JsonContent(
+ *             @OA\Property(property="message", type="string", example="Cập nhật trạng thái đơn hàng thành công."),
+ *             @OA\Property(property="order_id", type="integer", example=1, description="ID của đơn hàng đã cập nhật."),
+ *             @OA\Property(property="order_status", type="string", example="pending", description="Trạng thái mới của đơn hàng.")
+ *         )
+ *     ),
+ *     @OA\Response(
+ *         response=403,
+ *         description="Bạn không có quyền cập nhật trạng thái đơn hàng.",
+ *         @OA\JsonContent(
+ *             @OA\Property(property="message", type="string", example="Bạn không có quyền cập nhật trạng thái đơn hàng.")
+ *         )
+ *     ),
+ *     @OA\Response(
+ *         response=404,
+ *         description="Không tìm thấy đơn hàng.",
+ *         @OA\JsonContent(
+ *             @OA\Property(property="message", type="string", example="Không tìm thấy đơn hàng.")
+ *         )
+ *     ),
+ * )
+ */
+public function updateStatus(Request $request, $id)
+{
+   
+    if (!Auth::check() || Auth::user()->role !== 'admin') {
+        return response()->json(['message' => 'Bạn không có quyền cập nhật trạng thái đơn hàng.'], 403);
     }
 
+
+  
+    $request->validate([
+        'order_status' => 'required|in:' . implode(',', array_keys(Order::STATUS_ORDER)),
+    ]);
+
+
+    $order = Order::find($id);
+    
+    if (!$order) {
+        return response()->json(['message' => 'Không tìm thấy đơn hàng.'], 404);
+    }
+
+ 
+    $order->order_status = $request->order_status;
+    $order->save();
+
+    return response()->json(['message' => 'Cập nhật trạng thái đơn hàng thành công.', 'order' => $order]);
+}
     // Cập nhật thông tin đơn hàng
     public function update(Request $request, $id)
     {
