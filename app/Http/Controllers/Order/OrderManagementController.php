@@ -99,28 +99,27 @@ class OrderManagementController extends Controller
  * )
  */
 
-    public function detall($id)
-    {
-        $order = Order::with('orderItems')->findOrFail($id);
-        return response()->json($order);
-       
+ public function detall($id)
+{
     if (!Auth::check()) {
         return response()->json(['message' => 'Vui lòng đăng nhập'], 401);
     }
 
-    $order = Order::with(['orderItems', 'address', 'user'])->find($id); 
-
-
-    if (!$order) {
-        return response()->json(['message' => 'Không tìm thấy đơn hàng'], 404);
-    }
-
+    $order = Order::with(['orderItems', 'address', 'user'])->findOrFail($id); 
 
     return response()->json([
         'id' => $order->id,
-        'name' => $order->user->name, 
+        'name' => $order->user ? $order->user->name : 'N/A',
         'total_amount' => $order->total_amount,
-        'address' => $order->address->address_name,
+        'address' => $order->address ? [
+            'id' => $order->address->id,
+            'address_name' => $order->address->address_name,
+            'phone_number' => $order->address->phone_number,
+            'city' => $order->address->city,
+            'district' => $order->address->district,
+            'ward' => $order->address->ward,
+            'detail_address' => $order->address->detail_address,
+        ] : 'N/A',
         'payment_method' => $order->payment_method,
         'payment_status' => $order->payment_status,
         'order_status' => $order->order_status,
@@ -140,7 +139,7 @@ class OrderManagementController extends Controller
             ];
         }),
     ]);
-    }
+}
 
     // Cập nhật trạng thái đơn hàng
     public function updateStatus(Request $request, $id)
