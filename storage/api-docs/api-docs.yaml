@@ -3824,7 +3824,7 @@ paths:
   /api/admin/orders:
     get:
       tags:
-        - 'Orders Management'
+        - 'Orders Admin Management'
       summary: 'Get all orders'
       operationId: 1ceaf2955581e5cc90bc8092b99dad23
       responses:
@@ -3867,7 +3867,7 @@ paths:
   '/api/admin/orders/{id}':
     get:
       tags:
-        - 'Orders Management'
+        - 'Orders Admin Management'
       summary: 'Lấy chi tiết đơn hàng theo ID'
       operationId: d76874e121b897ea2690260464da05e9
       parameters:
@@ -3979,7 +3979,7 @@ paths:
   '/api/admin/orders/{id}/status':
     patch:
       tags:
-        - 'Orders Management'
+        - 'Orders Admin Management'
       summary: 'Cập nhật trạng thái đơn hàng'
       description: 'Cập nhật trạng thái của một đơn hàng. Chỉ có admin mới có quyền thực hiện chức năng này.'
       operationId: f09b18a1b24b68fceaaa3f1b89e7f0eb
@@ -4042,6 +4042,214 @@ paths:
                     type: string
                     example: 'Không tìm thấy đơn hàng.'
                 type: object
+      security:
+        -
+          Bearer: []
+  /api/user/orders:
+    get:
+      tags:
+        - 'Orders User Management'
+      summary: 'Hiển thị danh sách đơn hàng của người dùng'
+      operationId: 76735d19b98ad1858feaf6f64e80d404
+      responses:
+        200:
+          description: 'Danh sách đơn hàng của người dùng.'
+        401:
+          description: 'Chưa đăng nhập.'
+      security:
+        -
+          Bearer: []
+  '/api/user/orders/{id}/cancel':
+    patch:
+      tags:
+        - 'Orders User Management'
+      summary: 'Hủy đơn hàng'
+      operationId: 10cbe60b6e3f07e23cb2fbf47bed5451
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'ID của đơn hàng cần hủy'
+          required: true
+          schema:
+            type: integer
+      responses:
+        200:
+          description: 'Đơn hàng đã được hủy.'
+        404:
+          description: 'Không tìm thấy đơn hàng.'
+        400:
+          description: 'Không thể hủy đơn hàng trong trạng thái này.'
+      security:
+        -
+          Bearer: []
+  /api/user/orders/address:
+    patch:
+      tags:
+        - 'Orders User Management'
+      summary: 'Cập nhật địa chỉ giao hàng'
+      operationId: 1673d5440052065ee0ffa907e74c58aa
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              properties:
+                address_name:
+                  type: string
+                  example: 'Nguyễn Văn A'
+                phone_number:
+                  type: string
+                  example: '0123456789'
+                city:
+                  type: string
+                  example: TP.HCM
+                district:
+                  type: string
+                  example: 'Quận 1'
+                ward:
+                  type: string
+                  example: 'Phường Bến Nghé'
+                detail_address:
+                  type: string
+                  example: '123 Đường ABC'
+                is_default:
+                  type: boolean
+                  example: true
+              type: object
+      responses:
+        200:
+          description: 'Địa chỉ giao hàng đã được cập nhật.'
+        404:
+          description: 'Không tìm thấy địa chỉ.'
+        422:
+          description: 'Dữ liệu không hợp lệ.'
+      security:
+        -
+          Bearer: []
+  '/api/user/orders/{id}/payment-method':
+    patch:
+      tags:
+        - 'Orders User Management'
+      summary: 'Thay đổi hình thức thanh toán'
+      operationId: e61d26f8db6d6da36c6caaa4058b98c2
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'ID của đơn hàng cần thay đổi hình thức thanh toán'
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              properties:
+                payment_method:
+                  type: string
+                  example: credit_card
+              type: object
+      responses:
+        200:
+          description: 'Hình thức thanh toán đã được cập nhật.'
+        404:
+          description: 'Không tìm thấy đơn hàng.'
+        422:
+          description: 'Dữ liệu không hợp lệ.'
+      security:
+        -
+          Bearer: []
+  '/api/user/orders/{id}':
+    get:
+      tags:
+        - 'Orders User Management'
+      summary: 'Lấy thông tin chi tiết đơn hàng'
+      operationId: 8c7865a7512dd0236134ccd3cb8b3058
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'ID của đơn hàng cần lấy chi tiết'
+          required: true
+          schema:
+            type: integer
+      responses:
+        200:
+          description: 'Thông tin chi tiết đơn hàng.'
+          content:
+            application/json:
+              schema:
+                properties:
+                  order_id:
+                    type: integer
+                  name:
+                    type: string
+                  email:
+                    type: string
+                  total_amount:
+                    type: number
+                  address:
+                    properties:
+                      id:
+                        type: integer
+                      address_name:
+                        type: string
+                      phone_number:
+                        type: string
+                      city:
+                        type: string
+                      district:
+                        type: string
+                      ward:
+                        type: string
+                      detail_address:
+                        type: string
+                    type: object
+                    nullable: true
+                  payment_method:
+                    type: string
+                  payment_status:
+                    type: string
+                  order_status:
+                    type: string
+                  note:
+                    type: string
+                  created_at:
+                    type: string
+                    format: date-time
+                  updated_at:
+                    type: string
+                    format: date-time
+                  order_items:
+                    type: array
+                    items:
+                      properties:
+                        order_id:
+                          type: integer
+                        product_id:
+                          type: integer
+                        quantity:
+                          type: integer
+                        price:
+                          type: number
+                        size:
+                          type: string
+                        color:
+                          type: string
+                        created_at:
+                          type: string
+                          format: date-time
+                        updated_at:
+                          type: string
+                          format: date-time
+                      type: object
+                type: object
+        404:
+          description: 'Không tìm thấy đơn hàng.'
+        401:
+          description: 'Chưa đăng nhập.'
       security:
         -
           Bearer: []
@@ -4338,5 +4546,8 @@ tags:
     name: 'User Comments'
     description: 'User Comments'
   -
-    name: 'Orders Management'
-    description: 'Orders Management'
+    name: 'Orders Admin Management'
+    description: 'Orders Admin Management'
+  -
+    name: 'Orders User Management'
+    description: 'Orders User Management'

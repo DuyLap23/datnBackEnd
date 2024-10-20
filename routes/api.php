@@ -20,6 +20,7 @@ use App\Http\Controllers\Api\UserCommentController;
 use App\Http\Controllers\API\VouCherController;
 use App\Http\Controllers\Order\OrderController;
 use App\Http\Controllers\Order\OrderManagementController;
+use App\Http\Controllers\Order\OrderUserManagementController;
 use App\Http\Controllers\Order\VnpayController;
 use Illuminate\Support\Facades\Route;
 
@@ -194,6 +195,11 @@ Route::group(
         Route::get('/favourites', [FavouriteListController::class, 'index']);
         Route::post('/favourites', [FavouriteListController::class, 'store']);
         Route::delete('/favourites/{id}', [FavouriteListController::class, 'destroy']);
-
+         
+        Route::get('/user/orders', [OrderUserManagementController::class, 'index']);
+        Route::patch('/user/orders/{id}/cancel', [OrderUserManagementController::class, 'cancelOrder']);
+        Route::patch('/user/orders/address', [OrderUserManagementController::class, 'updateAddress']);
+        Route::patch('/user/orders/{id}/payment-method', [OrderUserManagementController::class, 'updatePaymentMethod']);
+        Route::get('/user/orders/{id}', [OrderUserManagementController::class, 'show']);
     }
 );

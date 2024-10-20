@@ -13,7 +13,7 @@ class OrderManagementController extends Controller
     * @OA\Get(
     *     path="/api/admin/orders",
     *     summary="Get all orders",
-    *     tags={"Orders Management"},
+    *     tags={"Orders Admin Management"},
     *     security={{"Bearer": {}}},
     *     @OA\Response(
     *         response=200,
@@ -53,7 +53,7 @@ class OrderManagementController extends Controller
  * @OA\Get(
  *     path="/api/admin/orders/{id}",
  *     summary="Lấy chi tiết đơn hàng theo ID",
- *     tags={"Orders Management"},
+ *     tags={"Orders Admin Management"},
  *     security={{"Bearer": {}}},
  *     @OA\Parameter(
  *         name="id",
@@ -146,7 +146,7 @@ class OrderManagementController extends Controller
  *     path="/api/admin/orders/{id}/status",
  *     summary="Cập nhật trạng thái đơn hàng",
  *     description="Cập nhật trạng thái của một đơn hàng. Chỉ có admin mới có quyền thực hiện chức năng này.",
- *     tags={"Orders Management"},
+ *     tags={"Orders Admin Management"},
  *     security={{"Bearer": {}}},
  *     @OA\Parameter(
  *         name="id",
