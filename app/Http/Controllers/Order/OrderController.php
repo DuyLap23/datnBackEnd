@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Order;
 use App\Http\Controllers\Controller;
 use App\Models\Cart;
 use App\Models\Order;
+use App\Models\OrderItem;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -41,7 +42,7 @@ class OrderController extends Controller
                     'price'=> $cartItem->product->price_sale ?: $cartItem->product->price_regular
                 ];
             }
-            if (!$user->address_id) {
+            if (!$user->addresses()->id) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Bạn cần thêm địa chỉ trước khi đặt hàng.'
@@ -49,7 +50,7 @@ class OrderController extends Controller
             }
             $order = Order::query()->create([
                 'user_id' => $user->id,
-                'address_id' => $user->address_id,
+                'address_id' => $user->addresses()->id,
                 'payment_method' => \request('payment_method'),
                 'payment_status' => \request('payment_status'),
                 'order_status' => \request('order_status'),
@@ -61,7 +62,7 @@ class OrderController extends Controller
                 $item['order_id'] = $order->id;
                 OrderItem::query()->create($item);
             }
-            CartItem::where('user_id', $user->id)->delete();
+            Cart::where('user_id', $user->id)->delete();
 
         });
             return response()->json([

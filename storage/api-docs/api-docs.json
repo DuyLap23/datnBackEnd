@@ -3842,67 +3842,6 @@
                 ]
             }
         },
-        "/api/orders": {
-            "get": {
-                "tags": [
-                    "Orders"
-                ],
-                "summary": "Get all orders",
-                "operationId": "f01566649a14652d39bedeb16eef1d5f",
-                "responses": {
-                    "200": {
-                        "description": "Successful retrieval of all orders",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "array",
-                                    "items": {
-                                        "properties": {
-                                            "id": {
-                                                "description": "Order ID",
-                                                "type": "integer",
-                                                "example": 1
-                                            },
-                                            "customer_name": {
-                                                "description": "Customer name",
-                                                "type": "string",
-                                                "example": "Nguyễn Văn A"
-                                            },
-                                            "total_amount": {
-                                                "description": "Total order amount",
-                                                "type": "number",
-                                                "format": "float",
-                                                "example": 150
-                                            },
-                                            "order_status": {
-                                                "description": "Order status",
-                                                "type": "string",
-                                                "example": "completed"
-                                            },
-                                            "created_at": {
-                                                "description": "Order creation timestamp",
-                                                "type": "string",
-                                                "format": "date-time",
-                                                "example": "2024-10-19T12:00:00Z"
-                                            }
-                                        },
-                                        "type": "object"
-                                    }
-                                }
-                            }
-                        }
-                    },
-                    "404": {
-                        "description": "No orders found"
-                    }
-                },
-                "security": [
-                    {
-                        "Bearer": []
-                    }
-                ]
-            }
-        },
         "/api/product-colors": {
             "get": {
                 "tags": [
@@ -5787,6 +5726,67 @@
                     }
                 ]
             }
+        },
+        "/api/orders": {
+            "get": {
+                "tags": [
+                    "Orders"
+                ],
+                "summary": "Get all orders",
+                "operationId": "8ddcea4d1831dcc64b2675a6b8517729",
+                "responses": {
+                    "200": {
+                        "description": "Successful retrieval of all orders",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "properties": {
+                                            "id": {
+                                                "description": "Order ID",
+                                                "type": "integer",
+                                                "example": 1
+                                            },
+                                            "customer_name": {
+                                                "description": "Customer name",
+                                                "type": "string",
+                                                "example": "Nguyễn Văn A"
+                                            },
+                                            "total_amount": {
+                                                "description": "Total order amount",
+                                                "type": "number",
+                                                "format": "float",
+                                                "example": 150
+                                            },
+                                            "order_status": {
+                                                "description": "Order status",
+                                                "type": "string",
+                                                "example": "completed"
+                                            },
+                                            "created_at": {
+                                                "description": "Order creation timestamp",
+                                                "type": "string",
+                                                "format": "date-time",
+                                                "example": "2024-10-19T12:00:00Z"
+                                            }
+                                        },
+                                        "type": "object"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "No orders found"
+                    }
+                },
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ]
+            }
         }
     },
     "components": {
@@ -6178,10 +6178,6 @@
             "description": "Favourites"
         },
         {
-            "name": "Orders",
-            "description": "Orders"
-        },
-        {
             "name": "Product Colors",
             "description": "Product Colors"
         },
@@ -6196,6 +6192,10 @@
         {
             "name": "User Comments",
             "description": "User Comments"
+        },
+        {
+            "name": "Orders",
+            "description": "Orders"
         }
     ]
 }
