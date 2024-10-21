@@ -15,9 +15,8 @@ class RoleMiddleware
      * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
      */
 
-    public function handle($request, Closure $next, $role)
+    public function handle($request, Closure $next, ...$roles)
     {
-        // Kiểm tra người dùng đã đăng nhập hay chưa
         if (!Auth::check()) {
             return response()->json(['message' => 'Vui lòng đăng nhập'], 401);
         }
@@ -25,8 +24,8 @@ class RoleMiddleware
         // Lấy thông tin người dùng hiện tại
         $user = Auth::user();
 
-        // Kiểm tra vai trò
-        if ($user->role !== $role) {
+        // Kiểm tra xem vai trò của người dùng có nằm trong danh sách các vai trò cho phép
+        if (!in_array($user->role, $roles)) {
             return response()->json(['message' => 'Bạn không có quyền truy cập vào đây.'], 403);
         }
 

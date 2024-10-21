@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Models\Cart; 
+use App\Models\Cart;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Models\Product;
@@ -47,18 +47,18 @@ class CartController extends Controller
  *         )
  *     ),
  *     @OA\Response(response="201", description="Thêm sản phẩm thành công"),
- *     @OA\Response(response="400", description="Thông tin không hợp lệ", 
+ *     @OA\Response(response="400", description="Thông tin không hợp lệ",
  *         @OA\JsonContent(
  *             @OA\Property(property="error", type="string", example="Số lượng sản phẩm vượt quá giới hạn cho phép.")
  *         )
  *     ),
- *     @OA\Response(response="404", description="Sản phẩm không tồn tại", 
+ *     @OA\Response(response="404", description="Sản phẩm không tồn tại",
  *         @OA\JsonContent(
  *             @OA\Property(property="error", type="string", example="Sản phẩm không tồn tại.")
  *         )
  *     ),
  *     @OA\Response(response="401", description="Unauthorized"),
- *     @OA\Response(response="500", description="Có lỗi xảy ra khi thêm sản phẩm", 
+ *     @OA\Response(response="500", description="Có lỗi xảy ra khi thêm sản phẩm",
  *         @OA\JsonContent(
  *             @OA\Property(property="error", type="string", example="Có lỗi xảy ra khi thêm sản phẩm."),
  *             @OA\Property(property="details", type="string", example="Chi tiết lỗi.")
@@ -68,7 +68,7 @@ class CartController extends Controller
  */
 public function addProductToCart(Request $request)
 {
-   
+
     if (!Auth::check()) {
         return response()->json(['message' => 'Vui lòng đăng nhập'], 401);
     }
@@ -87,7 +87,7 @@ public function addProductToCart(Request $request)
     } catch (\Illuminate\Validation\ValidationException $e) {
         return response()->json(['errors' => $e->errors()], 422, [], JSON_UNESCAPED_UNICODE);
     }
-    
+
 
         // Kiểm tra tồn tại sản phẩm
         $product = Product::find($validatedData['product_id']);
@@ -131,16 +131,16 @@ public function addProductToCart(Request $request)
         // Kiểm tra sản phẩm có trong giỏ hàng không
         $cartItem = Cart::where('user_id', $request->user()->id)
             ->where('product_id', $validatedData['product_id'])
-            ->where('color', $validatedData['color']) 
-            ->where('size', $validatedData['size']) 
+            ->where('color', $validatedData['color'])
+            ->where('size', $validatedData['size'])
             ->first();
 
         if ($cartItem) {
             // Cập nhật số lượng nếu sản phẩm đã có trong giỏ hàng
             $newQuantity = $cartItem->quantity + $validatedData['quantity'];
-            
+
             // Kiểm tra giới hạn số lượng
-            if ($newQuantity > 100) { 
+            if ($newQuantity > 100) {
                 return response()->json(['error' => 'Số lượng sản phẩm vượt quá giới hạn cho phép.'], 400);
             }
 
@@ -157,7 +157,7 @@ public function addProductToCart(Request $request)
 
             $cartItem = Cart::create(array_merge($validatedData, [
                 'user_id' => $request->user()->id,
-                'price' => $price, 
+                'price' => $price,
             ]));
 
             return response()->json([
@@ -196,14 +196,14 @@ public function deleteProductFromCart($id)
     if (!Auth::check()) {
         return response()->json(['message' => 'Vui lòng đăng nhập'], 401);
     }
-    
-    
+
+
     // Lấy ID người dùng hiện tại
     $userId = auth('api')->user()->id;
 
     // Tìm sản phẩm trong giỏ hàng của người dùng
     $cart = Cart::where('id', $id)->where('user_id', $userId)->first();
-    
+
     // Kiểm tra xem sản phẩm có tồn tại hay không
     if (!$cart) {
         return response()->json(['error' => 'Sản phẩm không tìm thấy'], 404);
@@ -221,20 +221,20 @@ public function deleteProductFromCart($id)
  *     summary="Lấy danh sách sản phẩm trong giỏ hàng",
  *     security={{"Bearer": {}}},
  *     description="Lấy danh sách tất cả sản phẩm trong giỏ hàng của người dùng.",
- *     @OA\Response(response="200", description="Danh sách sản phẩm trong giỏ hàng", 
+ *     @OA\Response(response="200", description="Danh sách sản phẩm trong giỏ hàng",
  *         @OA\JsonContent(
- *             @OA\Property(property="cart_items", type="array", 
+ *             @OA\Property(property="cart_items", type="array",
  *                 @OA\Items(ref="#/components/schemas/Cart")),
  *             @OA\Property(property="total_price", type="number", format="float", description="Tổng giá trị của sản phẩm trong giỏ hàng")
  *         )
  *     ),
  *     @OA\Response(response="401", description="Unauthorized")
- *     
+ *
  * )
  */
 public function listProductsInCart(Request $request)
-{
-    if (!Auth::check()) {
+{   $user = auth('api')->user();
+    if (!$user) {
         return response()->json(['message' => 'Vui lòng đăng nhập'], 401);
     }
 
@@ -248,7 +248,7 @@ public function listProductsInCart(Request $request)
     // Tính tổng tiền của sản phẩm trong giỏ hàng
     $totalPrice = $cartItems->sum(function ($cartItem) {
         $price = $cartItem->product->price_sale > 0 ? $cartItem->product->price_sale : $cartItem->product->price_regular;
-        return $price * $cartItem->quantity; 
+        return $price * $cartItem->quantity;
     });
 
     // Trả về danh sách sản phẩm trong giỏ hàng và tổng tiền
@@ -263,10 +263,10 @@ public function listProductsInCart(Request $request)
                 'sku' => $product->sku,
                 'img_thumbnail' => $product->img_thumbnail,
                 'quantity' => $cartItem->quantity,
-                'color' => $cartItem->color, 
-                'size' => $cartItem->size, 
-                'price_regular' => $product->price_regular, 
-                'price_sale' => $product->price_sale, 
+                'color' => $cartItem->color,
+                'size' => $cartItem->size,
+                'price_regular' => $product->price_regular,
+                'price_sale' => $product->price_sale,
                 'price' => $product->price_sale > 0 ? $product->price_sale : $product->price_regular,
                 'total' => ($product->price_sale > 0 ? $product->price_sale : $product->price_regular) * $cartItem->quantity,
                 'description' => $product->description,
@@ -368,6 +368,6 @@ public function updateCartItemQuantity(Request $request, $cartItemId)
     ], 200);
 }
 
-    
+
 
 }
