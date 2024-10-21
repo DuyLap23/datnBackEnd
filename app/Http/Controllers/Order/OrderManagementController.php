@@ -9,31 +9,30 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class OrderManagementController extends Controller
-{
-    /**
-     * @OA\Get(
-     *     path="/api/orders",
-     *     summary="Get all orders",
-     *     tags={"Orders"},
-     *     security={{"Bearer": {}}},
-     *     @OA\Response(
-     *         response=200,
-     *         description="Successful retrieval of all orders",
-     *         @OA\JsonContent(
-     *             type="array",
-     *             @OA\Items(
-     *                 type="object",
-     *                 @OA\Property(property="id", type="integer", example=1, description="Order ID"),
-     *                 @OA\Property(property="customer_name", type="string", example="Nguyễn Văn A", description="Customer name"),
-     *                 @OA\Property(property="total_amount", type="number", format="float", example=150.00, description="Total order amount"),
-     *                 @OA\Property(property="order_status", type="string", example="completed", description="Order status"),
-     *                 @OA\Property(property="created_at", type="string", format="date-time", example="2024-10-19T12:00:00Z", description="Order creation timestamp"),
-     *             )
-     *         )
-     *     ),
-     *     @OA\Response(response=404, description="No orders found")
-     * )
-     */
+{   /**
+    * @OA\Get(
+    *     path="/api/admin/orders",
+    *     summary="Get all orders",
+    *     tags={"Orders Admin Management"},
+    *     security={{"Bearer": {}}},
+    *     @OA\Response(
+    *         response=200,
+    *         description="Successful retrieval of all orders",
+    *         @OA\JsonContent(
+    *             type="array",
+    *             @OA\Items(
+    *                 type="object",
+    *                 @OA\Property(property="id", type="integer", example=1, description="Order ID"),
+    *                 @OA\Property(property="customer_name", type="string", example="Nguyễn Văn A", description="Customer name"),
+    *                 @OA\Property(property="total_amount", type="number", format="float", example=150.00, description="Total order amount"),
+    *                 @OA\Property(property="order_status", type="string", example="completed", description="Order status"),
+    *                 @OA\Property(property="created_at", type="string", format="date-time", example="2024-10-19T12:00:00Z", description="Order creation timestamp"),
+    *             )
+    *         )
+    *     ),
+    *     @OA\Response(response=404, description="No orders found")
+    * )
+    */
     public function index()
     {
         // Kiểm tra người dùng đã đăng nhập chưa
@@ -50,23 +49,172 @@ class OrderManagementController extends Controller
             'orders' => $orders,
         ], 200);
     }
+    /**
+ * @OA\Get(
+ *     path="/api/admin/orders/{id}",
+ *     summary="Lấy chi tiết đơn hàng theo ID",
+ *     tags={"Orders Admin Management"},
+ *     security={{"Bearer": {}}},
+ *     @OA\Parameter(
+ *         name="id",
+ *         in="path",
+ *         required=true,
+ *         @OA\Schema(type="integer"),
+ *         description="ID của đơn hàng"
+ *     ),
+ *     @OA\Response(
+ *         response=200,
+ *         description="Lấy thành công chi tiết đơn hàng",
+ *         @OA\JsonContent(
+ *             type="object",
+ *             @OA\Property(property="id", type="integer", example=1, description="ID đơn hàng"),
+ *             @OA\Property(property="name", type="string", example="Nguyễn Văn A", description="Tên khách hàng"),
+ *             @OA\Property(property="total_amount", type="number", format="float", example=150.00, description="Tổng số tiền đơn hàng"),
+ *             @OA\Property(property="address", type="string", example="Địa chỉ", description="Địa chỉ giao hàng"),
+ *             @OA\Property(property="payment_method", type="string", example="Thẻ tín dụng", description="Phương thức thanh toán"),
+ *             @OA\Property(property="payment_status", type="string", example="Đã thanh toán", description="Trạng thái thanh toán"),
+ *             @OA\Property(property="order_status", type="string", example="Hoàn thành", description="Trạng thái đơn hàng"),
+ *             @OA\Property(property="note", type="string", example="Ghi chú", description="Ghi chú của đơn hàng"),
+ *             @OA\Property(property="created_at", type="string", format="date-time", example="2024-10-19T12:00:00Z", description="Thời gian tạo đơn hàng"),
+ *             @OA\Property(property="updated_at", type="string", format="date-time", example="2024-10-19T12:00:00Z", description="Thời gian cập nhật đơn hàng"),
+ *             @OA\Property(
+ *                 property="order_items",
+ *                 type="array",
+ *                 @OA\Items(
+ *                     type="object",
+ *                     @OA\Property(property="order_id", type="integer", example=1, description="ID đơn hàng"),
+ *                     @OA\Property(property="product_id", type="integer", example=101, description="ID sản phẩm"),
+ *                     @OA\Property(property="quantity", type="integer", example=2, description="Số lượng sản phẩm"),
+ *                     @OA\Property(property="price", type="number", format="float", example=75.00, description="Giá của sản phẩm"),
+ *                     @OA\Property(property="size", type="string", example="L", description="Kích thước của sản phẩm"),
+ *                     @OA\Property(property="color", type="string", example="Đỏ", description="Màu sắc của sản phẩm"),
+ *                     @OA\Property(property="created_at", type="string", format="date-time", example="2024-10-19T12:00:00Z", description="Thời gian tạo sản phẩm trong đơn hàng"),
+ *                     @OA\Property(property="updated_at", type="string", format="date-time", example="2024-10-19T12:00:00Z", description="Thời gian cập nhật sản phẩm trong đơn hàng")
+ *                 )
+ *             )
+ *         )
+ *     ),
+ *     @OA\Response(response=401, description="Không được phép"),
+ *     @OA\Response(response=404, description="Không tìm thấy đơn hàng")
+ * )
+ */
 
-    public function show($id)
-    {
-        $order = Order::with('orderItems')->findOrFail($id);
-        return response()->json($order);
+ public function detall($id)
+{
+    if (!Auth::check()) {
+        return response()->json(['message' => 'Vui lòng đăng nhập'], 401);
     }
 
-    // Cập nhật trạng thái đơn hàng
-    public function updateStatus(Request $request, $id)
-    {
-        $order = Order::findOrFail($id);
-        $order->order_status = $request->input('order_status');
-        $order->save();
+    $order = Order::with(['orderItems', 'address', 'user'])->findOrFail($id); 
 
-        return response()->json(['message' => 'Cập nhật trạng thái đơn hàng thành công.']);
+    return response()->json([
+        'order_id' => $order->id,
+        'name' => $order->user ? $order->user->name : 'N/A',
+        'email' => $order->user ? $order->user->email : 'N/A',
+        'total_amount' => $order->total_amount,
+        'address' => $order->address ? [
+            'id' => $order->address->id,
+            'address_name' => $order->address->address_name,
+            'phone_number' => $order->address->phone_number,
+            'city' => $order->address->city,
+            'district' => $order->address->district,
+            'ward' => $order->address->ward,
+            'detail_address' => $order->address->detail_address,
+        ] : 'N/A',
+        'payment_method' => $order->payment_method,
+        'payment_status' => $order->payment_status,
+        'order_status' => $order->order_status,
+        'note' => $order->note,
+        'created_at' => $order->created_at,
+        'updated_at' => $order->updated_at,
+        'order_items' => $order->orderItems->map(function ($item) {
+            return [
+                'order_id' => $item->order_id,
+                'product_id' => $item->product_id,
+                'quantity' => $item->quantity,
+                'price' => $item->price,
+                'size' => $item->size,
+                'color' => $item->color,
+                'created_at' => $item->created_at,
+                'updated_at' => $item->updated_at,
+            ];
+        }),
+    ]);
+}
+/**
+ * @OA\Patch(
+ *     path="/api/admin/orders/{id}/status",
+ *     summary="Cập nhật trạng thái đơn hàng",
+ *     description="Cập nhật trạng thái của một đơn hàng. Chỉ có admin mới có quyền thực hiện chức năng này.",
+ *     tags={"Orders Admin Management"},
+ *     security={{"Bearer": {}}},
+ *     @OA\Parameter(
+ *         name="id",
+ *         in="path",
+ *         required=true,
+ *         @OA\Schema(
+ *             type="integer",
+ *             format="int64",
+ *             example=1
+ *         )
+ *     ),
+ *     @OA\RequestBody(
+ *         required=true,
+ *         @OA\JsonContent(
+ *             @OA\Property(property="order_status", type="string", example="pending", description="Trạng thái đơn hàng mới.")
+ *         )
+ *     ),
+ *     @OA\Response(
+ *         response=200,
+ *         description="Cập nhật trạng thái đơn hàng thành công.",
+ *         @OA\JsonContent(
+ *             @OA\Property(property="message", type="string", example="Cập nhật trạng thái đơn hàng thành công."),
+ *             @OA\Property(property="order_id", type="integer", example=1, description="ID của đơn hàng đã cập nhật."),
+ *             @OA\Property(property="order_status", type="string", example="pending", description="Trạng thái mới của đơn hàng.")
+ *         )
+ *     ),
+ *     @OA\Response(
+ *         response=403,
+ *         description="Bạn không có quyền cập nhật trạng thái đơn hàng.",
+ *         @OA\JsonContent(
+ *             @OA\Property(property="message", type="string", example="Bạn không có quyền cập nhật trạng thái đơn hàng.")
+ *         )
+ *     ),
+ *     @OA\Response(
+ *         response=404,
+ *         description="Không tìm thấy đơn hàng.",
+ *         @OA\JsonContent(
+ *             @OA\Property(property="message", type="string", example="Không tìm thấy đơn hàng.")
+ *         )
+ *     ),
+ * )
+ */
+public function updateStatus(Request $request, $id)
+{
+   
+    if (!Auth::check() || Auth::user()->role !== 'admin') {
+        return response()->json(['message' => 'Bạn không có quyền cập nhật trạng thái đơn hàng.'], 403);
     }
 
+
+  
+    $request->validate([
+        'order_status' => 'required|in:' . implode(',', array_keys(Order::STATUS_ORDER)),
+    ]);
+
+
+    $order = Order::find($id);
+    
+    if (!$order) {
+        return response()->json(['message' => 'Không tìm thấy đơn hàng.'], 404);
+    }
+
+ 
+    $order->order_status = $request->order_status;
+    $order->save();
+
+    return response()->json(['message' => 'Cập nhật trạng thái đơn hàng thành công.', 'order' => $order]);
+}
     // Cập nhật thông tin đơn hàng
     public function update(Request $request, $id)
     {

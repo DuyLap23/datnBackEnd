@@ -20,6 +20,7 @@ use App\Http\Controllers\Api\UserCommentController;
 use App\Http\Controllers\API\VouCherController;
 use App\Http\Controllers\Order\OrderController;
 use App\Http\Controllers\Order\OrderManagementController;
+use App\Http\Controllers\Order\OrderUserManagementController;
 use App\Http\Controllers\Order\VnpayController;
 use Illuminate\Support\Facades\Route;
 
@@ -132,8 +133,8 @@ Route::group(
         Route::delete('banners/{id}', [BannerMktController::class, 'destroy']);
 
         Route::get('/orders', [OrderManagementController::class, 'index']);
-        Route::get('/orders/{id}', [OrderManagementController::class, 'show']);
-        Route::put('/orders/{id}/status', [OrderManagementController::class, 'updateStatus']);
+        Route::get('/orders/{id}', [OrderManagementController::class, 'detall']);
+        Route::patch('/orders/{id}/status', [OrderManagementController::class, 'updateStatus']);
         Route::put('/orders/{id}', [OrderManagementController::class, 'update']);
         Route::post('/orders/{id}/refund', [OrderManagementController::class, 'refund']);
         Route::delete('/orders/{id}', [OrderManagementController::class, 'destroy']);
@@ -190,6 +191,13 @@ Route::group(
         Route::get('/favourites', [FavouriteListController::class, 'index']);
         Route::post('/favourites', [FavouriteListController::class, 'store']);
         Route::delete('/favourites/{id}', [FavouriteListController::class, 'destroy']);
+
+         
+        Route::get('/user/orders', [OrderUserManagementController::class, 'index']);
+        Route::patch('/user/orders/{id}/cancel', [OrderUserManagementController::class, 'cancelOrder']);
+        Route::patch('/user/orders/address', [OrderUserManagementController::class, 'updateAddress']);
+        Route::patch('/user/orders/{id}/payment-method', [OrderUserManagementController::class, 'updatePaymentMethod']);
+        Route::get('/user/orders/{id}', [OrderUserManagementController::class, 'show']);
     }
 );
 
