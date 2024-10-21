@@ -272,7 +272,7 @@ public function show($id)
         return response()->json(['message' => 'Vui lòng đăng nhập'], 401);
     }
 
-    $order = Order::with(['user', 'address', 'orderItems'])->find($id);
+    $order = Order::with(['user', 'address', 'orderItems.product'])->find($id);
 
     if (!$order || $order->user_id !== Auth::id()) {
         return response()->json(['message' => 'Không tìm thấy đơn hàng.'], 404);
@@ -305,6 +305,10 @@ public function show($id)
                 'price' => $item->price,
                 'size' => $item->size,
                 'color' => $item->color,
+                'product_name' => $item->product ? $item->product->name : 'N/A',
+                'img_thumbnail' => $item->product ? $item->product->img_thumbnail : 'N/A',
+                'price_regular' => $item->product ? $item->product->price_regular : 'N/A',
+                'price_sale' => $item->product ? $item->product->price_sale : 'N/A',
                 'created_at' => $item->created_at,
                 'updated_at' => $item->updated_at,
             ];
