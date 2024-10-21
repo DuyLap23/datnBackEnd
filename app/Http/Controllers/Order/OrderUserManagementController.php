@@ -48,6 +48,12 @@ class OrderUserManagementController extends Controller
      *         description="ID của đơn hàng cần hủy",
      *         @OA\Schema(type="integer")
      *     ),
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             @OA\Property(property="note", type="string", description="Lý do hủy đơn hàng")
+     *         )
+     *     ),
      *     @OA\Response(
      *         response=200,
      *         description="Đơn hàng đã được hủy."
@@ -62,7 +68,7 @@ class OrderUserManagementController extends Controller
      *     )
      * )
      */
-    public function cancelOrder($id)
+    public function cancelOrder($id,Request $request)
     {
         if (!Auth::check()) {
             return response()->json(['message' => 'Vui lòng đăng nhập'], 401);
@@ -78,6 +84,7 @@ class OrderUserManagementController extends Controller
             return response()->json(['message' => 'Không thể hủy đơn hàng trong trạng thái này.'], 400);
         }
         $order->order_status = 'cancelled'; 
+        $order->note = $request->input('note'); 
         $order->save();
     
         return response()->json(['message' => 'Đơn hàng đã được hủy.']);

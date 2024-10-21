@@ -5727,15 +5727,6 @@
                 ]
             }
         },
-
-        "/api/orders": {
-            "get": {
-                "tags": [
-                    "Orders"
-                ],
-                "summary": "Get all orders",
-                "operationId": "8ddcea4d1831dcc64b2675a6b8517729",
-
         "/api/admin/orders": {
             "get": {
                 "tags": [
@@ -5743,7 +5734,6 @@
                 ],
                 "summary": "Get all orders",
                 "operationId": "1ceaf2955581e5cc90bc8092b99dad23",
-
                 "responses": {
                     "200": {
                         "description": "Successful retrieval of all orders",
@@ -5786,40 +5776,6 @@
                                 }
                             }
                         }
-
-                    },
-                    "404": {
-                        "description": "No orders found"
-                    }
-                },
-                "security": [
-                    {
-                        "Bearer": []
-                    }
-                ]
-            }
-        }
-    },
-    "components": {
-        "schemas": {
-            "User": {
-                "properties": {
-                    "id": {
-                        "type": "integer",
-                        "example": 1
-                    },
-                    "name": {
-                        "type": "string",
-                        "example": "Nguyễn Văn A"
-                    },
-                    "avatar": {
-                        "type": "string",
-                        "example": "path/to/avatar.png"
-                    },
-                    "link_fb": {
-                        "type": "string",
-                        "example": "https://github.com/DuyLap23/datnBackEnd"
-
                     },
                     "404": {
                         "description": "No orders found"
@@ -6125,6 +6081,22 @@
                         }
                     }
                 ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "note": {
+                                        "description": "Lý do hủy đơn hàng",
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
                 "responses": {
                     "200": {
                         "description": "Đơn hàng đã được hủy."
@@ -6804,17 +6776,12 @@
             "description": "User Comments"
         },
         {
-
-            "name": "Orders",
-            "description": "Orders"
-
             "name": "Orders Admin Management",
             "description": "Orders Admin Management"
         },
         {
             "name": "Orders User Management",
             "description": "Orders User Management"
-
         }
     ]
 }

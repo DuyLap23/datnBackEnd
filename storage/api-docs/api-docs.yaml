@@ -4073,6 +4073,16 @@ paths:
           required: true
           schema:
             type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              properties:
+                note:
+                  description: 'Lý do hủy đơn hàng'
+                  type: string
+              type: object
       responses:
         200:
           description: 'Đơn hàng đã được hủy.'
