@@ -5727,6 +5727,7 @@
                 ]
             }
         },
+
         "/api/orders": {
             "post": {
                 "tags": [
@@ -5996,6 +5997,7 @@
                 ]
             }
         },
+
         "/api/admin/orders": {
             "get": {
                 "tags": [
@@ -6350,6 +6352,22 @@
                         }
                     }
                 ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "note": {
+                                        "description": "Lý do hủy đơn hàng",
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
                 "responses": {
                     "200": {
                         "description": "Đơn hàng đã được hủy."
@@ -7029,10 +7047,12 @@
             "description": "User Comments"
         },
         {
+
             "name": "Order",
             "description": "Order"
         },
         {
+
             "name": "Orders Admin Management",
             "description": "Orders Admin Management"
         },
