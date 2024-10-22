@@ -192,9 +192,9 @@ class OrderController extends Controller
                 $order = Order::query()->create([
                     'user_id' => $user->id,
                     'address_id' => $defaultAddress->id,
-                    'payment_method' => \request('payment_method'),
-                    'payment_status' => \request('payment_status') ?: Order::STATUS_PAYMENT_UNPAID,
-                    'order_status' => \request('order_status') ?: Order::STATUS_ORDER_PENDING,
+                    'payment_method' => request('payment_method'),
+                    'payment_status' => request('payment_status'),
+                    'order_status' => request('order_status'),
                     'total_amount' => $totalAmount,
                     'note' => request('note'),
                 ]);
