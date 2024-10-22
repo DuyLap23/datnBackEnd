@@ -49,8 +49,8 @@ class CartSeeder extends Seeder
                     'product_id' => $product->id,
                     'quantity' => rand(1, 10),
                     'price' => $product->price_regular ?: $productVariant->price_sale, // Lấy giá từ biến thể
-                    'color' => $productVariant->productColor, // Lấy màu từ biến thể
-                    'size' => $productVariant->productSize,
+                    'color' => $productVariant->productColor->name, // Lấy màu từ biến thể
+                    'size' => $productVariant->productSize->name,
                 ]);
             }
         }

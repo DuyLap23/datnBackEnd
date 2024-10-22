@@ -181,7 +181,7 @@ Route::group(
         'middleware' => ['role:staff,customer,admin'],
     ],
     function ($router) {
-        Route::post('orders', [OrderController::class, 'save']);
+        Route::post('orders', [OrderController::class, 'order']);
         Route::post('/carts', [CartController::class, 'addProductToCart']);
         Route::delete('/carts/{id}', [CartController::class, 'deleteProductFromCart']);
         Route::get('/carts', [CartController::class, 'listProductsInCart']);
@@ -192,7 +192,7 @@ Route::group(
         Route::post('/favourites', [FavouriteListController::class, 'store']);
         Route::delete('/favourites/{id}', [FavouriteListController::class, 'destroy']);
 
-         
+
         Route::get('/user/orders', [OrderUserManagementController::class, 'index']);
         Route::patch('/user/orders/{id}/cancel', [OrderUserManagementController::class, 'cancelOrder']);
         Route::patch('/user/orders/address', [OrderUserManagementController::class, 'updateAddress']);
