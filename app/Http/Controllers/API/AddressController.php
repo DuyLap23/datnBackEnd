@@ -67,7 +67,8 @@ class AddressController extends Controller
                 $addresses = Address::all();
             } else {
                 // Nếu không phải admin, chỉ hiển thị địa chỉ của người dùng hiện tại
-                $addresses = Address::where('user_id', $currentUser->id)->latest('id')->get();
+                $addresses = Address::query()->where('user_id', $currentUser->id)->orderBy('is_default', 'desc')->orderBy('id', 'desc')->get();
+
             }
 
             // Nếu không tìm thấy địa chỉ nào
@@ -164,7 +165,7 @@ class AddressController extends Controller
         }
 
         if ($address->is_default) {
-            return response()->json(['message' => 'Địa chỉ này đã là địa chỉ mặc định.'], 400); // Trả về lỗi nếu địa chỉ đã là mặc định
+            return response()->json(['message' => 'Địa chỉ này đã là địa chỉ mặc định.'], 400);
         }
         // Hủy bỏ mặc định của các địa chỉ khác
         Address::where('user_id', $user->id)->update(['is_default' => false]);
