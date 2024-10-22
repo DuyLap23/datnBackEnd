@@ -216,209 +216,241 @@ class ProductController extends Controller
             200,
         );
     }
-/**
- * @OA\Post(
- *     path="/api/admin/products",
- *     summary="Thêm sản phẩm mới",
- *     description="Thêm sản phẩm vào hệ thống với các biến thể và thẻ.",
- *     tags={"Product"},
- *     security={{"Bearer": {}}},
- *     @OA\RequestBody(
- *         required=true,
- *         @OA\MediaType(
- *             mediaType="application/json",
- *             @OA\Schema(
- *                 @OA\Property(
- *                     property="name",
- *                     type="string",
- *                     description="Tên sản phẩm",
- *                     example="Sản phẩm A"
- *                 ),
- *                 @OA\Property(
- *                     property="price",
- *                     type="number",
- *                     format="float",
- *                     description="Giá sản phẩm",
- *                     example=199000
- *                 ),
- *                 @OA\Property(
- *                     property="is_active",
- *                     type="boolean",
- *                     description="Trạng thái hoạt động của sản phẩm",
- *                     example=true
- *                 ),
- *                 @OA\Property(
- *                     property="is_new",
- *                     type="boolean",
- *                     description="Sản phẩm mới",
- *                     example=true
- *                 ),
- *                 @OA\Property(
- *                     property="is_show_home",
- *                     type="boolean",
- *                     description="Hiển thị trên trang chủ",
- *                     example=false
- *                 ),
- *                 @OA\Property(
- *                     property="img_thumbnail",
- *                     type="string",
- *                     format="binary",
- *                     description="Ảnh thumbnail của sản phẩm",
- *                     example="thumbnail.png"
- *                 ),
- *                 @OA\Property(
- *                     property="product_variants",
- *                     type="array",
- *                     @OA\Items(
- *                         type="object",
- *                         @OA\Property(
- *                             property="product_size_id",
- *                             type="integer",
- *                             description="ID kích thước sản phẩm",
- *                             example=1
- *                         ),
- *                         @OA\Property(
- *                             property="product_color_id",
- *                             type="integer",
- *                             description="ID màu sắc sản phẩm",
- *                             example=2
- *                         ),
- *                         @OA\Property(
- *                             property="quantity",
- *                             type="integer",
- *                             description="Số lượng biến thể",
- *                             example=10
- *                         ),
- *                         @OA\Property(
- *                             property="image",
- *                             type="string",
- *                             format="binary",
- *                             description="Hình ảnh biến thể sản phẩm",
- *                             example="variant_image.png"
- *                         )
- *                     )
- *                 ),
- *                 @OA\Property(
- *                     property="tags",
- *                     type="array",
- *                     @OA\Items(
- *                         type="integer",
- *                         description="ID thẻ liên kết với sản phẩm",
- *                         example=1
- *                     )
- *                 )
- *             )
- *         )
- *     ),
- *     @OA\Response(
- *         response=201,
- *         description="Thêm sản phẩm thành công",
- *         @OA\JsonContent(
- *             @OA\Property(
- *                 property="id",
- *                 type="integer",
- *                 example=1
- *             ),
- *             @OA\Property(
- *                 property="name",
- *                 type="string",
- *                 example="Sản phẩm A"
- *             ),
- *             @OA\Property(
- *                 property="price",
- *                 type="number",
- *                 format="float",
- *                 example=199000
- *             ),
- *             @OA\Property(
- *                 property="category",
- *                 type="object",
- *                 @OA\Property(
- *                     property="name",
- *                     type="string",
- *                     example="Danh mục 1"
- *                 )
- *             ),
- *             @OA\Property(
- *                 property="brand",
- *                 type="object",
- *                 @OA\Property(
- *                     property="name",
- *                     type="string",
- *                     example="Thương hiệu A"
- *                 )
- *             ),
- *             @OA\Property(
- *                 property="tags",
- *                 type="array",
- *                 @OA\Items(
- *                     @OA\Property(
- *                         property="name",
- *                         type="string",
- *                         example="Thẻ 1"
- *                     )
- *                 )
- *             ),
- *             @OA\Property(
- *                 property="product_images",
- *                 type="array",
- *                 @OA\Items(
- *                     @OA\Property(
- *                         property="url",
- *                         type="string",
- *                         example="https://apitopdeal.shop/storage/products/thumbnail.png"
- *                     )
- *                 )
- *             ),
- *             @OA\Property(
- *                 property="product_variants",
- *                 type="array",
- *                 @OA\Items(
- *                     @OA\Property(
- *                         property="product_size",
- *                         type="object",
- *                         @OA\Property(
- *                             property="name",
- *                             type="string",
- *                             example="Size M"
- *                         )
- *                     ),
- *                     @OA\Property(
- *                         property="product_color",
- *                         type="object",
- *                         @OA\Property(
- *                             property="name",
- *                             type="string",
- *                             example="Màu Đỏ"
- *                         )
- *                     ),
- *                     @OA\Property(
- *                         property="quantity",
- *                         type="integer",
- *                         example=10
- *                     ),
- *                     @OA\Property(
- *                         property="image_url",
- *                         type="string",
- *                         example="https://apitopdeal.shop/storage/products/variant_image.png"
- *                     )
- *                 )
- *             )
- *         )
- *     ),
- *     @OA\Response(
- *         response=500,
- *         description="Thêm sản phẩm thất bại",
- *         @OA\JsonContent(
- *             @OA\Property(
- *                 property="error",
- *                 type="string",
- *                 example="Lỗi thêm sản phẩm: {error details}"
- *             )
- *         )
- *     )
- * )
- */
+    /**
+     * @OA\Post(
+     *     path="/api/admin/products",
+     *     summary="Thêm sản phẩm mới",
+     *     description="Thêm sản phẩm vào hệ thống với các biến thể và thẻ.",
+     *     tags={"Product"},
+     *     security={{"Bearer": {}}},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\MediaType(
+     *             mediaType="application/json",
+     *             @OA\Schema(
+     *                 @OA\Property(
+     *                     property="name",
+     *                     type="string",
+     *                     description="Tên sản phẩm",
+     *                     example="Sản phẩm A"
+     *                 ),
+     *                 @OA\Property(
+     *                     property="price_regular",
+     *                     type="number",
+     *                     format="float",
+     *                     description="Giá sản phẩm",
+     *                     example=199000
+     *                 ),
+     *                  @OA\Property(
+     *                     property="price_sale",
+     *                     type="number",
+     *                     format="float",
+     *                     description="Giá khuyến mãi",
+     *                     example=199000
+     *                 ),
+     *                  @OA\Property(
+     *                     property="content",
+     *                     type="boolean",
+     *                     description="Mô tả sản phẩm",
+     *                     example=true
+     *                 ),
+     *                  @OA\Property(
+     *                     property="description",
+     *                     type="boolean",
+     *                     description="Mô tả ngắn sản phẩm",
+     *                     example=true
+     *                 ),
+     *                   @OA\Property(
+     *                     property="view",
+     *                     type="boolean",
+     *                     description="Lượng người truy cập sản phẩm",
+     *                     example=true
+     *                 ),
+     *                 
+     *                 @OA\Property(
+     *                     property="user_manual",
+     *                     type="boolean",
+     *                     description="Chất liệu của sản phẩm",
+     *                     example=true
+     *                 ),
+     *                 @OA\Property(
+     *                     property="is_active",
+     *                     type="boolean",
+     *                     description="Trạng thái hoạt động của sản phẩm",
+     *                     example=true
+     *                 ),
+     *                 @OA\Property(
+     *                     property="is_new",
+     *                     type="boolean",
+     *                     description="Sản phẩm mới",
+     *                     example=true
+     *                 ),
+     *                 @OA\Property(
+     *                     property="is_show_home",
+     *                     type="boolean",
+     *                     description="Hiển thị trên trang chủ",
+     *                     example=false
+     *                 ),
+     *                 @OA\Property(
+     *                     property="img_thumbnail",
+     *                     type="string",
+     *                     format="binary",
+     *                     description="Ảnh thumbnail của sản phẩm",
+     *                     example="thumbnail.png"
+     *                 ),
+     *                 @OA\Property(
+     *                     property="product_variants",
+     *                     type="array",
+     *                     @OA\Items(
+     *                         type="object",
+     *                         @OA\Property(
+     *                             property="product_size_id",
+     *                             type="integer",
+     *                             description="ID kích thước sản phẩm",
+     *                             example=1
+     *                         ),
+     *                         @OA\Property(
+     *                             property="product_color_id",
+     *                             type="integer",
+     *                             description="ID màu sắc sản phẩm",
+     *                             example=2
+     *                         ),
+     *                         @OA\Property(
+     *                             property="quantity",
+     *                             type="integer",
+     *                             description="Số lượng biến thể",
+     *                             example=10
+     *                         ),
+     *                         @OA\Property(
+     *                             property="image",
+     *                             type="string",
+     *                             format="binary",
+     *                             description="Hình ảnh biến thể sản phẩm",
+     *                             example="variant_image.png"
+     *                         )
+     *                     )
+     *                 ),
+     *                 @OA\Property(
+     *                     property="tags",
+     *                     type="array",
+     *                     @OA\Items(
+     *                         type="integer",
+     *                         description="ID thẻ liên kết với sản phẩm",
+     *                         example=1
+     *                     )
+     *                 )
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=201,
+     *         description="Thêm sản phẩm thành công",
+     *         @OA\JsonContent(
+     *             @OA\Property(
+     *                 property="id",
+     *                 type="integer",
+     *                 example=1
+     *             ),
+     *             @OA\Property(
+     *                 property="name",
+     *                 type="string",
+     *                 example="Sản phẩm A"
+     *             ),
+     *             @OA\Property(
+     *                 property="price",
+     *                 type="number",
+     *                 format="float",
+     *                 example=199000
+     *             ),
+     *             @OA\Property(
+     *                 property="category",
+     *                 type="object",
+     *                 @OA\Property(
+     *                     property="name",
+     *                     type="string",
+     *                     example="Danh mục 1"
+     *                 )
+     *             ),
+     *             @OA\Property(
+     *                 property="brand",
+     *                 type="object",
+     *                 @OA\Property(
+     *                     property="name",
+     *                     type="string",
+     *                     example="Thương hiệu A"
+     *                 )
+     *             ),
+     *             @OA\Property(
+     *                 property="tags",
+     *                 type="array",
+     *                 @OA\Items(
+     *                     @OA\Property(
+     *                         property="name",
+     *                         type="string",
+     *                         example="Thẻ 1"
+     *                     )
+     *                 )
+     *             ),
+     *             @OA\Property(
+     *                 property="product_images",
+     *                 type="array",
+     *                 @OA\Items(
+     *                     @OA\Property(
+     *                         property="url",
+     *                         type="string",
+     *                         example="https://apitopdeal.shop/storage/products/thumbnail.png"
+     *                     )
+     *                 )
+     *             ),
+     *             @OA\Property(
+     *                 property="product_variants",
+     *                 type="array",
+     *                 @OA\Items(
+     *                     @OA\Property(
+     *                         property="product_size",
+     *                         type="object",
+     *                         @OA\Property(
+     *                             property="name",
+     *                             type="string",
+     *                             example="Size M"
+     *                         )
+     *                     ),
+     *                     @OA\Property(
+     *                         property="product_color",
+     *                         type="object",
+     *                         @OA\Property(
+     *                             property="name",
+     *                             type="string",
+     *                             example="Màu Đỏ"
+     *                         )
+     *                     ),
+     *                     @OA\Property(
+     *                         property="quantity",
+     *                         type="integer",
+     *                         example=10
+     *                     ),
+     *                     @OA\Property(
+     *                         property="image_url",
+     *                         type="string",
+     *                         example="https://apitopdeal.shop/storage/products/variant_image.png"
+     *                     )
+     *                 )
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=500,
+     *         description="Thêm sản phẩm thất bại",
+     *         @OA\JsonContent(
+     *             @OA\Property(
+     *                 property="error",
+     *                 type="string",
+     *                 example="Lỗi thêm sản phẩm: {error details}"
+     *             )
+     *         )
+     *     )
+     * )
+     */
 
     public function store(ProductRequest $request)
     {
@@ -482,83 +514,83 @@ class ProductController extends Controller
     }
 
 
-/**
- * @OA\Get(
- *     path="/api/admin/product/{id}",
- *     summary="Lấy chi tiết sản phẩm",
- *     tags={"Product"},
- *     security={{"Bearer": {}}},
- *     @OA\Parameter(
- *         name="id",
- *         in="path",
- *         description="ID của sản phẩm",
- *         required=true,
- *         @OA\Schema(
- *             type="integer"
- *         )
- *     ),
- *     @OA\Response(
- *         response=200,
- *         description="Lấy thành công dữ liệu của sản phẩm",
- *         @OA\JsonContent(
- *             @OA\Property(property="success", type="boolean", example=true),
- *             @OA\Property(property="message", type="string", example="Lấy thành công dữ liệu của sản phẩm {id}"),
- *             @OA\Property(property="data", type="object",
- *                 @OA\Property(property="id", type="integer", example=1),
- *                 @OA\Property(property="name", type="string", example="Tên sản phẩm"),
- *                 @OA\Property(property="img_thumbnail", type="string", example="thumbnail.png"),
- *                 @OA\Property(property="is_active", type="boolean", example=true),
- *                 @OA\Property(property="is_new", type="boolean", example=false),
- *                 @OA\Property(property="is_show_home", type="boolean", example=true),
- *                 @OA\Property(property="category", type="object",
- *                     @OA\Property(property="id", type="integer", example=1),
- *                     @OA\Property(property="name", type="string", example="Danh mục sản phẩm")
- *                 ),
- *                 @OA\Property(property="brand", type="object",
- *                     @OA\Property(property="id", type="integer", example=1),
- *                     @OA\Property(property="name", type="string", example="Thương hiệu sản phẩm")
- *                 ),
- *                 @OA\Property(property="tags", type="array",
- *                     @OA\Items(type="string", example="Tag 1")
- *                 ),
- *                 @OA\Property(property="productImages", type="array",
- *                     @OA\Items(type="object",
- *                         @OA\Property(property="id", type="integer", example=1),
- *                         @OA\Property(property="image_url", type="string", example="image1.png")
- *                     )
- *                 ),
- *                 @OA\Property(property="productVariants", type="array",
- *                     @OA\Items(type="object",
- *                         @OA\Property(property="id", type="integer", example=1),
- *                         @OA\Property(property="product_size_id", type="integer", example=1),
- *                         @OA\Property(property="product_color_id", type="integer", example=2),
- *                         @OA\Property(property="quantity", type="integer", example=10),
- *                         @OA\Property(property="image", type="string", example="variant_image.png")
- *                     )
- *                 )
- *             ),
- *         )
- *     ),
- *     @OA\Response(
- *         response=404,
- *         description="Sản phẩm không tìm thấy",
- *         @OA\JsonContent(
- *             @OA\Property(property="success", type="boolean", example=false),
- *             @OA\Property(property="message", type="string", example="Sản phẩm không tìm thấy."),
- *             @OA\Property(property="error", type="string", example="No query results for model [Product]"),
- *         )
- *     ),
- *     @OA\Response(
- *         response=500,
- *         description="Lỗi server",
- *         @OA\JsonContent(
- *             @OA\Property(property="success", type="boolean", example=false),
- *             @OA\Property(property="message", type="string", example="Lỗi khi lấy thông tin sản phẩm."),
- *             @OA\Property(property="error", type="string", example="Server Error Message"),
- *         )
- *     )
- * )
- */
+    /**
+     * @OA\Get(
+     *     path="/api/admin/product/{id}",
+     *     summary="Lấy chi tiết sản phẩm",
+     *     tags={"Product"},
+     *     security={{"Bearer": {}}},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         description="ID của sản phẩm",
+     *         required=true,
+     *         @OA\Schema(
+     *             type="integer"
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Lấy thành công dữ liệu của sản phẩm",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="message", type="string", example="Lấy thành công dữ liệu của sản phẩm {id}"),
+     *             @OA\Property(property="data", type="object",
+     *                 @OA\Property(property="id", type="integer", example=1),
+     *                 @OA\Property(property="name", type="string", example="Tên sản phẩm"),
+     *                 @OA\Property(property="img_thumbnail", type="string", example="thumbnail.png"),
+     *                 @OA\Property(property="is_active", type="boolean", example=true),
+     *                 @OA\Property(property="is_new", type="boolean", example=false),
+     *                 @OA\Property(property="is_show_home", type="boolean", example=true),
+     *                 @OA\Property(property="category", type="object",
+     *                     @OA\Property(property="id", type="integer", example=1),
+     *                     @OA\Property(property="name", type="string", example="Danh mục sản phẩm")
+     *                 ),
+     *                 @OA\Property(property="brand", type="object",
+     *                     @OA\Property(property="id", type="integer", example=1),
+     *                     @OA\Property(property="name", type="string", example="Thương hiệu sản phẩm")
+     *                 ),
+     *                 @OA\Property(property="tags", type="array",
+     *                     @OA\Items(type="string", example="Tag 1")
+     *                 ),
+     *                 @OA\Property(property="productImages", type="array",
+     *                     @OA\Items(type="object",
+     *                         @OA\Property(property="id", type="integer", example=1),
+     *                         @OA\Property(property="image_url", type="string", example="image1.png")
+     *                     )
+     *                 ),
+     *                 @OA\Property(property="productVariants", type="array",
+     *                     @OA\Items(type="object",
+     *                         @OA\Property(property="id", type="integer", example=1),
+     *                         @OA\Property(property="product_size_id", type="integer", example=1),
+     *                         @OA\Property(property="product_color_id", type="integer", example=2),
+     *                         @OA\Property(property="quantity", type="integer", example=10),
+     *                         @OA\Property(property="image", type="string", example="variant_image.png")
+     *                     )
+     *                 )
+     *             ),
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Sản phẩm không tìm thấy",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=false),
+     *             @OA\Property(property="message", type="string", example="Sản phẩm không tìm thấy."),
+     *             @OA\Property(property="error", type="string", example="No query results for model [Product]"),
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=500,
+     *         description="Lỗi server",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=false),
+     *             @OA\Property(property="message", type="string", example="Lỗi khi lấy thông tin sản phẩm."),
+     *             @OA\Property(property="error", type="string", example="Server Error Message"),
+     *         )
+     *     )
+     * )
+     */
     public function show($id)
     {
         try {
@@ -588,91 +620,91 @@ class ProductController extends Controller
     }
 
 
-  /**
- * @OA\Put(
- *     path="/api/admin/product/{id}",
- *     summary="Cập nhật thông tin sản phẩm",
- *     tags={"Product"},
- *     security={{"Bearer": {}}},
- *     @OA\Parameter(
- *         name="id",
- *         in="path",
- *         description="ID của sản phẩm",
- *         required=true,
- *         @OA\Schema(
- *             type="integer"
- *         )
- *     ),
- *     @OA\RequestBody(
- *         required=true,
- *         @OA\JsonContent(
- *             @OA\Property(property="name", type="string", example="Tên sản phẩm"),
- *             @OA\Property(property="is_active", type="boolean", example=true),
- *             @OA\Property(property="is_new", type="boolean", example=false),
- *             @OA\Property(property="is_show_home", type="boolean", example=true),
- *             @OA\Property(property="img_thumbnail", type="string", format="binary", example="thumbnail.png"),
- *             @OA\Property(property="product_variants", type="array",
- *                 @OA\Items(type="object",
- *                     @OA\Property(property="product_size_id", type="integer", example=1),
- *                     @OA\Property(property="product_color_id", type="integer", example=2),
- *                     @OA\Property(property="quantity", type="integer", example=10),
- *                     @OA\Property(property="image", type="string", format="binary", example="variant_image.png"),
- *                     @OA\Property(property="old_image", type="string", example="old_image.png")
- *                 )
- *             ),
- *             @OA\Property(property="tags", type="array",
- *                 @OA\Items(type="integer", example=1)
- *             )
- *         )
- *     ),
- *     @OA\Response(
- *         response=200,
- *         description="Cập nhật thành công thông tin sản phẩm",
- *         @OA\JsonContent(
- *             @OA\Property(property="success", type="boolean", example=true),
- *             @OA\Property(property="message", type="string", example="Cập nhật thành công sản phẩm {id}"),
- *             @OA\Property(property="data", type="object",
- *                 @OA\Property(property="id", type="integer", example=1),
- *                 @OA\Property(property="name", type="string", example="Tên sản phẩm"),
- *                 @OA\Property(property="img_thumbnail", type="string", example="thumbnail.png"),
- *                 @OA\Property(property="is_active", type="boolean", example=true),
- *                 @OA\Property(property="is_new", type="boolean", example=false),
- *                 @OA\Property(property="is_show_home", type="boolean", example=true),
- *                 @OA\Property(property="tags", type="array",
- *                     @OA\Items(type="integer", example=1)
- *                 ),
- *                 @OA\Property(property="productVariants", type="array",
- *                     @OA\Items(type="object",
- *                         @OA\Property(property="id", type="integer", example=1),
- *                         @OA\Property(property="product_size_id", type="integer", example=1),
- *                         @OA\Property(property="product_color_id", type="integer", example=2),
- *                         @OA\Property(property="quantity", type="integer", example=10),
- *                         @OA\Property(property="image", type="string", example="variant_image.png"),
- *                     )
- *                 )
- *             ),
- *         )
- *     ),
- *     @OA\Response(
- *         response=404,
- *         description="Sản phẩm không tìm thấy",
- *         @OA\JsonContent(
- *             @OA\Property(property="success", type="boolean", example=false),
- *             @OA\Property(property="message", type="string", example="Cập nhật không thành công"),
- *             @OA\Property(property="error", type="string", example="No query results for model [Product]"),
- *         )
- *     ),
- *     @OA\Response(
- *         response=500,
- *         description="Lỗi server",
- *         @OA\JsonContent(
- *             @OA\Property(property="success", type="boolean", example=false),
- *             @OA\Property(property="message", type="string", example="Cập nhật không thành công"),
- *             @OA\Property(property="error", type="string", example="Server Error Message"),
- *         )
- *     )
- * )
- */
+    /**
+     * @OA\Put(
+     *     path="/api/admin/product/{id}",
+     *     summary="Cập nhật thông tin sản phẩm",
+     *     tags={"Product"},
+     *     security={{"Bearer": {}}},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         description="ID của sản phẩm",
+     *         required=true,
+     *         @OA\Schema(
+     *             type="integer"
+     *         )
+     *     ),
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             @OA\Property(property="name", type="string", example="Tên sản phẩm"),
+     *             @OA\Property(property="is_active", type="boolean", example=true),
+     *             @OA\Property(property="is_new", type="boolean", example=false),
+     *             @OA\Property(property="is_show_home", type="boolean", example=true),
+     *             @OA\Property(property="img_thumbnail", type="string", format="binary", example="thumbnail.png"),
+     *             @OA\Property(property="product_variants", type="array",
+     *                 @OA\Items(type="object",
+     *                     @OA\Property(property="product_size_id", type="integer", example=1),
+     *                     @OA\Property(property="product_color_id", type="integer", example=2),
+     *                     @OA\Property(property="quantity", type="integer", example=10),
+     *                     @OA\Property(property="image", type="string", format="binary", example="variant_image.png"),
+     *                     @OA\Property(property="old_image", type="string", example="old_image.png")
+     *                 )
+     *             ),
+     *             @OA\Property(property="tags", type="array",
+     *                 @OA\Items(type="integer", example=1)
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Cập nhật thành công thông tin sản phẩm",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="message", type="string", example="Cập nhật thành công sản phẩm {id}"),
+     *             @OA\Property(property="data", type="object",
+     *                 @OA\Property(property="id", type="integer", example=1),
+     *                 @OA\Property(property="name", type="string", example="Tên sản phẩm"),
+     *                 @OA\Property(property="img_thumbnail", type="string", example="thumbnail.png"),
+     *                 @OA\Property(property="is_active", type="boolean", example=true),
+     *                 @OA\Property(property="is_new", type="boolean", example=false),
+     *                 @OA\Property(property="is_show_home", type="boolean", example=true),
+     *                 @OA\Property(property="tags", type="array",
+     *                     @OA\Items(type="integer", example=1)
+     *                 ),
+     *                 @OA\Property(property="productVariants", type="array",
+     *                     @OA\Items(type="object",
+     *                         @OA\Property(property="id", type="integer", example=1),
+     *                         @OA\Property(property="product_size_id", type="integer", example=1),
+     *                         @OA\Property(property="product_color_id", type="integer", example=2),
+     *                         @OA\Property(property="quantity", type="integer", example=10),
+     *                         @OA\Property(property="image", type="string", example="variant_image.png"),
+     *                     )
+     *                 )
+     *             ),
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Sản phẩm không tìm thấy",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=false),
+     *             @OA\Property(property="message", type="string", example="Cập nhật không thành công"),
+     *             @OA\Property(property="error", type="string", example="No query results for model [Product]"),
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=500,
+     *         description="Lỗi server",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=false),
+     *             @OA\Property(property="message", type="string", example="Cập nhật không thành công"),
+     *             @OA\Property(property="error", type="string", example="Server Error Message"),
+     *         )
+     *     )
+     * )
+     */
 
     public function update(Request $request, Product $product)
     {
@@ -772,37 +804,37 @@ class ProductController extends Controller
 
 
     /**
- * @OA\Delete(
- *     path="/api/admin/products/{id}",
- *     summary="Xóa sản phẩm",
- *     tags={"Product"},
- *     security={{"Bearer": {}}},
- *     @OA\Parameter(
- *         name="id",
- *         in="path",
- *         required=true,
- *         description="ID của sản phẩm cần xóa",
- *         @OA\Schema(type="integer")
- *     ),
- *     @OA\Response(
- *         response=200,
- *         description="Xóa sản phẩm thành công",
- *         @OA\JsonContent(
- *             @OA\Property(property="success", type="boolean", example=true),
- *             @OA\Property(property="message", type="string", example="Xóa sản phẩm thành công.")
- *         )
- *     ),
- *     @OA\Response(
- *         response=500,
- *         description="Lỗi khi xóa sản phẩm",
- *         @OA\JsonContent(
- *             @OA\Property(property="success", type="boolean", example=false),
- *             @OA\Property(property="message", type="string", example="Xóa sản phẩm không thành công."),
- *             @OA\Property(property="error", type="string", example="Lý do lỗi")
- *         )
- *     )
- * )
- */
+     * @OA\Delete(
+     *     path="/api/admin/products/{id}",
+     *     summary="Xóa sản phẩm",
+     *     tags={"Product"},
+     *     security={{"Bearer": {}}},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         description="ID của sản phẩm cần xóa",
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Xóa sản phẩm thành công",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="message", type="string", example="Xóa sản phẩm thành công.")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=500,
+     *         description="Lỗi khi xóa sản phẩm",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=false),
+     *             @OA\Property(property="message", type="string", example="Xóa sản phẩm không thành công."),
+     *             @OA\Property(property="error", type="string", example="Lý do lỗi")
+     *         )
+     *     )
+     * )
+     */
 
     public function destroy(Product $product)
     {
@@ -814,12 +846,12 @@ class ProductController extends Controller
             }
 
             // Xóa hình ảnh sản phẩm
-            if ($product->productImages && $product->productImages->isNotEmpty()) {
-                foreach ($product->productImages as $gallery) {
-                    Storage::delete($gallery->image);
-                    $gallery->delete();
-                }
-            }
+            // if ($product->productImages && $product->productImages->isNotEmpty()) {
+            //     foreach ($product->productImages as $gallery) {
+            //         Storage::delete($gallery->image);
+            //         $gallery->delete();
+            //     }
+            // }
 
             // Xóa biến thể và hình ảnh của nó
             if ($product->variants && $product->variants->isNotEmpty()) {
