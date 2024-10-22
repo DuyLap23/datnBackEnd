@@ -34,8 +34,8 @@ class ProductRequest extends FormRequest
 {
     return [
         'name' => 'required|max:255',
-        'description' => 'required',
-        'is_active' => 'required|boolean',
+        'description' => 'required|min:10',
+        'is_active' => 'boolean',
         'is_new' => 'boolean',
         'is_show_home' => 'boolean',
         'brand_id' => 'required|exists:brands,id',
@@ -45,14 +45,14 @@ class ProductRequest extends FormRequest
         'product_variants.*.product_color_id' => 'required|exists:product_colors,id',
         'product_variants.*.quantity' => 'required|numeric',
         'product_variants.*.image' => 'sometimes|mimes:jpeg,jpg,png,svg,webp|max:1500', // dùng 'sometimes' để cho phép không có hình ảnh
-        'content' => 'required',
+        'content' => 'required|min:10',
         'user_manual' => 'required',
-        'view' => 'required|numeric',
+        'view' => 'nullable|numeric',
         'img_thumbnail' => 'required|mimes:jpeg,jpg,png,svg,webp|max:1500',
         'price_regular' => 'required|numeric',
         'price_sale' => 'nullable|numeric',
-        'tags' => 'required|array',
-        'tags.*' => 'required|exists:tags,id',
+        'tags' => 'nullable|array',
+        'tags.*' => 'nullable|exists:tags,id',
     ];
 }
 
