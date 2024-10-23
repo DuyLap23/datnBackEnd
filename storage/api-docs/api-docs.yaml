@@ -2917,11 +2917,32 @@ paths:
                   description: 'Tên sản phẩm'
                   type: string
                   example: 'Sản phẩm A'
-                price:
+                price_regular:
                   description: 'Giá sản phẩm'
                   type: number
                   format: float
                   example: 199000
+                price_sale:
+                  description: 'Giá khuyến mãi'
+                  type: number
+                  format: float
+                  example: 199000
+                content:
+                  description: 'Mô tả sản phẩm'
+                  type: boolean
+                  example: true
+                description:
+                  description: 'Mô tả ngắn sản phẩm'
+                  type: boolean
+                  example: true
+                view:
+                  description: 'Lượng người truy cập sản phẩm'
+                  type: boolean
+                  example: true
+                user_manual:
+                  description: 'Chất liệu của sản phẩm'
+                  type: boolean
+                  example: true
                 is_active:
                   description: 'Trạng thái hoạt động của sản phẩm'
                   type: boolean
@@ -3821,6 +3842,194 @@ paths:
       security:
         -
           Bearer: []
+  /api/orders:
+    post:
+      tags:
+        - Order
+      summary: 'Tạo đơn hàng mới'
+      description: 'Tạo đơn hàng mới từ giỏ hàng của người dùng'
+      operationId: 5bf66a57747c080521d6b1a5a7ac4771
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              required:
+                - payment_method
+                - payment_status
+                - order_status
+              properties:
+                payment_method:
+                  description: 'Phương thức thanh toán'
+                  type: string
+                  enum:
+                    - 'Thanh toán khi nhận hàng'
+                    - vnpay
+                  example: 'Thanh toán khi nhận hàng'
+                payment_status:
+                  description: 'Trạng thái thanh toán'
+                  type: string
+                  enum:
+                    - unpaid
+                    - paid
+                    - failed
+                  example: unpaid
+                order_status:
+                  description: 'Trạng thái đơn hàng'
+                  type: string
+                  enum:
+                    - pending
+                    - processing
+                    - shipped
+                    - delivered
+                    - cancelled
+                  example: pending
+                note:
+                  description: 'Ghi chú đơn hàng'
+                  type: string
+                  example: 'Giao hàng trong giờ hành chính'
+              type: object
+      responses:
+        201:
+          description: 'Đặt hàng thành công'
+          content:
+            application/json:
+              schema:
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: 'Đặt hàng thành công.'
+                  data:
+                    properties:
+                      order_id:
+                        type: integer
+                        example: 1
+                      user_id:
+                        type: integer
+                        example: 1
+                      address_id:
+                        properties:
+                          address_name:
+                            type: string
+                            example: 'Số 1 Đại Cồ Việt'
+                          phone_number:
+                            type: string
+                            example: '0123456789'
+                          city:
+                            type: string
+                            example: 'Hà Nội'
+                          district:
+                            type: string
+                            example: 'Hai Bà Trưng'
+                          ward:
+                            type: string
+                            example: 'Bách Khoa'
+                          detail_address:
+                            type: string
+                            example: 'Gần trường Đại học Bách Khoa'
+                        type: object
+                      payment_method:
+                        type: string
+                        example: 'Thanh toán khi nhận hàng'
+                      payment_status:
+                        type: string
+                        example: unpaid
+                      order_status:
+                        type: string
+                        example: pending
+                      total_amount:
+                        type: number
+                        example: 1000000
+                      note:
+                        type: string
+                        example: 'Giao hàng trong giờ hành chính'
+                      order_items:
+                        type: array
+                        items:
+                          properties:
+                            product_id:
+                              type: integer
+                              example: 1
+                            color:
+                              type: string
+                              example: Đen
+                            size:
+                              type: string
+                              example: L
+                            quantity:
+                              type: integer
+                              example: 2
+                            price:
+                              type: number
+                              example: 500000
+                          type: object
+                      created_at:
+                        type: string
+                        format: date-time
+                        example: '2024-03-20T15:30:00Z'
+                    type: object
+                type: object
+        400:
+          description: 'Lỗi validate dữ liệu hoặc chưa có địa chỉ mặc định'
+          content:
+            application/json:
+              schema:
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: 'Bạn cần thêm địa chỉ trước khi đặt hàng.'
+                type: object
+        401:
+          description: 'Chưa đăng nhập'
+          content:
+            application/json:
+              schema:
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: 'Bạn cần đăng nhập để sử dụng tính năng này.'
+                type: object
+        404:
+          description: 'Giỏ hàng trống hoặc không tìm thấy dữ liệu'
+          content:
+            application/json:
+              schema:
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: 'Giỏ hàng không có sản phẩm nào.'
+                type: object
+        500:
+          description: 'Lỗi server'
+          content:
+            application/json:
+              schema:
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: 'Không thể đặt hàng'
+                  error:
+                    type: string
+                    example: 'Internal Server Error'
+                type: object
+      security:
+        -
+          Bearer: []
   /api/admin/orders:
     get:
       tags:
@@ -4049,11 +4258,19 @@ paths:
     get:
       tags:
         - 'Orders User Management'
-      summary: 'Hiển thị danh sách đơn hàng của người dùng'
+      summary: 'Hiển thị danh sách đơn hàng của người dùng theo trạng thái'
       operationId: 76735d19b98ad1858feaf6f64e80d404
+      parameters:
+        -
+          name: status
+          in: query
+          description: 'Trạng thái đơn hàng (all, pending, shipping, delivered, canceled, returned_refunded)'
+          required: false
+          schema:
+            type: string
       responses:
         200:
-          description: 'Danh sách đơn hàng của người dùng.'
+          description: 'Danh sách đơn hàng của người dùng theo trạng thái.'
         401:
           description: 'Chưa đăng nhập.'
       security:
@@ -4555,6 +4772,9 @@ tags:
   -
     name: 'User Comments'
     description: 'User Comments'
+  -
+    name: Order
+    description: Order
   -
     name: 'Orders Admin Management'
     description: 'Orders Admin Management'

@@ -4380,11 +4380,37 @@
                                         "type": "string",
                                         "example": "Sản phẩm A"
                                     },
-                                    "price": {
+                                    "price_regular": {
                                         "description": "Giá sản phẩm",
                                         "type": "number",
                                         "format": "float",
                                         "example": 199000
+                                    },
+                                    "price_sale": {
+                                        "description": "Giá khuyến mãi",
+                                        "type": "number",
+                                        "format": "float",
+                                        "example": 199000
+                                    },
+                                    "content": {
+                                        "description": "Mô tả sản phẩm",
+                                        "type": "boolean",
+                                        "example": true
+                                    },
+                                    "description": {
+                                        "description": "Mô tả ngắn sản phẩm",
+                                        "type": "boolean",
+                                        "example": true
+                                    },
+                                    "view": {
+                                        "description": "Lượng người truy cập sản phẩm",
+                                        "type": "boolean",
+                                        "example": true
+                                    },
+                                    "user_manual": {
+                                        "description": "Chất liệu của sản phẩm",
+                                        "type": "boolean",
+                                        "example": true
                                     },
                                     "is_active": {
                                         "description": "Trạng thái hoạt động của sản phẩm",
@@ -6315,11 +6341,22 @@
                 "tags": [
                     "Orders User Management"
                 ],
-                "summary": "Hiển thị danh sách đơn hàng của người dùng",
+                "summary": "Hiển thị danh sách đơn hàng của người dùng theo trạng thái",
                 "operationId": "76735d19b98ad1858feaf6f64e80d404",
+                "parameters": [
+                    {
+                        "name": "status",
+                        "in": "query",
+                        "description": "Trạng thái đơn hàng (all, pending, shipping, delivered, canceled, returned_refunded)",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
                 "responses": {
                     "200": {
-                        "description": "Danh sách đơn hàng của người dùng."
+                        "description": "Danh sách đơn hàng của người dùng theo trạng thái."
                     },
                     "401": {
                         "description": "Chưa đăng nhập."

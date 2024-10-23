@@ -10,30 +10,75 @@ use Illuminate\Support\Facades\Auth;
 
 class OrderUserManagementController extends Controller
 {
-   /**
-     * @OA\Get(
-     *     tags={"Orders User Management"},
-     *     path="/api/user/orders",
-     *     security={{"Bearer": {}}},
-     *     summary="Hiển thị danh sách đơn hàng của người dùng",
-     *     @OA\Response(
-     *         response=200,
-     *         description="Danh sách đơn hàng của người dùng."
-     *     ),
-     *     @OA\Response(
-     *         response=401,
-     *         description="Chưa đăng nhập."
-     *     )
-     * )
-     */
-   public function index()
-   {
-        if (!Auth::check()) {
-            return response()->json(['message' => 'Vui lòng đăng nhập'], 401);
-        }
-       $orders = Order::where('user_id', Auth::id())->get();
-       return response()->json($orders);
-   }
+  /**
+ * @OA\Get(
+ *     tags={"Orders User Management"},
+ *     path="/api/user/orders",
+ *     security={{"Bearer": {}}},
+ *     summary="Hiển thị danh sách đơn hàng của người dùng theo trạng thái",
+ *     @OA\Parameter(
+ *         name="status",
+ *         in="query",
+ *         description="Trạng thái đơn hàng (all, pending, shipping, delivered, canceled, returned_refunded)",
+ *         required=false,
+ *         @OA\Schema(type="string")
+ *     ),
+ *     @OA\Response(
+ *         response=200,
+ *         description="Danh sách đơn hàng của người dùng theo trạng thái."
+ *     ),
+ *     @OA\Response(
+ *         response=401,
+ *         description="Chưa đăng nhập."
+ *     )
+ * )
+ */
+public function index(Request $request)
+{
+    if (!Auth::check()) {
+        return response()->json(['message' => 'Vui lòng đăng nhập'], 401);
+    }
+    
+    $status = $request->query('status', 'all');
+    $query = Order::where('user_id', Auth::id());
+
+    switch ($status) {
+        case 'pending':
+            $query->where('order_status', 'pending'); // chờ thanh toán
+            break;
+        case 'shipping':
+            $query->where('order_status', 'shipped'); // đang vận chuyển
+            break;
+        case 'delivered':
+            $query->where('order_status', 'delivered'); // đã hoàn thành
+            break;
+        case 'canceled':
+            $query->where('order_status', 'canceled'); // đã hủy
+            break;
+        case 'returned_refunded':
+            $query->where('order_status', 'returned_refunded'); // trả hàng/hoàn tiền
+            break;
+        case 'all':
+        default:
+            break;
+    }
+
+    // Lấy danh sách đơn hàng
+    $orders = $query->with(['orderItems.product'])->get(); 
+    if ($orders->isEmpty()) {
+        return response()->json(['message' => 'Không có đơn hàng nào'], 404);
+    }
+    // Tính tổng giá trị đơn hàng
+    // foreach ($orders as $order) {
+    //     $order->total_price = $order->orderItems->sum(function($item) {
+    //         return $item->quantity * $item->price;
+    //     });
+    // }
+    return response()->json([
+        'message' => 'Số lượng đơn hàng: ' . $orders->count(),
+        'orders' => $orders
+    ]);
+}
 
     /**
      * @OA\Patch(
