@@ -46,7 +46,7 @@ public function index(Request $request)
         case 'pending':
             $query->where('order_status', 'pending'); // chờ thanh toán
             break;
-        case 'shipping':
+        case 'shipped':
             $query->where('order_status', 'shipped'); // đang vận chuyển
             break;
         case 'delivered':
