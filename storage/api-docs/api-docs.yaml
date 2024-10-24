@@ -4264,7 +4264,7 @@ paths:
         -
           name: status
           in: query
-          description: 'Trạng thái đơn hàng (all, pending, shipping, delivered, canceled, returned_refunded)'
+          description: 'Trạng thái đơn hàng (all, pending, shipped, delivered, cancelled, returned_refunded)'
           required: false
           schema:
             type: string

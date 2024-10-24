@@ -19,7 +19,7 @@ class OrderUserManagementController extends Controller
  *     @OA\Parameter(
  *         name="status",
  *         in="query",
- *         description="Trạng thái đơn hàng (all, pending, shipping, delivered, canceled, returned_refunded)",
+ *         description="Trạng thái đơn hàng (all, pending, shipped, delivered, cancelled, returned_refunded)",
  *         required=false,
  *         @OA\Schema(type="string")
  *     ),
@@ -52,8 +52,8 @@ public function index(Request $request)
         case 'delivered':
             $query->where('order_status', 'delivered'); // đã hoàn thành
             break;
-        case 'canceled':
-            $query->where('order_status', 'canceled'); // đã hủy
+        case 'cancelled':
+            $query->where('order_status', 'cancelled'); // đã hủy
             break;
         case 'returned_refunded':
             $query->where('order_status', 'returned_refunded'); // trả hàng/hoàn tiền
