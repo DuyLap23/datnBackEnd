@@ -6027,11 +6027,22 @@
                 "tags": [
                     "Orders Admin Management"
                 ],
-                "summary": "Get all orders",
+                "summary": "Get all orders with optional status filter",
                 "operationId": "1ceaf2955581e5cc90bc8092b99dad23",
+                "parameters": [
+                    {
+                        "name": "status",
+                        "in": "query",
+                        "description": "Order status filter (all, pending, shipped, delivered, cancelled, returned_refunded)",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
                 "responses": {
                     "200": {
-                        "description": "Successful retrieval of all orders",
+                        "description": "Successful retrieval of all orders with optional status filter",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -6071,6 +6082,9 @@
                                 }
                             }
                         }
+                    },
+                    "401": {
+                        "description": "Unauthorized"
                     },
                     "404": {
                         "description": "No orders found"

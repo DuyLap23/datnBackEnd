@@ -9,15 +9,22 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class OrderManagementController extends Controller
-{   /**
+{  /**
     * @OA\Get(
     *     path="/api/admin/orders",
-    *     summary="Get all orders",
+    *     summary="Get all orders with optional status filter",
     *     tags={"Orders Admin Management"},
     *     security={{"Bearer": {}}},
+    *     @OA\Parameter(
+    *         name="status",
+    *         in="query",
+    *         description="Order status filter (all, pending, shipped, delivered, cancelled, returned_refunded)",
+    *         required=false,
+    *         @OA\Schema(type="string")
+    *     ),
     *     @OA\Response(
     *         response=200,
-    *         description="Successful retrieval of all orders",
+    *         description="Successful retrieval of all orders with optional status filter",
     *         @OA\JsonContent(
     *             type="array",
     *             @OA\Items(
@@ -30,25 +37,56 @@ class OrderManagementController extends Controller
     *             )
     *         )
     *     ),
+    *     @OA\Response(response=401, description="Unauthorized"),
     *     @OA\Response(response=404, description="No orders found")
     * )
     */
-    public function index()
-    {
-        // Kiểm tra người dùng đã đăng nhập chưa
-        if (!Auth::check()) {
-            return response()->json(['message' => 'Vui lòng đăng nhập'], 401);
-        }
-        $orders = Order::all();
-        if ($orders->isEmpty()) {
-            return response()->json(['message' => 'Không có đơn hàng nào', 'orders' => []], 404);
-        }
-        return response()->json([
-            'message' => "Có {$orders->count()} đơn hàng.",
-            'order_count' => $orders->count(),
-            'orders' => $orders,
-        ], 200);
+   public function index(Request $request)
+   {
+    if (!Auth::check() || Auth::user()->role !== 'admin') {
+        return response()->json(['message' => 'Bạn không có quyền cập nhật trạng thái đơn hàng.'], 403);
     }
+   
+       // Lấy trạng thái đơn hàng từ query string, mặc định là 'all'
+       $status = $request->query('status', 'all');
+       $query = Order::query();
+   
+       // Lọc đơn hàng theo trạng thái
+       switch ($status) {
+           case 'pending':
+               $query->where('order_status', 'pending'); // chờ thanh toán
+               break;
+           case 'shipped':
+               $query->where('order_status', 'shipped'); // đang vận chuyển
+               break;
+           case 'delivered':
+               $query->where('order_status', 'delivered'); // đã hoàn thành
+               break;
+           case 'cancelled':
+               $query->where('order_status', 'cancelled'); // đã hủy
+               break;
+           case 'returned_refunded':
+               $query->where('order_status', 'returned_refunded'); // trả hàng/hoàn tiền
+               break;
+           case 'all':
+           default:
+               break;
+       }
+   
+       // Lấy danh sách đơn hàng
+       $orders = $query->get();
+   
+       if ($orders->isEmpty()) {
+           return response()->json(['message' => 'Không có đơn hàng nào', 'orders' => []], 404);
+       }
+   
+       return response()->json([
+           'message' => "Có {$orders->count()} đơn hàng.",
+           'order_count' => $orders->count(),
+           'orders' => $orders,
+       ], 200);
+   }
+   
     /**
  * @OA\Get(
  *     path="/api/admin/orders/{id}",
@@ -101,8 +139,8 @@ class OrderManagementController extends Controller
 
  public function detall($id)
 {
-    if (!Auth::check()) {
-        return response()->json(['message' => 'Vui lòng đăng nhập'], 401);
+    if (!Auth::check() || Auth::user()->role !== 'admin') {
+        return response()->json(['message' => 'Bạn không có quyền cập nhật trạng thái đơn hàng.'], 403);
     }
 
     $order = Order::with(['orderItems', 'address', 'user'])->findOrFail($id); 
