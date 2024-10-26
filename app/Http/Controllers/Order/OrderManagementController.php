@@ -74,7 +74,7 @@ class OrderManagementController extends Controller
        }
    
        // Lấy danh sách đơn hàng
-       $orders = $query->get();
+       $orders = $query->with(['orderItems.product'])->get();  
    
        if ($orders->isEmpty()) {
            return response()->json(['message' => 'Không có đơn hàng nào', 'orders' => []], 404);
@@ -137,48 +137,64 @@ class OrderManagementController extends Controller
  * )
  */
 
+ 
+
  public function detall($id)
-{
-    if (!Auth::check() || Auth::user()->role !== 'admin') {
-        return response()->json(['message' => 'Bạn không có quyền cập nhật trạng thái đơn hàng.'], 403);
-    }
-
-    $order = Order::with(['orderItems', 'address', 'user'])->findOrFail($id); 
-
-    return response()->json([
-        'order_id' => $order->id,
-        'name' => $order->user ? $order->user->name : 'N/A',
-        'email' => $order->user ? $order->user->email : 'N/A',
-        'total_amount' => $order->total_amount,
-        'address' => $order->address ? [
-            'id' => $order->address->id,
-            'address_name' => $order->address->address_name,
-            'phone_number' => $order->address->phone_number,
-            'city' => $order->address->city,
-            'district' => $order->address->district,
-            'ward' => $order->address->ward,
-            'detail_address' => $order->address->detail_address,
-        ] : 'N/A',
-        'payment_method' => $order->payment_method,
-        'payment_status' => $order->payment_status,
-        'order_status' => $order->order_status,
-        'note' => $order->note,
-        'created_at' => $order->created_at,
-        'updated_at' => $order->updated_at,
-        'order_items' => $order->orderItems->map(function ($item) {
-            return [
-                'order_id' => $item->order_id,
-                'product_id' => $item->product_id,
-                'quantity' => $item->quantity,
-                'price' => $item->price,
-                'size' => $item->size,
-                'color' => $item->color,
-                'created_at' => $item->created_at,
-                'updated_at' => $item->updated_at,
-            ];
-        }),
-    ]);
-}
+ {
+     if (!Auth::check() || Auth::user()->role !== 'admin') {
+         return response()->json(['message' => 'Bạn không có quyền truy cập chi tiết đơn hàng.'], 403);
+     }
+ 
+     // Retrieve the order by ID, and ensure it belongs to the authenticated admin
+     $order = Order::with(['orderItems.product', 'address', 'user'])
+         ->where('user_id', Auth::id()) // Ensure the order belongs to the current user
+         ->findOrFail($id);
+    $totalAllOrders = Order::sum('total_amount');
+     return response()->json([
+         'order_id' => $order->id,
+         'name' => $order->user ? $order->user->name : 'N/A',
+         'email' => $order->user ? $order->user->email : 'N/A',
+         'total_amount' => $order->total_amount,
+         'total_all_orders' => $totalAllOrders,
+         'address' => $order->address ? [
+             'id' => $order->address->id,
+             'address_name' => $order->address->address_name,
+             'phone_number' => $order->address->phone_number,
+             'city' => $order->address->city,
+             'district' => $order->address->district,
+             'ward' => $order->address->ward,
+             'detail_address' => $order->address->detail_address,
+         ] : 'N/A',
+         'payment_method' => $order->payment_method,
+         'payment_status' => $order->payment_status,
+         'order_status' => $order->order_status,
+         'note' => $order->note,
+         'created_at' => $order->created_at,
+         'updated_at' => $order->updated_at,
+         'order_items' => $order->orderItems->map(function ($item) {
+             return [
+                 'order_id' => $item->order_id,
+                 'product_id' => $item->product_id,
+                 'quantity' => $item->quantity,
+                 'price' => $item->price,
+                 'size' => $item->size,
+                 'color' => $item->color,
+                 'created_at' => $item->created_at,
+                 'updated_at' => $item->updated_at,
+                 'product' => $item->product ? [
+                     'id' => $item->product->id,
+                     'name' => $item->product->name,
+                     'description' => $item->product->description,
+                     'price_regular' => $item->product->price_regular,
+                     'price_sale' => $item->product->price_sale,
+                     'category' => $item->product->category ? $item->product->category->name : 'N/A',
+                     'img_thumbnail' => $item->product->img_thumbnail,
+                 ] : 'N/A',
+             ];
+         }),
+     ]);
+ }
+ 
 /**
  * @OA\Patch(
  *     path="/api/admin/orders/{id}/status",
