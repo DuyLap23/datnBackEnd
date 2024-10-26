@@ -4,6 +4,7 @@ namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
 use App\Models\Category;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -772,7 +773,7 @@ class CategoryController extends Controller
                 204 // Trả về mã 204 (No Content) cho thành công
             );
 
-        } catch (\Illuminate\Database\QueryException $e) {
+        } catch (QueryException $e) {
             // Kiểm tra mã lỗi để xác định loại lỗi
             if ($e->errorInfo[1] == 1451) {
                 // Lỗi do khóa ngoại
