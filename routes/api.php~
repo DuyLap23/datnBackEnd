@@ -154,7 +154,7 @@ Route::delete('voucher/{id}', [VouCherController::class, 'destroy']);
 
 
 Route::post('/vnpay/create-payment', [VNPayController::class, 'createPayment'])->middleware('auth:api');
-Route::get('/vnpay/return', [VNPayController::class, 'vnpayReturn'])->middleware('auth:api');
+Route::get('/vnpay/return', [VNPayController::class, 'paymentReturn'])->middleware('auth:api');
 
 Route::get('/user/comments', [UserCommentController::class, 'index']);
 Route::post('/user/comments', [UserCommentController::class, 'store']);
