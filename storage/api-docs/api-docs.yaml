@@ -4195,6 +4195,69 @@ paths:
       security:
         -
           Bearer: []
+  '/api/admin/orders/{id}/status':
+    patch:
+      tags:
+        - 'Orders Admin Management'
+      summary: 'Cập nhật trạng thái của đơn hàng'
+      operationId: f09b18a1b24b68fceaaa3f1b89e7f0eb
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'ID của đơn hàng cần cập nhật'
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              required:
+                - status
+              properties:
+                status:
+                  description: 'Trạng thái mới của đơn hàng (pending, shipped, delivered, cancelled, returned_refunded)'
+                  type: string
+                  example: shipped
+              type: object
+      responses:
+        200:
+          description: 'Cập nhật thành công trạng thái đơn hàng'
+          content:
+            application/json:
+              schema:
+                properties:
+                  message:
+                    type: string
+                    example: 'Trạng thái đơn hàng đã được cập nhật thành công.'
+                  order:
+                    properties:
+                      id:
+                        description: 'ID của đơn hàng'
+                        type: integer
+                        example: 1
+                      order_status:
+                        description: 'Trạng thái mới của đơn hàng'
+                        type: string
+                        example: shipped
+                      updated_at:
+                        description: 'Thời gian cập nhật trạng thái đơn hàng'
+                        type: string
+                        format: date-time
+                        example: '2024-10-19T12:00:00Z'
+                    type: object
+                type: object
+        400:
+          description: 'Dữ liệu không hợp lệ'
+        401:
+          description: 'Không được phép'
+        404:
+          description: 'Không tìm thấy đơn hàng'
+      security:
+        -
+          Bearer: []
   /api/admin/orders/search:
     get:
       tags:

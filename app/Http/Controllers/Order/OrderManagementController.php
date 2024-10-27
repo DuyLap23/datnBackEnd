@@ -195,7 +195,80 @@ class OrderManagementController extends Controller
          }),
      ]);
  }
- 
+ /**
+ * @OA\Patch(
+ *     path="/api/admin/orders/{id}/status",
+ *     summary="Cập nhật trạng thái của đơn hàng",
+ *     tags={"Orders Admin Management"},
+ *     security={{"Bearer": {}}},
+ *     @OA\Parameter(
+ *         name="id",
+ *         in="path",
+ *         required=true,
+ *         @OA\Schema(type="integer"),
+ *         description="ID của đơn hàng cần cập nhật"
+ *     ),
+ *     @OA\RequestBody(
+ *         required=true,
+ *         @OA\JsonContent(
+ *             type="object",
+ *             required={"status"},
+ *             @OA\Property(
+ *                 property="status",
+ *                 type="string",
+ *                 description="Trạng thái mới của đơn hàng (pending, shipped, delivered, cancelled, returned_refunded)",
+ *                 example="shipped"
+ *             )
+ *         )
+ *     ),
+ *     @OA\Response(
+ *         response=200,
+ *         description="Cập nhật thành công trạng thái đơn hàng",
+ *         @OA\JsonContent(
+ *             type="object",
+ *             @OA\Property(property="message", type="string", example="Trạng thái đơn hàng đã được cập nhật thành công."),
+ *             @OA\Property(
+ *                 property="order",
+ *                 type="object",
+ *                 @OA\Property(property="id", type="integer", example=1, description="ID của đơn hàng"),
+ *                 @OA\Property(property="order_status", type="string", example="shipped", description="Trạng thái mới của đơn hàng"),
+ *                 @OA\Property(property="updated_at", type="string", format="date-time", example="2024-10-19T12:00:00Z", description="Thời gian cập nhật trạng thái đơn hàng")
+ *             )
+ *         )
+ *     ),
+ *     @OA\Response(response=400, description="Dữ liệu không hợp lệ"),
+ *     @OA\Response(response=401, description="Không được phép"),
+ *     @OA\Response(response=404, description="Không tìm thấy đơn hàng")
+ * )
+ */
+public function updateStatus(Request $request, $id)
+{
+    if (!Auth::check() || Auth::user()->role !== 'admin') {
+        return response()->json(['message' => 'Bạn không có quyền cập nhật trạng thái đơn hàng.'], 403);
+    }
+
+    $request->validate([
+        'status' => 'required|string|in:pending,shipped,delivered,cancelled,returned_refunded',
+    ]);
+
+    $order = Order::find($id);
+    if (!$order) {
+        return response()->json(['message' => 'Không tìm thấy đơn hàng.'], 404);
+    }
+
+    $order->order_status = $request->status;
+    $order->save();
+
+    return response()->json([
+        'message' => 'Trạng thái đơn hàng đã được cập nhật thành công.',
+        'order' => [
+            'id' => $order->id,
+            'order_status' => $order->order_status,
+            'updated_at' => $order->updated_at,
+        ],
+    ], 200);
+}
+
 /**
  * @OA\Get(
  *     path="/api/admin/orders/search",
