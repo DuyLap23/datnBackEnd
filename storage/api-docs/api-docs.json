@@ -6667,6 +6667,119 @@
                 ]
             }
         },
+        "/orders/{id}/refund": {
+            "post": {
+                "tags": [
+                    "Orders Admin Management"
+                ],
+                "summary": "Hoàn tiền cho đơn hàng",
+                "description": "Xử lý yêu cầu hoàn tiền cho đơn hàng đã được giao.",
+                "operationId": "67112ca84ec4f5ed43eeb5fab1e2f4c1",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID của đơn hàng cần hoàn tiền",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "amount"
+                                ],
+                                "properties": {
+                                    "amount": {
+                                        "description": "Số tiền hoàn trả",
+                                        "type": "number",
+                                        "format": "float",
+                                        "example": 100
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Yêu cầu hoàn tiền đã được xử lý thành công.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Yêu cầu hoàn trả đã được xử lý thành công và hoàn tiền đã được thực hiện."
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Bạn không có quyền thực hiện yêu cầu hoàn trả.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Bạn không có quyền thực hiện yêu cầu hoàn trả."
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Không tìm thấy đơn hàng.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Không tìm thấy đơn hàng."
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Đơn hàng không đủ điều kiện để hoàn trả.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Đơn hàng không đủ điều kiện để hoàn trả."
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ]
+            }
+        },
         "/api/user/orders": {
             "get": {
                 "tags": [
