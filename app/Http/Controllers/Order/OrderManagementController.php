@@ -14,7 +14,7 @@ class OrderManagementController extends Controller
 {  /**
     * @OA\Get(
     *     path="/api/admin/orders",
-    *     summary="Get all orders with optional status filter",
+    *     summary="Nhận tất cả các đơn hàng có bộ lọc trạng thái tùy chọn",
     *     tags={"Orders Admin Management"},
     *     security={{"Bearer": {}}},
     *     @OA\Parameter(
@@ -52,7 +52,7 @@ class OrderManagementController extends Controller
        // Lấy trạng thái đơn hàng từ query string, mặc định là 'all'
        $status = $request->query('status', 'all');
        $query = Order::query();
-   
+       $query->whereNull('deleted_at');
        // Lọc đơn hàng theo trạng thái
        switch ($status) {
            case 'pending':
@@ -335,6 +335,7 @@ public function search(Request $request)
 
     try {
         $orders = Order::with(['orderItems.product', 'address', 'user'])
+            ->where('deleted_at', null)
             ->where('id', $query)
             ->orWhereHas('user', function ($q) use ($query) {
                 $q->where('name', 'LIKE', "%{$query}%")
@@ -487,6 +488,7 @@ public function filterByDate(Request $request)
         $startDate = $startDate->startOfDay();
         $endDate = $endDate->endOfDay();
         $orders = Order::with(['orderItems.product'])
+            ->whereNull('deleted_at')    
             ->whereBetween('created_at', [$startDate, $endDate])
             ->get();
 
@@ -504,51 +506,55 @@ public function filterByDate(Request $request)
         return response()->json(['message' => 'Có lỗi xảy ra: ' . $e->getMessage()], 500);
     }
 }
-
-
-    // Thêm mục đơn hàng cho một đơn hàng
-    public function addOrderItem(Request $request, $orderId)
+/**
+     * @OA\Delete(
+     *     path="/api/admin/orders/{id}",
+     *     tags={"Orders Admin Management"},
+     *     summary="Xóa đơn hàng",
+     *     security={{"Bearer": {}}},
+     *     description="Xóa một đơn hàng bằng cách đánh dấu trường deleted_at.",
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         description="ID của đơn hàng",
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Đơn hàng đã được xóa thành công.",
+     *     ),
+     *     @OA\Response(
+     *         response=403,
+     *         description="Bạn không có quyền xóa đơn hàng.",
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Không tìm thấy đơn hàng.",
+     *     ),
+     *     @OA\Response(
+     *         response=400,
+     *         description="Không thể xóa đơn hàng có trạng thái này.",
+     *     )
+     * )
+     */
+    public function destroy($id)
     {
-        $order = Order::findOrFail($orderId);
+        if (!Auth::check() || Auth::user()->role !== 'admin') {
+            return response()->json(['message' => 'Bạn không có quyền xóa đơn hàng.'], 403);
+        }
 
-        // Xác thực dữ liệu
-        $validatedData = $request->validate([
-            'size' => 'required|string',
-            'color' => 'required|string',
-            'quantity' => 'required|integer|min:1',
-            'product_id' => 'required|exists:products,id',
-        ]);
+        $order = Order::find($id);
+        if (!$order) {
+            return response()->json(['message' => 'Không tìm thấy đơn hàng.'], 404);
+        }
+        if (!in_array($order->order_status, ['pending', 'cancelled', 'returned_refunded'])) {
+            return response()->json(['message' => 'Không thể xóa đơn hàng có trạng thái này.'], 400);
+        }
+        $order->deleted_at = now();
+        $order->save();
 
-        $orderItem = new OrderItem($validatedData);
-        $orderItem->order_id = $order->id;
-        $orderItem->save();
-
-        return response()->json(['message' => 'Mục đơn hàng đã được thêm thành công.']);
+        return response()->json(['message' => 'Đơn hàng đã được xóa thành công.'], 200);
     }
 
-    // Cập nhật mục đơn hàng
-    public function updateOrderItem(Request $request, $orderId, $itemId)
-    {
-        $orderItem = OrderItem::where('order_id', $orderId)->findOrFail($itemId);
-
-        // Xác thực dữ liệu
-        $validatedData = $request->validate([
-            'size' => 'string',
-            'color' => 'string',
-            'quantity' => 'integer|min:1',
-        ]);
-
-        $orderItem->update($validatedData);
-
-        return response()->json(['message' => 'Mục đơn hàng đã được cập nhật thành công.']);
-    }
-
-    // Xóa mục đơn hàng
-    public function destroyOrderItem($orderId, $itemId)
-    {
-        $orderItem = OrderItem::where('order_id', $orderId)->findOrFail($itemId);
-        $orderItem->delete();
-
-        return response()->json(['message' => 'Mục đơn hàng đã được xóa thành công.']);
-    }
 }
