@@ -141,6 +141,7 @@ Route::group(
         Route::get('/orders/{id}/tracking', [OrderManagementController::class, 'tracking']);
         Route::get('/orders/search', [OrderManagementController::class, 'search']);
         Route::get('/orders/filter', [OrderManagementController::class, 'filterByDate']);
+        Route::patch('/orders/{id}/status', [OrderManagementController::class, 'updateStatus']);
 
 
     }
