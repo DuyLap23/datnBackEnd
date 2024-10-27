@@ -556,5 +556,131 @@ public function filterByDate(Request $request)
 
         return response()->json(['message' => 'Đơn hàng đã được xóa thành công.'], 200);
     }
+    /**
+ * @OA\Post(
+ *     path="/orders/{id}/refund",
+ *     tags={"Orders Admin Management"},
+ *     security={{"Bearer": {}}},
+ *     summary="Hoàn tiền cho đơn hàng",
+ *     description="Xử lý yêu cầu hoàn tiền cho đơn hàng đã được giao.",
+ *     @OA\Parameter(
+ *         name="id",
+ *         in="path",
+ *         required=true,
+ *         description="ID của đơn hàng cần hoàn tiền",
+ *         @OA\Schema(
+ *             type="integer"
+ *         )
+ *     ),
+ *     @OA\RequestBody(
+ *         required=true,
+ *         @OA\JsonContent(
+ *             required={"amount"},
+ *             @OA\Property(property="amount", type="number", format="float", example=100.00, description="Số tiền hoàn trả"),
+ *         )
+ *     ),
+ *     @OA\Response(
+ *         response=200,
+ *         description="Yêu cầu hoàn tiền đã được xử lý thành công.",
+ *         @OA\JsonContent(
+ *             @OA\Property(property="message", type="string", example="Yêu cầu hoàn trả đã được xử lý thành công và hoàn tiền đã được thực hiện.")
+ *         )
+ *     ),
+ *     @OA\Response(
+ *         response=403,
+ *         description="Bạn không có quyền thực hiện yêu cầu hoàn trả.",
+ *         @OA\JsonContent(
+ *             @OA\Property(property="message", type="string", example="Bạn không có quyền thực hiện yêu cầu hoàn trả.")
+ *         )
+ *     ),
+ *     @OA\Response(
+ *         response=404,
+ *         description="Không tìm thấy đơn hàng.",
+ *         @OA\JsonContent(
+ *             @OA\Property(property="message", type="string", example="Không tìm thấy đơn hàng.")
+ *         )
+ *     ),
+ *     @OA\Response(
+ *         response=400,
+ *         description="Đơn hàng không đủ điều kiện để hoàn trả.",
+ *         @OA\JsonContent(
+ *             @OA\Property(property="message", type="string", example="Đơn hàng không đủ điều kiện để hoàn trả.")
+ *         )
+ *     ),
+ * )
+ */
+public function refund(Request $request, $id)
+{
+    if (!Auth::check() || Auth::user()->role !== 'admin') {
+        return response()->json(['message' => 'Bạn không có quyền thực hiện yêu cầu hoàn trả.'], 403);
+    }
+
+    $order = Order::find($id);
+    if (!$order) {
+        return response()->json(['message' => 'Không tìm thấy đơn hàng.'], 404);
+    }
+    if (!in_array($order->order_status, ['shipped', 'delivered'])) {
+        return response()->json(['message' => 'Đơn hàng không đủ điều kiện để hoàn trả.'], 400);
+    }
+
+    $order->order_status = 'returned_refunded';
+    $order->save();
+    $this->processRefund($order);
+
+    return response()->json(['message' => 'Yêu cầu hoàn trả đã được xử lý thành công và hoàn tiền đã được thực hiện.'], 200);
+}
+
+private function processRefund(Order $order)
+{
+    $vnp_TmnCode = env('VNP_TMNCODE');
+    $vnp_HashSecret = env('VNP_HASHSECRET'); 
+    $vnp_Url = env('VNP_URL');
+    $vnp_Amount = $order->total_amount * 100; 
+    $vnp_TxnRef = $order->transaction_id; 
+    $vnp_OrderInfo = "Hoàn tiền cho đơn hàng ID: {$order->id}";
+    $inputData = array(
+        "vnp_Version" => "2.1.0",
+        "vnp_TmnCode" => $vnp_TmnCode,
+        "vnp_Amount" => $vnp_Amount,
+        "vnp_Command" => "refund",
+        "vnp_OrderInfo" => $vnp_OrderInfo,
+        "vnp_TxnRef" => $vnp_TxnRef,
+        "vnp_CreateDate" => date('YmdHis'),
+        "vnp_CurrCode" => "VND",
+    );
+    ksort($inputData);
+    $hashData = "";
+    $i = 0;
+    foreach ($inputData as $key => $value) {
+        if ($i == 1) {
+            $hashData .= '&' . $key . "=" . $value;
+        } else {
+            $hashData .= $key . "=" . $value;
+            $i = 1;
+        }
+    }
+    $vnpSecureHash = hash('sha256', $vnp_HashSecret . $hashData);
+    $vnp_Url .= "?" . http_build_query($inputData) . "&vnp_SecureHashType=SHA256&vnp_SecureHash={$vnpSecureHash}";
+    try {
+        $response = file_get_contents($vnp_Url);
+        $responseData = json_decode($response, true);
+
+        if ($responseData['vnp_ResponseCode'] == '00') {
+            $order->order_status = 'refunded';
+            $order->save();
+
+            Log::info("Đơn hàng ID {$order->id} đã được hoàn tiền thành công. Số tiền: {$order->total_amount}");
+
+            return response()->json(['message' => 'Yêu cầu hoàn trả đã được xử lý thành công và hoàn tiền đã được thực hiện.'], 200);
+        } else {
+            Log::error("Lỗi hoàn tiền cho đơn hàng ID {$order->id}: " . $responseData['vnp_ResponseCode']);
+            return response()->json(['message' => 'Có lỗi xảy ra khi hoàn tiền: ' . $responseData['vnp_ResponseCode']], 400);
+        }
+    } catch (\Exception $e) {
+        Log::error("Có lỗi xảy ra trong quá trình hoàn tiền cho đơn hàng ID {$order->id}: " . $e->getMessage());
+        return response()->json(['message' => 'Có lỗi xảy ra trong quá trình hoàn tiền: ' . $e->getMessage()], 500);
+    }
+}
+
 
 }
