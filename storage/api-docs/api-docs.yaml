@@ -4034,7 +4034,7 @@ paths:
     get:
       tags:
         - 'Orders Admin Management'
-      summary: 'Get all orders with optional status filter'
+      summary: 'Nhận tất cả các đơn hàng có bộ lọc trạng thái tùy chọn'
       operationId: 1ceaf2955581e5cc90bc8092b99dad23
       parameters:
         -
@@ -4192,6 +4192,32 @@ paths:
           description: 'Không được phép'
         404:
           description: 'Không tìm thấy đơn hàng'
+      security:
+        -
+          Bearer: []
+    delete:
+      tags:
+        - 'Orders Admin Management'
+      summary: 'Xóa đơn hàng'
+      description: 'Xóa một đơn hàng bằng cách đánh dấu trường deleted_at.'
+      operationId: fb3d507b3666904373ceadbba9a8111e
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'ID của đơn hàng'
+          required: true
+          schema:
+            type: integer
+      responses:
+        200:
+          description: 'Đơn hàng đã được xóa thành công.'
+        403:
+          description: 'Bạn không có quyền xóa đơn hàng.'
+        404:
+          description: 'Không tìm thấy đơn hàng.'
+        400:
+          description: 'Không thể xóa đơn hàng có trạng thái này.'
       security:
         -
           Bearer: []
