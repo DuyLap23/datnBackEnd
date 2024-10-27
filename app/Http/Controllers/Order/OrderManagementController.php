@@ -8,6 +8,7 @@ use App\Models\OrderItem;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 
 class OrderManagementController extends Controller
 {  /**
@@ -326,52 +327,80 @@ public function search(Request $request)
     }
 
     $query = $request->input('query');
-
-    // Kiểm tra xem truy vấn có trống không
+    Log::info('Từ khóa tìm kiếm: ' . $query);
     if (empty($query)) {
+        Log::error('Từ khóa tìm kiếm không được để trống.');
         return response()->json(['message' => 'Từ khóa tìm kiếm không được để trống.'], 400);
     }
 
-    $orders = Order::with(['orderItems.product'])
-        ->where('id', $query) // Tìm theo ID đơn hàng
-        ->orWhereHas('user', function ($q) use ($query) {
-            $q->where('name', 'LIKE', "%{$query}%")
-              ->orWhere('email', 'LIKE', "%{$query}%");
-        })
-        ->get(); // Sử dụng get() thay vì firstOrFail()
+    try {
+        $orders = Order::with(['orderItems.product', 'address', 'user'])
+            ->where('id', $query)
+            ->orWhereHas('user', function ($q) use ($query) {
+                $q->where('name', 'LIKE', "%{$query}%")
+                  ->orWhere('email', 'LIKE', "%{$query}%");
+            })
+            ->get();
+        if ($orders->isEmpty()) {
+            Log::info('Không tìm thấy đơn hàng nào phù hợp với từ khóa: ' . $query);
+            return response()->json(['message' => 'Không tìm thấy đơn hàng nào phù hợp với từ khóa tìm kiếm.'], 404);
+        }
 
-    // Kiểm tra nếu không có kết quả
-    if ($orders->isEmpty()) {
-        return response()->json(['message' => 'Không tìm thấy đơn hàng nào phù hợp với từ khóa tìm kiếm.'], 404);
+        Log::info('Tìm thấy ' . $orders->count() . ' đơn hàng phù hợp.');
+        $totalAllOrders = Order::sum('total_amount');
+        $response = $orders->map(function ($order) use ($totalAllOrders) {
+            return [
+                'order_id' => $order->id,
+                'name' => $order->user ? $order->user->name : 'N/A',
+                'email' => $order->user ? $order->user->email : 'N/A',
+                'total_amount' => $order->total_amount,
+                'total_all_orders' => $totalAllOrders,
+                'address' => $order->address ? [
+                    'id' => $order->address->id,
+                    'address_name' => $order->address->address_name,
+                    'phone_number' => $order->address->phone_number,
+                    'city' => $order->address->city,
+                    'district' => $order->address->district,
+                    'ward' => $order->address->ward,
+                    'detail_address' => $order->address->detail_address,
+                ] : 'N/A',
+                'payment_method' => $order->payment_method,
+                'payment_status' => $order->payment_status,
+                'order_status' => $order->order_status,
+                'note' => $order->note,
+                'created_at' => $order->created_at,
+                'updated_at' => $order->updated_at,
+                'order_items' => $order->orderItems->map(function ($item) {
+                    return [
+                        'order_id' => $item->order_id,
+                        'product_id' => $item->product_id,
+                        'quantity' => $item->quantity,
+                        'price' => $item->price,
+                        'size' => $item->size,
+                        'color' => $item->color,
+                        'created_at' => $item->created_at,
+                        'updated_at' => $item->updated_at,
+                        'product' => $item->product ? [
+                            'id' => $item->product->id,
+                            'name' => $item->product->name,
+                            'description' => $item->product->description,
+                            'price_regular' => $item->product->price_regular,
+                            'price_sale' => $item->product->price_sale,
+                            'category' => $item->product->category ? $item->product->category->name : 'N/A',
+                            'img_thumbnail' => $item->product->img_thumbnail,
+                        ] : 'N/A',
+                    ];
+                }),
+            ];
+        });
+
+        Log::info('Trả về kết quả thành công.');
+        return response()->json($response);
+
+    } catch (\Exception $e) {
+        Log::error('Có lỗi xảy ra trong quá trình tìm kiếm: ' . $e->getMessage());
+        return response()->json(['message' => 'Có lỗi xảy ra: ' . $e->getMessage()], 500);
     }
-
-    // Xử lý và trả về dữ liệu
-    $response = $orders->map(function ($order) {
-        return [
-            'id' => $order->id,
-            'user_name' => $order->user ? $order->user->name : 'N/A',
-            'user_email' => $order->user ? $order->user->email : 'N/A',
-            'total_amount' => $order->total_amount,
-            'created_at' => $order->created_at,
-            'updated_at' => $order->updated_at,
-            'order_items' => $order->orderItems->map(function ($item) {
-                return [
-                    'order_id' => $item->order_id,
-                    'product_id' => $item->product_id,
-                    'product_name' => $item->product ? $item->product->name : null,
-                    'quantity' => $item->quantity,
-                    'price' => $item->price,
-                    'size' => $item->size,
-                    'color' => $item->color,
-                    'img_thumbnail' => $item->product ? $item->product->img_thumbnail : null,
-                    'created_at' => $item->created_at,
-                    'updated_at' => $item->updated_at,
-                ];
-            }),
-        ];
-    });
-
-    return response()->json($response);
 }
 
 /**
@@ -449,11 +478,14 @@ public function filterByDate(Request $request)
     }
 
     try {
-        // Chuyển đổi sang đối tượng Carbon
-        $startDate = Carbon::parse($startDate)->startOfSecond();
-        $endDate = Carbon::parse($endDate)->endOfSecond();
+        $startDate = Carbon::createFromFormat('Y-m-d H:i:s', $startDate);
+        $endDate = Carbon::createFromFormat('Y-m-d H:i:s', $endDate);
 
-        // Lọc đơn hàng theo ngày
+        if (!$startDate || !$endDate) {
+            throw new \Exception('Ngày không hợp lệ.');
+        }
+        $startDate = $startDate->startOfDay();
+        $endDate = $endDate->endOfDay();
         $orders = Order::with(['orderItems.product'])
             ->whereBetween('created_at', [$startDate, $endDate])
             ->get();
@@ -462,7 +494,12 @@ public function filterByDate(Request $request)
             return response()->json(['message' => 'Không tìm thấy đơn hàng nào trong khoảng thời gian đã chỉ định.'], 404);
         }
 
-        return response()->json($orders);
+        $orderCount = $orders->count();
+        return response()->json([
+            'message' => 'Đã tìm thấy đơn hàng trong khoảng thời gian chỉ định.',
+            'order_count' => $orderCount,
+            'orders' => $orders,
+        ]);
     } catch (\Exception $e) {
         return response()->json(['message' => 'Có lỗi xảy ra: ' . $e->getMessage()], 500);
     }
