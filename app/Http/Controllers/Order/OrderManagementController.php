@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Order;
 use App\Http\Controllers\Controller;
 use App\Models\Order;
 use App\Models\OrderItem;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -145,9 +146,9 @@ class OrderManagementController extends Controller
          return response()->json(['message' => 'Bạn không có quyền truy cập chi tiết đơn hàng.'], 403);
      }
  
-     // Retrieve the order by ID, and ensure it belongs to the authenticated admin
+
      $order = Order::with(['orderItems.product', 'address', 'user'])
-         ->where('user_id', Auth::id()) // Ensure the order belongs to the current user
+         ->where('user_id', Auth::id()) 
          ->findOrFail($id);
     $totalAllOrders = Order::sum('total_amount');
      return response()->json([
@@ -196,133 +197,204 @@ class OrderManagementController extends Controller
  }
  
 /**
- * @OA\Patch(
- *     path="/api/admin/orders/{id}/status",
- *     summary="Cập nhật trạng thái đơn hàng",
- *     description="Cập nhật trạng thái của một đơn hàng. Chỉ có admin mới có quyền thực hiện chức năng này.",
+ * @OA\Get(
+ *     path="/api/admin/orders/search",
+ *     summary="Tìm kiếm đơn hàng",
  *     tags={"Orders Admin Management"},
  *     security={{"Bearer": {}}},
  *     @OA\Parameter(
- *         name="id",
- *         in="path",
+ *         name="query",
+ *         in="query",
  *         required=true,
- *         @OA\Schema(
- *             type="integer",
- *             format="int64",
- *             example=1
- *         )
- *     ),
- *     @OA\RequestBody(
- *         required=true,
- *         @OA\JsonContent(
- *             @OA\Property(property="order_status", type="string", example="pending", description="Trạng thái đơn hàng mới.")
- *         )
+ *         @OA\Schema(type="string"),
+ *         description="Từ khóa tìm kiếm (tên, email của khách hàng hoặc mã đơn hàng)"
  *     ),
  *     @OA\Response(
  *         response=200,
- *         description="Cập nhật trạng thái đơn hàng thành công.",
+ *         description="Danh sách đơn hàng tìm thấy",
  *         @OA\JsonContent(
- *             @OA\Property(property="message", type="string", example="Cập nhật trạng thái đơn hàng thành công."),
- *             @OA\Property(property="order_id", type="integer", example=1, description="ID của đơn hàng đã cập nhật."),
- *             @OA\Property(property="order_status", type="string", example="pending", description="Trạng thái mới của đơn hàng.")
+ *             type="array",
+ *             @OA\Items(
+ *                 type="object",
+ *                 @OA\Property(property="id", type="integer", description="ID đơn hàng"),
+ *                 @OA\Property(property="user_name", type="string", description="Tên khách hàng"),
+ *                 @OA\Property(property="user_email", type="string", description="Email khách hàng"),
+ *                 @OA\Property(property="total_amount", type="number", format="float", description="Tổng số tiền đơn hàng"),
+ *                 @OA\Property(property="created_at", type="string", format="date-time", description="Thời gian tạo đơn hàng"),
+ *                 @OA\Property(property="updated_at", type="string", format="date-time", description="Thời gian cập nhật đơn hàng"),
+ *                 @OA\Property(
+ *                     property="order_items",
+ *                     type="array",
+ *                     @OA\Items(
+ *                         type="object",
+ *                         @OA\Property(property="order_id", type="integer", description="ID đơn hàng"),
+ *                         @OA\Property(property="product_id", type="integer", description="ID sản phẩm"),
+ *                         @OA\Property(property="product_name", type="string", description="Tên sản phẩm"), 
+ *                         @OA\Property(property="quantity", type="integer", description="Số lượng sản phẩm"),
+ *                         @OA\Property(property="price", type="number", format="float", description="Giá của sản phẩm"),
+ *                         @OA\Property(property="size", type="string", description="Kích thước của sản phẩm"),
+ *                         @OA\Property(property="color", type="string", description="Màu sắc của sản phẩm"),
+ *                         @OA\Property(property="img_thumbnail", type="string", description="Ảnh thu nhỏ của sản phẩm"),
+ *                         @OA\Property(property="created_at", type="string", format="date-time", description="Thời gian tạo sản phẩm trong đơn hàng"),
+ *                         @OA\Property(property="updated_at", type="string", format="date-time", description="Thời gian cập nhật sản phẩm trong đơn hàng")
+ *                     )
+ *                 )
+ *             )
  *         )
  *     ),
+ *     @OA\Response(response=404, description="Không tìm thấy đơn hàng"),
+ *     @OA\Response(response=403, description="Không được phép")
+ * )
+ */
+public function search(Request $request)
+{
+    if (!Auth::check() || Auth::user()->role !== 'admin') {
+        return response()->json(['message' => 'Bạn không có quyền tìm kiếm đơn hàng.'], 403);
+    }
+
+    $query = $request->input('query');
+
+    // Kiểm tra xem truy vấn có trống không
+    if (empty($query)) {
+        return response()->json(['message' => 'Từ khóa tìm kiếm không được để trống.'], 400);
+    }
+
+    $orders = Order::with(['orderItems.product'])
+        ->where('id', $query) // Tìm theo ID đơn hàng
+        ->orWhereHas('user', function ($q) use ($query) {
+            $q->where('name', 'LIKE', "%{$query}%")
+              ->orWhere('email', 'LIKE', "%{$query}%");
+        })
+        ->get(); // Sử dụng get() thay vì firstOrFail()
+
+    // Kiểm tra nếu không có kết quả
+    if ($orders->isEmpty()) {
+        return response()->json(['message' => 'Không tìm thấy đơn hàng nào phù hợp với từ khóa tìm kiếm.'], 404);
+    }
+
+    // Xử lý và trả về dữ liệu
+    $response = $orders->map(function ($order) {
+        return [
+            'id' => $order->id,
+            'user_name' => $order->user ? $order->user->name : 'N/A',
+            'user_email' => $order->user ? $order->user->email : 'N/A',
+            'total_amount' => $order->total_amount,
+            'created_at' => $order->created_at,
+            'updated_at' => $order->updated_at,
+            'order_items' => $order->orderItems->map(function ($item) {
+                return [
+                    'order_id' => $item->order_id,
+                    'product_id' => $item->product_id,
+                    'product_name' => $item->product ? $item->product->name : null,
+                    'quantity' => $item->quantity,
+                    'price' => $item->price,
+                    'size' => $item->size,
+                    'color' => $item->color,
+                    'img_thumbnail' => $item->product ? $item->product->img_thumbnail : null,
+                    'created_at' => $item->created_at,
+                    'updated_at' => $item->updated_at,
+                ];
+            }),
+        ];
+    });
+
+    return response()->json($response);
+}
+
+/**
+ * @OA\Get(
+ *     path="/api/admin/orders/filter",
+ *     operationId="filterByDate",
+ *     tags={"Orders Admin Management"},
+ *     summary="Lọc đơn hàng theo ngày",
+ *     description="Trả về danh sách đơn hàng trong khoảng thời gian đã chỉ định.",
+ *     security={{"Bearer": {}}},
+ *     @OA\Parameter(
+ *         name="start_date",
+ *         in="query",
+ *         description="Ngày bắt đầu (Y-m-d)",
+ *         required=true,
+ *         @OA\Schema(type="string", format="date")
+ *     ),
+ *     @OA\Parameter(
+ *         name="end_date",
+ *         in="query",
+ *         description="Ngày kết thúc (Y-m-d)",
+ *         required=true,
+ *         @OA\Schema(type="string", format="date")
+ *     ),
  *     @OA\Response(
- *         response=403,
- *         description="Bạn không có quyền cập nhật trạng thái đơn hàng.",
+ *         response=200,
+ *         description="Danh sách đơn hàng",
+ *         @OA\JsonContent(type="array", @OA\Items(
+ *             @OA\Property(property="id", type="integer", example=1),
+ *             @OA\Property(property="user_name", type="string", example="Nguyen Van A"),
+ *             @OA\Property(property="user_email", type="string", example="a@gmail.com"),
+ *             @OA\Property(property="total_amount", type="number", format="float", example=150.75),
+ *             @OA\Property(property="created_at", type="string", format="date-time", example="2024-10-26T12:34:56"),
+ *             @OA\Property(property="updated_at", type="string", format="date-time", example="2024-10-27T12:34:56"),
+ *             @OA\Property(property="order_items", type="array", @OA\Items(
+ *                 @OA\Property(property="order_id", type="integer", example=1),
+ *                 @OA\Property(property="product_id", type="integer", example=1),
+ *                 @OA\Property(property="product_name", type="string", example="Sản phẩm A"),
+ *                 @OA\Property(property="quantity", type="integer", example=2),
+ *                 @OA\Property(property="price", type="number", format="float", example=75.50),
+ *                 @OA\Property(property="size", type="string", example="M"),
+ *                 @OA\Property(property="color", type="string", example="Đỏ"),
+ *                 @OA\Property(property="img_thumbnail", type="string", example="http://example.com/image.jpg"),
+ *                 @OA\Property(property="created_at", type="string", format="date-time", example="2024-10-26T12:34:56"),
+ *                 @OA\Property(property="updated_at", type="string", format="date-time", example="2024-10-27T12:34:56")
+ *             ))
+ *         ))
+ *     ),
+ *     @OA\Response(
+ *         response=400,
+ *         description="Ngày bắt đầu và ngày kết thúc là bắt buộc.",
  *         @OA\JsonContent(
- *             @OA\Property(property="message", type="string", example="Bạn không có quyền cập nhật trạng thái đơn hàng.")
+ *             @OA\Property(property="message", type="string", example="Ngày bắt đầu và ngày kết thúc là bắt buộc.")
  *         )
  *     ),
  *     @OA\Response(
  *         response=404,
- *         description="Không tìm thấy đơn hàng.",
+ *         description="Không tìm thấy đơn hàng nào trong khoảng thời gian đã cho.",
  *         @OA\JsonContent(
- *             @OA\Property(property="message", type="string", example="Không tìm thấy đơn hàng.")
+ *             @OA\Property(property="message", type="string", example="Không tìm thấy đơn hàng nào trong khoảng thời gian đã cho.")
  *         )
  *     ),
  * )
  */
-public function updateStatus(Request $request, $id)
+public function filterByDate(Request $request)
 {
-   
     if (!Auth::check() || Auth::user()->role !== 'admin') {
-        return response()->json(['message' => 'Bạn không có quyền cập nhật trạng thái đơn hàng.'], 403);
+        return response()->json(['message' => 'Bạn không có quyền tìm kiếm đơn hàng.'], 403);
+    }
+    $startDate = $request->input('start_date');
+    $endDate = $request->input('end_date');
+
+    if (!$startDate || !$endDate) {
+        return response()->json(['message' => 'Ngày bắt đầu và ngày kết thúc không được để trống.'], 400);
     }
 
+    try {
+        // Chuyển đổi sang đối tượng Carbon
+        $startDate = Carbon::parse($startDate)->startOfSecond();
+        $endDate = Carbon::parse($endDate)->endOfSecond();
 
-  
-    $request->validate([
-        'order_status' => 'required|in:' . implode(',', array_keys(Order::STATUS_ORDER)),
-    ]);
+        // Lọc đơn hàng theo ngày
+        $orders = Order::with(['orderItems.product'])
+            ->whereBetween('created_at', [$startDate, $endDate])
+            ->get();
 
+        if ($orders->isEmpty()) {
+            return response()->json(['message' => 'Không tìm thấy đơn hàng nào trong khoảng thời gian đã chỉ định.'], 404);
+        }
 
-    $order = Order::find($id);
-    
-    if (!$order) {
-        return response()->json(['message' => 'Không tìm thấy đơn hàng.'], 404);
+        return response()->json($orders);
+    } catch (\Exception $e) {
+        return response()->json(['message' => 'Có lỗi xảy ra: ' . $e->getMessage()], 500);
     }
-
- 
-    $order->order_status = $request->order_status;
-    $order->save();
-
-    return response()->json(['message' => 'Cập nhật trạng thái đơn hàng thành công.', 'order' => $order]);
 }
-    // Cập nhật thông tin đơn hàng
-    public function update(Request $request, $id)
-    {
-        $order = Order::findOrFail($id);
-        $order->update($request->all());
-        return response()->json(['message' => 'Cập nhật đơn hàng thành công.']);
-    }
 
-    // Xử lý yêu cầu hoàn trả
-    public function refund(Request $request, $id)
-    {
-        // Logic hoàn trả (chưa triển khai)
-        return response()->json(['message' => 'Yêu cầu hoàn trả đã được xử lý thành công.']);
-    }
-
-    // Quản lý hủy đơn
-    public function destroy($id)
-    {
-        $order = Order::findOrFail($id);
-        $order->delete(); // Xóa đơn hàng
-        return response()->json(['message' => 'Đơn hàng đã được xóa thành công.']);
-    }
-
-    // Theo dõi tình trạng giao hàng
-    public function tracking($id)
-    {
-        // Logic theo dõi giao hàng (chưa triển khai)
-        return response()->json(['message' => 'Thông tin theo dõi đã được lấy thành công.']);
-    }
-
-    // Tìm kiếm đơn hàng
-    public function search(Request $request)
-    {
-        $query = $request->input('query');
-        $orders = Order::where('name', 'LIKE', "%{$query}%")
-            ->orWhere('email', 'LIKE', "%{$query}%")
-            ->with('orderItems') // Tải trước orderItems
-            ->get();
-
-        return response()->json($orders);
-    }
-
-    // Lọc đơn hàng theo ngày
-    public function filterByDate(Request $request)
-    {
-        $startDate = $request->input('start_date');
-        $endDate = $request->input('end_date');
-
-        $orders = Order::whereBetween('created_at', [$startDate, $endDate])
-            ->with('orderItems') // Tải trước orderItems
-            ->get();
-
-        return response()->json($orders);
-    }
 
     // Thêm mục đơn hàng cho một đơn hàng
     public function addOrderItem(Request $request, $orderId)
