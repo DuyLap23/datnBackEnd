@@ -6246,13 +6246,13 @@
                 ]
             }
         },
-        "/api/admin/orders/{id}/status": {
+        "/api/admin/orders/status/{id}": {
             "patch": {
                 "tags": [
                     "Orders Admin Management"
                 ],
                 "summary": "Cập nhật trạng thái của đơn hàng",
-                "operationId": "f09b18a1b24b68fceaaa3f1b89e7f0eb",
+                "operationId": "985ac06db74875c3ec430affd44146cd",
                 "parameters": [
                     {
                         "name": "id",

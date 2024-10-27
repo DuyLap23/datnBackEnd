@@ -134,14 +134,13 @@ Route::group(
 
         Route::get('/orders', [OrderManagementController::class, 'index']);
         Route::get('/orders/{id}', [OrderManagementController::class, 'detall']);
-        Route::patch('/orders/{id}/status', [OrderManagementController::class, 'updateStatus']);
+        Route::patch('/orders/status/{id}', [OrderManagementController::class, 'updateStatus']);
         Route::put('/orders/{id}', [OrderManagementController::class, 'update']);
         Route::post('/orders/{id}/refund', [OrderManagementController::class, 'refund']);
         Route::delete('/orders/{id}', [OrderManagementController::class, 'destroy']);
         Route::get('/orders/{id}/tracking', [OrderManagementController::class, 'tracking']);
         Route::get('/orders/search', [OrderManagementController::class, 'search']);
         Route::get('/orders/filter', [OrderManagementController::class, 'filterByDate']);
-        Route::patch('/orders/{id}/status', [OrderManagementController::class, 'updateStatus']);
 
 
     }

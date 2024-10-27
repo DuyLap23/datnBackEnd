@@ -197,7 +197,7 @@ class OrderManagementController extends Controller
  }
  /**
  * @OA\Patch(
- *     path="/api/admin/orders/{id}/status",
+ *     path="/api/admin/orders/status/{id}",
  *     summary="Cập nhật trạng thái của đơn hàng",
  *     tags={"Orders Admin Management"},
  *     security={{"Bearer": {}}},
