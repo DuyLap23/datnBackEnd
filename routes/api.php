@@ -85,7 +85,7 @@ Route::group(
 Route::get('categories', [CategoryController::class, 'index']);
 Route::get('categories/{id}', [CategoryController::class, 'show']);
 Route::get('products', [ProductController::class, 'index'])->name('products.index');
-Route::get('products/{id}', [ProductController::class,'show'])->name('products.show');
+Route::get('products/{slug}', [ProductController::class,'show'])->name('products.show');
 
 //ADMIN
 Route::group(
