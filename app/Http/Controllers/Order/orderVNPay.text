@@ -11,7 +11,6 @@ use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Mail;
 use function Laravel\Prompts\error;
 
 class OrderController extends Controller
@@ -67,34 +66,35 @@ class OrderController extends Controller
                 $vnpayResponse = $this->processVNPayment($totalAmount);
 
                 if (!$vnpayResponse['success']) {
-                    Log:
+                    Log::error('Thanh toán VNPay thất bại: ' . $vnpayResponse['message']);
                     error(" Thanh toán thất bại");
                     return response()->json([
                         'success' => false,
                         'message' => 'Thanh toán VNPAY thất bại.'
                     ], 400);
                 }
-                Log::info("Thanh toán thành công");
                 // Nếu thanh toán thành công
-                $order = DB::transaction(function () use ($user, $defaultAddress, $paymentMethod, $totalAmount, $dataItem) {
-                    $order = Order::create([
-                        'user_id' => $user->id,
-                        'address_id' => $defaultAddress->id,
-                        'payment_method' => $paymentMethod,
-                        'payment_status' => Order::STATUS_PAYMENT_PAID,
-                        'order_status' => Order::STATUS_ORDER_PENDING,
-                        'total_amount' => $totalAmount,
-                        'note' => request('note'),
-                    ]);
+                $order = DB::transaction(
+                    function ()
+                    use ($user, $defaultAddress, $paymentMethod, $totalAmount, $dataItem) {
+                        $order = Order::create([
+                            'user_id' => $user->id,
+                            'address_id' => $defaultAddress->id,
+                            'payment_method' => $paymentMethod,
+                            'payment_status' => Order::STATUS_PAYMENT_PAID,
+                            'order_status' => Order::STATUS_ORDER_PENDING,
+                            'total_amount' => $totalAmount,
+                            'note' => request('note'),
+                        ]);
 
-                    foreach ($dataItem as $item) {
-                        $item['order_id'] = $order->id;
-                        OrderItem::create($item);
-                    }
+                        foreach ($dataItem as $item) {
+                            $item['order_id'] = $order->id;
+                            OrderItem::create($item);
+                        }
 
 //                    Cart::where('user_id', $user->id)->delete();
-                    return $order;
-                });
+                        return $order;
+                    });
 
                 Log::info("Đặt hàng thành công. $order->id");
                 return response()->json([
@@ -106,25 +106,28 @@ class OrderController extends Controller
             } elseif ($paymentMethod == 0) {
                 // Thanh toán tiền mặt
                 Log::info("Thanh toán bằng tiền mặt");
-                $order = DB::transaction(function () use ($user, $defaultAddress, $paymentMethod, $totalAmount, $dataItem) {
-                    $order = Order::create([
-                        'user_id' => $user->id,
-                        'address_id' => $defaultAddress->id,
-                        'payment_method' => $paymentMethod,
-                        'payment_status' => Order::STATUS_PAYMENT_UNPAID,
-                        'order_status' => Order::STATUS_ORDER_PENDING,
-                        'total_amount' => $totalAmount,
-                        'note' => request('note'),
-                    ]);
+                $order = DB::transaction(
+                    function ()
+                    use ($user, $defaultAddress, $paymentMethod, $totalAmount, $dataItem) {
+                        $order = Order::create([
+                            'user_id' => $user->id,
+                            'address_id' => $defaultAddress->id,
+                            'payment_method' => $paymentMethod,
+                            'payment_status' => Order::STATUS_PAYMENT_UNPAID,
+                            'order_status' => Order::STATUS_ORDER_PENDING,
+                            'total_amount' => $totalAmount,
+                            'note' => request('note'),
+                        ]);
 
-                    foreach ($dataItem as $item) {
-                        $item['order_id'] = $order->id;
-                        OrderItem::create($item);
-                    }
+                        foreach ($dataItem as $item) {
+                            $item['order_id'] = $order->id;
+                            OrderItem::create($item);
+                        }
 
 //                    Cart::where('user_id', $user->id)->delete();
-                    return $order;
-                });
+                        return $order;
+                    });
+                Log::info('Đặt hàng thành công. ' . $order->id);
 //                Mail::to($request->user()->email)->send(new OrderConfirmationMail($order));
                 return response()->json([
                     'success' => true,

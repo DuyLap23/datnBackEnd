@@ -151,8 +151,7 @@ Route::get('voucher/{id}', [VouCherController::class, 'show']);
 Route::delete('voucher/{id}', [VouCherController::class, 'destroy']);
 
 
-Route::post('/vnpay/create-payment', [VNPayController::class, 'createPayment'])->middleware('auth:api');
-Route::get('/vnpay/return', [VNPayController::class, 'vnpayReturn'])->middleware('auth:api');
+
 
 Route::get('/user/comments', [UserCommentController::class, 'index']);
 Route::post('/user/comments', [UserCommentController::class, 'store']);
@@ -180,6 +179,11 @@ Route::group(
     ],
     function ($router) {
         Route::post('orders', [OrderController::class, 'order']);
+//        Route::get('/vnpay/return', function () {
+//            return view(
+//                'pay_return'
+//            );
+//        } )->name('vnpay.return');
         Route::post('/carts', [CartController::class, 'addProductToCart']);
         Route::delete('/carts/{id}', [CartController::class, 'deleteProductFromCart']);
         Route::get('/carts', [CartController::class, 'listProductsInCart']);
