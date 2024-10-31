@@ -247,7 +247,9 @@ class OrderController extends Controller
                         OrderItem::create($item);
                     }
                     Log::info('Đặt hàng bằng tiền mặt thành công -> xoá giỏ hàng.');
+
                     Cart::where('user_id', $user->id)->delete();
+
                     return $order;
                 });
 
