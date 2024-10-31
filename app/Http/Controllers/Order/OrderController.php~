@@ -43,7 +43,9 @@ class OrderController extends Controller
      *     ),
      *     @OA\Response(
      *         response=201,
-     *         description="Đặt hàng thành công",
+
+     *         description="Thanh toán thành công",
+
      *         @OA\JsonContent(
      *             @OA\Property(property="success", type="boolean", example=true),
      *             @OA\Property(property="message", type="string", example="Đặt hàng thành công."),

@@ -15,6 +15,7 @@ use App\Http\Controllers\API\ProductColorController;
 use App\Http\Controllers\API\ProductController;
 use App\Http\Controllers\API\ProductSizeController;
 use App\Http\Controllers\API\ProductVariantController;
+use App\Http\Controllers\API\Search\FilterController;
 use App\Http\Controllers\API\TagController;
 use App\Http\Controllers\Api\UserCommentController;
 use App\Http\Controllers\API\VouCherController;
@@ -150,7 +151,7 @@ Route::put('voucher/{id}', [VouCherController::class, 'update']);
 Route::get('voucher/{id}', [VouCherController::class, 'show']);
 Route::delete('voucher/{id}', [VouCherController::class, 'destroy']);
 
-
+Route::get('filter', [FilterController::class, 'filter'])->name('filter');
 
 
 Route::get('/user/comments', [UserCommentController::class, 'index']);
