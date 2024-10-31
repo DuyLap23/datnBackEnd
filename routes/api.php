@@ -15,6 +15,7 @@ use App\Http\Controllers\API\ProductColorController;
 use App\Http\Controllers\API\ProductController;
 use App\Http\Controllers\API\ProductSizeController;
 use App\Http\Controllers\API\ProductVariantController;
+use App\Http\Controllers\API\Search\FilterController;
 use App\Http\Controllers\API\TagController;
 use App\Http\Controllers\Api\UserCommentController;
 use App\Http\Controllers\API\VouCherController;
@@ -150,12 +151,13 @@ Route::put('voucher/{id}', [VouCherController::class, 'update']);
 Route::get('voucher/{id}', [VouCherController::class, 'show']);
 Route::delete('voucher/{id}', [VouCherController::class, 'destroy']);
 
-
+Route::get('filter', [FilterController::class, 'filter'])->name('filter');
 
 
 Route::get('/user/comments', [UserCommentController::class, 'index']);
 Route::post('/user/comments', [UserCommentController::class, 'store']);
 Route::get('/user/comments/{id}', [UserCommentController::class, 'show']);
+Route::get('/vnpay/return',[OrderController::class, 'paymentReturn'])->name('vnpay.return');
 
 //STAFF
 //Route::group(
@@ -179,11 +181,6 @@ Route::group(
     ],
     function ($router) {
         Route::post('orders', [OrderController::class, 'order']);
-//        Route::get('/vnpay/return', function () {
-//            return view(
-//                'pay_return'
-//            );
-//        } )->name('vnpay.return');
         Route::post('/carts', [CartController::class, 'addProductToCart']);
         Route::delete('/carts/{id}', [CartController::class, 'deleteProductFromCart']);
         Route::get('/carts', [CartController::class, 'listProductsInCart']);

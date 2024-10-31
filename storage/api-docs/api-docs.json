@@ -5760,51 +5760,27 @@
                 ],
                 "summary": "Tạo đơn hàng mới",
                 "description": "Tạo đơn hàng mới từ giỏ hàng của người dùng",
-                "operationId": "5bf66a57747c080521d6b1a5a7ac4771",
+                "operationId": "696a1c27bdd6a84d6ec44991b102735c",
                 "requestBody": {
                     "required": true,
                     "content": {
                         "application/json": {
                             "schema": {
                                 "required": [
-                                    "payment_method",
-                                    "payment_status",
-                                    "order_status"
+                                    "payment_method"
                                 ],
                                 "properties": {
                                     "payment_method": {
-                                        "description": "Phương thức thanh toán",
-                                        "type": "string",
+                                        "description": "Phương thức thanh toán: 0 - Thanh toán khi nhận hàng, 1 - Thanh toán qua VNPAY",
+                                        "type": "integer",
                                         "enum": [
-                                            "Thanh toán khi nhận hàng",
-                                            "vnpay"
+                                            0,
+                                            1
                                         ],
-                                        "example": "Thanh toán khi nhận hàng"
-                                    },
-                                    "payment_status": {
-                                        "description": "Trạng thái thanh toán",
-                                        "type": "string",
-                                        "enum": [
-                                            "unpaid",
-                                            "paid",
-                                            "failed"
-                                        ],
-                                        "example": "unpaid"
-                                    },
-                                    "order_status": {
-                                        "description": "Trạng thái đơn hàng",
-                                        "type": "string",
-                                        "enum": [
-                                            "pending",
-                                            "processing",
-                                            "shipped",
-                                            "delivered",
-                                            "cancelled"
-                                        ],
-                                        "example": "pending"
+                                        "example": 1
                                     },
                                     "note": {
-                                        "description": "Ghi chú đơn hàng",
+                                        "description": "Ghi chú cho đơn hàng",
                                         "type": "string",
                                         "example": "Giao hàng trong giờ hành chính"
                                     }
@@ -5831,95 +5807,168 @@
                                         },
                                         "data": {
                                             "properties": {
-                                                "order_id": {
-                                                    "type": "integer",
-                                                    "example": 1
-                                                },
                                                 "user_id": {
                                                     "type": "integer",
-                                                    "example": 1
+                                                    "example": 3
                                                 },
-                                                "address_id": {
-                                                    "properties": {
-                                                        "address_name": {
-                                                            "type": "string",
-                                                            "example": "Số 1 Đại Cồ Việt"
-                                                        },
-                                                        "phone_number": {
-                                                            "type": "string",
-                                                            "example": "0123456789"
-                                                        },
-                                                        "city": {
-                                                            "type": "string",
-                                                            "example": "Hà Nội"
-                                                        },
-                                                        "district": {
-                                                            "type": "string",
-                                                            "example": "Hai Bà Trưng"
-                                                        },
-                                                        "ward": {
-                                                            "type": "string",
-                                                            "example": "Bách Khoa"
-                                                        },
-                                                        "detail_address": {
-                                                            "type": "string",
-                                                            "example": "Gần trường Đại học Bách Khoa"
-                                                        }
-                                                    },
-                                                    "type": "object"
-                                                },
-                                                "payment_method": {
-                                                    "type": "string",
-                                                    "example": "Thanh toán khi nhận hàng"
-                                                },
-                                                "payment_status": {
-                                                    "type": "string",
-                                                    "example": "unpaid"
-                                                },
-                                                "order_status": {
-                                                    "type": "string",
-                                                    "example": "pending"
+                                                "order_id": {
+                                                    "type": "integer",
+                                                    "example": 57
                                                 },
                                                 "total_amount": {
-                                                    "type": "number",
-                                                    "example": 1000000
+                                                    "type": "string",
+                                                    "example": "1818744.00"
                                                 },
                                                 "note": {
                                                     "type": "string",
-                                                    "example": "Giao hàng trong giờ hành chính"
+                                                    "example": "Giao nhanh cho anh"
                                                 },
-                                                "order_items": {
+                                                "order_item": {
                                                     "type": "array",
                                                     "items": {
                                                         "properties": {
-                                                            "product_id": {
+                                                            "id": {
                                                                 "type": "integer",
-                                                                "example": 1
+                                                                "example": 106
                                                             },
-                                                            "color": {
-                                                                "type": "string",
-                                                                "example": "Đen"
-                                                            },
-                                                            "size": {
-                                                                "type": "string",
-                                                                "example": "L"
+                                                            "order_id": {
+                                                                "type": "integer",
+                                                                "example": 57
                                                             },
                                                             "quantity": {
                                                                 "type": "integer",
-                                                                "example": 2
+                                                                "example": 3
                                                             },
                                                             "price": {
-                                                                "type": "number",
-                                                                "example": 500000
+                                                                "type": "string",
+                                                                "example": "606248.00"
+                                                            },
+                                                            "deleted_at": {
+                                                                "type": "string",
+                                                                "example": null,
+                                                                "nullable": true
+                                                            },
+                                                            "created_at": {
+                                                                "type": "string",
+                                                                "format": "date-time",
+                                                                "example": "2024-10-31T04:28:45.000000Z"
+                                                            },
+                                                            "updated_at": {
+                                                                "type": "string",
+                                                                "format": "date-time",
+                                                                "example": "2024-10-31T04:28:45.000000Z"
+                                                            },
+                                                            "product_id": {
+                                                                "type": "integer",
+                                                                "example": 17
+                                                            },
+                                                            "color": {
+                                                                "type": "string",
+                                                                "example": "#000000"
+                                                            },
+                                                            "size": {
+                                                                "type": "string",
+                                                                "example": "XXL"
                                                             }
                                                         },
                                                         "type": "object"
                                                     }
                                                 },
-                                                "created_at": {
+                                                "product": {
+                                                    "properties": {
+                                                        "id": {
+                                                            "type": "integer",
+                                                            "example": 17
+                                                        },
+                                                        "name": {
+                                                            "type": "string",
+                                                            "example": "Quo placeat sed est est maiores. Id eos laborum rerum est harum qui sed. Quia autem autem vel rem."
+                                                        },
+                                                        "slug": {
+                                                            "type": "string",
+                                                            "example": "quo-placeat-sed-est-est-maiores-id-eos-laborum-rerum-est-harum-qui-sed-quia-autem-autem-vel-rem-IbiNWOYk"
+                                                        },
+                                                        "sku": {
+                                                            "type": "string",
+                                                            "example": "o6bbDUK16"
+                                                        },
+                                                        "img_thumbnail": {
+                                                            "type": "string",
+                                                            "example": "https://canifa.com/img/1000/1500/resize/8/b/8bj24s003-sj859-31-1-u.webp"
+                                                        },
+                                                        "price_regular": {
+                                                            "type": "string",
+                                                            "example": "739327.00"
+                                                        },
+                                                        "price_sale": {
+                                                            "type": "string",
+                                                            "example": "606248.00"
+                                                        },
+                                                        "description": {
+                                                            "type": "string",
+                                                            "example": "Sit harum aut tenetur minima. Qui iste molestias illo consequuntur optio dolorem. Adipisci dolorem porro expedita voluptatem non maiores nam."
+                                                        },
+                                                        "content ": {
+                                                            "type": "string",
+                                                            "example": "Tempora et velit culpa. Inventore quod enim ullam sequi vel natus dignissimos. Sed commodi unde qui dolores quia sint. Id aut est corrupti corporis vitae est est. Non qui laboriosam enim vitae repellendus. Perferendis rerum autem repudiandae veritatis quo..."
+                                                        },
+                                                        "user_manual": {
+                                                            "type": "string",
+                                                            "example": "Recusandae quia consequuntur at occaecati. Et enim veniam voluptatem in. Quam quia ut rem cupiditate quo. Quibusdam saepe enim quibusdam iure veritatis. Nobis qui rerum accusamus quas beatae ab cupiditate."
+                                                        },
+                                                        "view": {
+                                                            "type": "integer",
+                                                            "example": 0
+                                                        },
+                                                        "is_active": {
+                                                            "type": "boolean",
+                                                            "example": true
+                                                        },
+                                                        "is_new": {
+                                                            "type": "boolean",
+                                                            "example": true
+                                                        },
+                                                        "is_show_home": {
+                                                            "type": "boolean",
+                                                            "example": true
+                                                        },
+                                                        "category_id": {
+                                                            "type": "integer",
+                                                            "example": 3
+                                                        },
+                                                        "brand_id": {
+                                                            "type": "integer",
+                                                            "example": 1
+                                                        },
+                                                        "created_at": {
+                                                            "type": "string",
+                                                            "format": "date-time",
+                                                            "example": "2024-10-21T06:30:18.000000Z"
+                                                        },
+                                                        "updated_at": {
+                                                            "type": "string",
+                                                            "format": "date-time",
+                                                            "example": "2024-10-21T06:30:18.000000Z"
+                                                        },
+                                                        "deleted_at": {
+                                                            "type": "string",
+                                                            "example": null,
+                                                            "nullable": true
+                                                        }
+                                                    },
+                                                    "type": "object"
+                                                },
+                                                "payment_status": {
                                                     "type": "string",
-                                                    "format": "date-time",
-                                                    "example": "2024-03-20T15:30:00Z"
+                                                    "example": "paid"
+                                                },
+                                                "payment_method": {
+                                                    "type": "string",
+                                                    "example": "vnpay"
+                                                },
+                                                "response_code": {
+                                                    "type": "string",
+                                                    "example": "00"
                                                 }
                                             },
                                             "type": "object"
