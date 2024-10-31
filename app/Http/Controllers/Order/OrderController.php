@@ -441,7 +441,7 @@ class OrderController extends Controller
                         'order_item' => $orderItems,
                         'product' => $products,
                         'payment_status' => 'paid',
-                        'payment_method' => 'vnpay',
+                        'payment_method' => '1',
                         'response_code' => $request->vnp_ResponseCode,
                     ]
                 ]);
