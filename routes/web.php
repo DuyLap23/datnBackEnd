@@ -16,9 +16,9 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', function () {
     return view('welcome');
 });
-Route::get('/vnpay/return', function () {
-    return view(
-        'pay_return'
-    );
-} )->name('vnpay.return');
+//Route::get('/vnpay/return', function () {
+//    return view(
+//        'pay_return'
+//    );
+//} )->name('vnpay.return');
 

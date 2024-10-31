@@ -61,7 +61,7 @@
 </head>
 <body>
 <div class="container">
-    @if ($status == 'success')
+    @if (\App\Models\VnpayTransaction::class->where('transaction_id', $request->vnp_TxnRef)->first()->response_code == '00')
         <div class="status-icon success">✓</div>
         <h1>Thanh toán thành công!</h1>
         <p>Cảm ơn bạn đã thanh toán. Đơn hàng của bạn đã được xác nhận.</p>
