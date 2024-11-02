@@ -6806,6 +6806,161 @@
                 ]
             }
         },
+        "/api/admin/orders/order-status-tracking": {
+            "get": {
+                "tags": [
+                    "Order Tracking"
+                ],
+                "summary": "Lấy danh sách tất cả đơn hàng cùng thông tin sản phẩm và người đặt.",
+                "operationId": "c20bb135c7328a6993371ee32d748457",
+                "responses": {
+                    "200": {
+                        "description": "Danh sách đơn hàng với trạng thái, thời gian, sản phẩm và người đặt.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "properties": {
+                                            "id": {
+                                                "type": "integer",
+                                                "example": 1
+                                            },
+                                            "user_id": {
+                                                "type": "integer",
+                                                "example": 1
+                                            },
+                                            "address_id": {
+                                                "type": "integer",
+                                                "example": 101
+                                            },
+                                            "payment_method": {
+                                                "type": "string",
+                                                "example": "credit_card"
+                                            },
+                                            "payment_status": {
+                                                "type": "string",
+                                                "example": "paid"
+                                            },
+                                            "order_status": {
+                                                "type": "string",
+                                                "example": "delivered"
+                                            },
+                                            "total_amount": {
+                                                "type": "number",
+                                                "format": "float",
+                                                "example": 150
+                                            },
+                                            "note": {
+                                                "type": "string",
+                                                "example": "Ghi chú cho đơn hàng"
+                                            },
+                                            "created_at": {
+                                                "type": "string",
+                                                "format": "date-time",
+                                                "example": "2024-11-02T12:00:00Z"
+                                            },
+                                            "updated_at": {
+                                                "type": "string",
+                                                "format": "date-time",
+                                                "example": "2024-11-02T12:30:00Z"
+                                            },
+                                            "deleted_at": {
+                                                "type": "string",
+                                                "format": "date-time",
+                                                "example": "2024-11-02T13:00:00Z"
+                                            },
+                                            "delivered_at": {
+                                                "type": "string",
+                                                "format": "date-time",
+                                                "example": "2024-11-02T13:00:00Z"
+                                            },
+                                            "cancelled_by": {
+                                                "type": "integer",
+                                                "example": 2
+                                            },
+                                            "received_at": {
+                                                "type": "string",
+                                                "format": "date-time",
+                                                "example": "2024-11-02T13:00:00Z"
+                                            },
+                                            "current_status": {
+                                                "type": "string",
+                                                "example": "Đơn hàng đã được giao"
+                                            },
+                                            "user": {
+                                                "properties": {
+                                                    "id": {
+                                                        "type": "integer",
+                                                        "example": 1
+                                                    },
+                                                    "name": {
+                                                        "type": "string",
+                                                        "example": "Nguyễn Văn A"
+                                                    },
+                                                    "email": {
+                                                        "type": "string",
+                                                        "example": "nguyenvana@example.com"
+                                                    }
+                                                },
+                                                "type": "object"
+                                            },
+                                            "products": {
+                                                "type": "array",
+                                                "items": {
+                                                    "properties": {
+                                                        "product_id": {
+                                                            "type": "integer",
+                                                            "example": 101
+                                                        },
+                                                        "product_name": {
+                                                            "type": "string",
+                                                            "example": "Sản phẩm A"
+                                                        },
+                                                        "quantity": {
+                                                            "type": "integer",
+                                                            "example": 2
+                                                        },
+                                                        "price": {
+                                                            "type": "number",
+                                                            "format": "float",
+                                                            "example": 150
+                                                        }
+                                                    },
+                                                    "type": "object"
+                                                }
+                                            }
+                                        },
+                                        "type": "object"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Không có quyền truy cập.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Bạn không có quyền theo dõi đơn hàng."
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ]
+            }
+        },
         "/api/user/orders": {
             "get": {
                 "tags": [
@@ -7634,6 +7789,10 @@
         {
             "name": "Orders Admin Management",
             "description": "Orders Admin Management"
+        },
+        {
+            "name": "Order Tracking",
+            "description": "Order Tracking"
         },
         {
             "name": "Orders User Management",
