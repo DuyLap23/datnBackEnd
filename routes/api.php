@@ -19,6 +19,7 @@ use App\Http\Controllers\API\Search\FilterController;
 use App\Http\Controllers\API\TagController;
 use App\Http\Controllers\Api\UserCommentController;
 use App\Http\Controllers\API\VouCherController;
+use App\Http\Controllers\DeliveryController;
 use App\Http\Controllers\Order\OrderController;
 use App\Http\Controllers\Order\OrderManagementController;
 use App\Http\Controllers\Order\OrderTrackingController;
@@ -88,7 +89,17 @@ Route::get('categories', [CategoryController::class, 'index']);
 Route::get('categories/{id}', [CategoryController::class, 'show']);
 Route::get('products', [ProductController::class, 'index'])->name('products.index');
 Route::get('products/{slug}', [ProductController::class,'show'])->name('products.show');
-
+// ADMIN và STAFF
+Route::group(
+    [
+        'middleware' => ['role:admin,staff'],
+        'prefix' => 'admin',
+    ],
+    function ($router) {
+        Route::get('/orders/delivery', [DeliveryController::class, 'index']);
+        Route::put('/orders/{id}/status', [DeliveryController::class, 'updateOrderStatus']);
+    }
+);
 //ADMIN
 Route::group(
     [
