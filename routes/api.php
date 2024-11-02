@@ -197,6 +197,7 @@ Route::group(
         Route::patch('/user/orders/address', [OrderUserManagementController::class, 'updateAddress']);
         Route::patch('/user/orders/{id}/payment-method', [OrderUserManagementController::class, 'updatePaymentMethod']);
         Route::get('/user/orders/{id}', [OrderUserManagementController::class, 'show']);
+        Route::patch('/user/orders/mark-as-received/{id}', [OrderUserManagementController::class, 'markAsReceived']);
     }
 );
 

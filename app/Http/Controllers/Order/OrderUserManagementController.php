@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Order;
 use App\Http\Controllers\Controller;
 use App\Models\Address;
 use App\Models\Order;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -360,4 +361,70 @@ public function show($id)
         }),
     ]);
 }
+/**
+ * @OA\Patch(
+ *     tags={"Orders User Management"},
+ *     path="/api/user/orders/mark-as-received/{id}",
+ *     security={{"Bearer": {}}},
+ *     summary="Đánh dấu đơn hàng là đã nhận",
+ *     description="Cập nhật trạng thái đơn hàng sang 'received' nếu người dùng đã nhận hàng.",
+ *     @OA\Parameter(
+ *         name="id",
+ *         in="path",
+ *         required=true,
+ *         description="ID của đơn hàng",
+ *         @OA\Schema(type="integer")
+ *     ),
+ *     @OA\Response(
+ *         response=200,
+ *         description="Đơn hàng đã được đánh dấu là đã nhận.",
+ *         @OA\JsonContent(
+ *             @OA\Property(property="message", type="string", example="Đơn hàng đã được đánh dấu là đã nhận thành công.")
+ *         )
+ *     ),
+ *     @OA\Response(
+ *         response=400,
+ *         description="Lỗi khi không thể đánh dấu đơn hàng.",
+ *         @OA\JsonContent(
+ *             @OA\Property(property="message", type="string", example="Đơn hàng không thể được đánh dấu là đã nhận.")
+ *         )
+ *     ),
+ *     @OA\Response(
+ *         response=404,
+ *         description="Không tìm thấy đơn hàng.",
+ *         @OA\JsonContent(
+ *             @OA\Property(property="message", type="string", example="Đơn hàng không tồn tại.")
+ *         )
+ *     )
+ * )
+ */
+public function markAsReceived($id)
+{
+    if (!Auth::check()) {
+        return response()->json(['message' => 'Vui lòng đăng nhập'], 401);
+    }
+    
+    $order = Order::find($id);
+
+    if (!$order) {
+        return response()->json(['message' => 'Đơn hàng không tồn tại.'], 404);
+    }
+
+    if ($order->order_status === 'delivered') {
+        // Chỉ chuyển trạng thái sang "Hoàn thành" nếu đơn hàng chưa được đánh dấu
+        if ($order->order_status !== 'completed') {
+            $order->order_status = 'completed'; 
+            $order->received_at = Carbon::now(); 
+            $order->save();
+
+            return response()->json(['message' => 'Đơn hàng đã được hoàn thành.'], 200); 
+        } else {
+            return response()->json(['message' => 'Đơn hàng đã được đánh dấu là đã nhận.'], 400);
+        }
+    }
+
+    return response()->json(['message' => 'Đơn hàng không thể được đánh dấu là đã nhận.'], 400);
+}
+
+
 }

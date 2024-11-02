@@ -4810,6 +4810,55 @@ paths:
       security:
         -
           Bearer: []
+  '/api/user/orders/mark-as-received/{id}':
+    patch:
+      tags:
+        - 'Orders User Management'
+      summary: 'Đánh dấu đơn hàng là đã nhận'
+      description: "Cập nhật trạng thái đơn hàng sang 'received' nếu người dùng đã nhận hàng."
+      operationId: 239a05873503a365d552ef90c5eb628f
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'ID của đơn hàng'
+          required: true
+          schema:
+            type: integer
+      responses:
+        200:
+          description: 'Đơn hàng đã được đánh dấu là đã nhận.'
+          content:
+            application/json:
+              schema:
+                properties:
+                  message:
+                    type: string
+                    example: 'Đơn hàng đã được đánh dấu là đã nhận thành công.'
+                type: object
+        400:
+          description: 'Lỗi khi không thể đánh dấu đơn hàng.'
+          content:
+            application/json:
+              schema:
+                properties:
+                  message:
+                    type: string
+                    example: 'Đơn hàng không thể được đánh dấu là đã nhận.'
+                type: object
+        404:
+          description: 'Không tìm thấy đơn hàng.'
+          content:
+            application/json:
+              schema:
+                properties:
+                  message:
+                    type: string
+                    example: 'Đơn hàng không tồn tại.'
+                type: object
+      security:
+        -
+          Bearer: []
 components:
   schemas:
     User:
