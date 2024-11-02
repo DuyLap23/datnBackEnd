@@ -5753,6 +5753,117 @@
                 ]
             }
         },
+        "/api/orders/ready-to-deliver": {
+            "get": {
+                "tags": [
+                    "Delivery Management"
+                ],
+                "summary": "Nhận danh sách đơn hàng sẵn sàng giao",
+                "operationId": "a8dcc76799d13468070246a0552bfe86",
+                "parameters": [
+                    {
+                        "name": "status",
+                        "in": "query",
+                        "description": "Trạng thái của đơn hàng để lọc",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "processing",
+                                "pending",
+                                "shipped"
+                            ]
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful retrieval of ready-to-deliver orders",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "properties": {
+                                            "order_id": {
+                                                "description": "Mã ID của đơn hàng",
+                                                "type": "integer",
+                                                "example": 1
+                                            },
+                                            "customer_name": {
+                                                "description": "Tên khách hàng",
+                                                "type": "string",
+                                                "example": "Nguyễn Văn A"
+                                            },
+                                            "address": {
+                                                "description": "Địa chỉ giao hàng",
+                                                "type": "string",
+                                                "example": "123 Đường ABC"
+                                            },
+                                            "products": {
+                                                "type": "array",
+                                                "items": {
+                                                    "properties": {
+                                                        "product_name": {
+                                                            "type": "string",
+                                                            "example": "Sản phẩm A"
+                                                        },
+                                                        "quantity": {
+                                                            "type": "integer",
+                                                            "example": 2
+                                                        },
+                                                        "price": {
+                                                            "type": "number",
+                                                            "format": "float",
+                                                            "example": 100000
+                                                        },
+                                                        "image": {
+                                                            "type": "string",
+                                                            "example": "link_to_image.jpg"
+                                                        }
+                                                    },
+                                                    "type": "object"
+                                                }
+                                            },
+                                            "total_quantity": {
+                                                "type": "integer",
+                                                "example": 2
+                                            },
+                                            "total_amount": {
+                                                "type": "number",
+                                                "format": "float",
+                                                "example": 200000
+                                            },
+                                            "order_status": {
+                                                "type": "string",
+                                                "example": "processing"
+                                            },
+                                            "delivery_time": {
+                                                "type": "string",
+                                                "format": "date-time",
+                                                "example": "2024-10-19T12:00:00Z"
+                                            }
+                                        },
+                                        "type": "object"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "404": {
+                        "description": "No orders found"
+                    }
+                },
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ]
+            }
+        },
         "/api/orders": {
             "post": {
                 "tags": [
@@ -7781,6 +7892,10 @@
         {
             "name": "User Comments",
             "description": "User Comments"
+        },
+        {
+            "name": "Delivery Management",
+            "description": "Delivery Management"
         },
         {
             "name": "Order",
