@@ -21,6 +21,7 @@ use App\Http\Controllers\Api\UserCommentController;
 use App\Http\Controllers\API\VouCherController;
 use App\Http\Controllers\Order\OrderController;
 use App\Http\Controllers\Order\OrderManagementController;
+use App\Http\Controllers\Order\OrderTrackingController;
 use App\Http\Controllers\Order\OrderUserManagementController;
 use App\Http\Controllers\Order\VnpayController;
 use Illuminate\Support\Facades\Route;
@@ -133,6 +134,7 @@ Route::group(
         Route::get('banners/{id}', [BannerMktController::class, 'show']);
         Route::delete('banners/{id}', [BannerMktController::class, 'destroy']);
 
+        Route::get('/orders/order-status-tracking', [OrderTrackingController::class, 'index']);
         Route::get('/orders', [OrderManagementController::class, 'index']);
         Route::get('/orders/filter', [OrderManagementController::class, 'filterByDate']);
         Route::get('/orders/search', [OrderManagementController::class, 'search']);
@@ -140,7 +142,6 @@ Route::group(
         Route::put('/orders/status/{id}', [OrderManagementController::class, 'updateStatus']);
         Route::post('/orders/{id}/refund', [OrderManagementController::class, 'refund']);
         Route::delete('/orders/{id}', [OrderManagementController::class, 'destroy']);
-        Route::get('/orders/{id}/tracking', [OrderManagementController::class, 'tracking']);
 
     }
 );
