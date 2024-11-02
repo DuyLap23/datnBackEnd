@@ -5792,7 +5792,7 @@
                 },
                 "responses": {
                     "201": {
-                        "description": "Đặt hàng thành công",
+                        "description": "Thanh toán thành công",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -6334,17 +6334,17 @@
             }
         },
         "/api/admin/orders/status/{id}": {
-            "patch": {
+            "put": {
                 "tags": [
                     "Orders Admin Management"
                 ],
-                "summary": "Cập nhật trạng thái của đơn hàng",
-                "operationId": "985ac06db74875c3ec430affd44146cd",
+                "summary": "Cập nhật trạng thái đơn hàng",
+                "operationId": "54889cf8892d5c235a262f5bc5437580",
                 "parameters": [
                     {
                         "name": "id",
                         "in": "path",
-                        "description": "ID của đơn hàng cần cập nhật",
+                        "description": "ID của đơn hàng",
                         "required": true,
                         "schema": {
                             "type": "integer"
@@ -6356,14 +6356,22 @@
                     "content": {
                         "application/json": {
                             "schema": {
-                                "required": [
-                                    "status"
-                                ],
                                 "properties": {
                                     "status": {
-                                        "description": "Trạng thái mới của đơn hàng (pending, shipped, delivered, cancelled, returned_refunded)",
                                         "type": "string",
-                                        "example": "shipped"
+                                        "enum": [
+                                            "pending",
+                                            "confirmed",
+                                            "shipping",
+                                            "delivered",
+                                            "received",
+                                            "completed",
+                                            "cancelled"
+                                        ]
+                                    },
+                                    "reason": {
+                                        "description": "Lý do hủy đơn (chỉ áp dụng khi trạng thái là cancelled)",
+                                        "type": "string"
                                     }
                                 },
                                 "type": "object"
@@ -6373,50 +6381,19 @@
                 },
                 "responses": {
                     "200": {
-                        "description": "Cập nhật thành công trạng thái đơn hàng",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "properties": {
-                                        "message": {
-                                            "type": "string",
-                                            "example": "Trạng thái đơn hàng đã được cập nhật thành công."
-                                        },
-                                        "order": {
-                                            "properties": {
-                                                "id": {
-                                                    "description": "ID của đơn hàng",
-                                                    "type": "integer",
-                                                    "example": 1
-                                                },
-                                                "order_status": {
-                                                    "description": "Trạng thái mới của đơn hàng",
-                                                    "type": "string",
-                                                    "example": "shipped"
-                                                },
-                                                "updated_at": {
-                                                    "description": "Thời gian cập nhật trạng thái đơn hàng",
-                                                    "type": "string",
-                                                    "format": "date-time",
-                                                    "example": "2024-10-19T12:00:00Z"
-                                                }
-                                            },
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            }
-                        }
+                        "description": "Trạng thái đơn hàng đã được cập nhật thành công."
                     },
                     "400": {
-                        "description": "Dữ liệu không hợp lệ"
+                        "description": "Yêu cầu không hợp lệ hoặc trạng thái không thể cập nhật."
                     },
                     "401": {
-                        "description": "Không được phép"
+                        "description": "Chưa đăng nhập."
                     },
                     "404": {
-                        "description": "Không tìm thấy đơn hàng"
+                        "description": "Không tìm thấy đơn hàng."
+                    },
+                    "403": {
+                        "description": "Bạn không có quyền truy cập cập nhật trạng thái đơn hàng."
                     }
                 },
                 "security": [
