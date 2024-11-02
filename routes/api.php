@@ -137,7 +137,7 @@ Route::group(
         Route::get('/orders/filter', [OrderManagementController::class, 'filterByDate']);
         Route::get('/orders/search', [OrderManagementController::class, 'search']);
         Route::get('/orders/{id}', [OrderManagementController::class, 'detall']);
-        Route::patch('/orders/status/{id}', [OrderManagementController::class, 'updateStatus']);
+        Route::put('/orders/status/{id}', [OrderManagementController::class, 'updateStatus']);
         Route::post('/orders/{id}/refund', [OrderManagementController::class, 'refund']);
         Route::delete('/orders/{id}', [OrderManagementController::class, 'destroy']);
         Route::get('/orders/{id}/tracking', [OrderManagementController::class, 'tracking']);

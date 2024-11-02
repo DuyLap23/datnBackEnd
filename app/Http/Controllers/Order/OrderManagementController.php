@@ -196,80 +196,137 @@ class OrderManagementController extends Controller
          }),
      ]);
  }
- /**
- * @OA\Patch(
- *     path="/api/admin/orders/status/{id}",
- *     summary="Cập nhật trạng thái của đơn hàng",
+/**
+ * @OA\Put(
  *     tags={"Orders Admin Management"},
+ *     path="/api/admin/orders/status/{id}",
  *     security={{"Bearer": {}}},
+ *     summary="Cập nhật trạng thái đơn hàng",
  *     @OA\Parameter(
  *         name="id",
  *         in="path",
+ *         description="ID của đơn hàng",
  *         required=true,
- *         @OA\Schema(type="integer"),
- *         description="ID của đơn hàng cần cập nhật"
+ *         @OA\Schema(type="integer")
  *     ),
  *     @OA\RequestBody(
  *         required=true,
  *         @OA\JsonContent(
- *             type="object",
- *             required={"status"},
- *             @OA\Property(
- *                 property="status",
- *                 type="string",
- *                 description="Trạng thái mới của đơn hàng (pending, shipped, delivered, cancelled, returned_refunded)",
- *                 example="shipped"
- *             )
+ *             @OA\Property(property="status", type="string", enum={"pending", "confirmed", "shipping", "delivered", "received", "completed", "cancelled"}),
+ *             @OA\Property(property="reason", type="string", description="Lý do hủy đơn (chỉ áp dụng khi trạng thái là cancelled)")
  *         )
  *     ),
  *     @OA\Response(
  *         response=200,
- *         description="Cập nhật thành công trạng thái đơn hàng",
- *         @OA\JsonContent(
- *             type="object",
- *             @OA\Property(property="message", type="string", example="Trạng thái đơn hàng đã được cập nhật thành công."),
- *             @OA\Property(
- *                 property="order",
- *                 type="object",
- *                 @OA\Property(property="id", type="integer", example=1, description="ID của đơn hàng"),
- *                 @OA\Property(property="order_status", type="string", example="shipped", description="Trạng thái mới của đơn hàng"),
- *                 @OA\Property(property="updated_at", type="string", format="date-time", example="2024-10-19T12:00:00Z", description="Thời gian cập nhật trạng thái đơn hàng")
- *             )
- *         )
+ *         description="Trạng thái đơn hàng đã được cập nhật thành công."
  *     ),
- *     @OA\Response(response=400, description="Dữ liệu không hợp lệ"),
- *     @OA\Response(response=401, description="Không được phép"),
- *     @OA\Response(response=404, description="Không tìm thấy đơn hàng")
+ *     @OA\Response(
+ *         response=400,
+ *         description="Yêu cầu không hợp lệ hoặc trạng thái không thể cập nhật."
+ *     ),
+ *     @OA\Response(
+ *         response=401,
+ *         description="Chưa đăng nhập."
+ *     ),
+ *     @OA\Response(
+ *         response=404,
+ *         description="Không tìm thấy đơn hàng."
+ *     ),
+ *     @OA\Response(
+ *         response=403,
+ *         description="Bạn không có quyền truy cập cập nhật trạng thái đơn hàng."
+ *     )
  * )
  */
-public function updateStatus(Request $request, $id)
-{
-    if (!Auth::check() || Auth::user()->role !== 'admin') {
-        return response()->json(['message' => 'Bạn không có quyền cập nhật trạng thái đơn hàng.'], 403);
-    }
 
-    $request->validate([
-        'status' => 'required|string|in:pending,shipped,delivered,cancelled,returned_refunded',
-    ]);
-
-    $order = Order::find($id);
-    if (!$order) {
-        return response()->json(['message' => 'Không tìm thấy đơn hàng.'], 404);
-    }
-
-    $order->order_status = $request->status;
-    $order->save();
-
-    return response()->json([
-        'message' => 'Trạng thái đơn hàng đã được cập nhật thành công.',
-        'order' => [
-            'id' => $order->id,
-            'order_status' => $order->order_status,
-            'updated_at' => $order->updated_at,
-        ],
-    ], 200);
-}
-
+ public function updateStatus(Request $request, $id)
+ {
+     // Kiểm tra quyền truy cập
+     if (!Auth::check() || Auth::user()->role !== 'admin') {
+         return response()->json(['message' => 'Bạn không có quyền truy cập cập nhật trạng thái đơn hàng.'], 403);
+     }
+ 
+     // Tìm đơn hàng theo ID
+     $order = Order::find($id);
+ 
+     // Kiểm tra xem đơn hàng có tồn tại không
+     if (!$order) {
+         return response()->json(['message' => 'Không tìm thấy đơn hàng'], 404);
+     }
+ 
+     // Lấy trạng thái và lý do từ body của yêu cầu
+     $status = $request->input('status');
+     $reason = $request->input('reason');
+ 
+     // Kiểm tra trạng thái hợp lệ
+     $allowedStatuses = ["pending", "confirmed", "shipping", "delivered", "received", "completed", "cancelled"];
+     if (!in_array($status, $allowedStatuses)) {
+         return response()->json(['message' => 'Trạng thái không hợp lệ'], 400);
+     }
+ 
+     // Cập nhật trạng thái
+     switch ($status) {
+         case 'confirmed':
+             if ($order->order_status !== 'pending') {
+                 return response()->json(['message' => 'Không thể xác nhận đơn hàng này'], 400);
+             }
+             $order->order_status = 'confirmed';
+             $order->payment_status = 'unpaid'; // Thiết lập trạng thái thanh toán là unpaid
+             break;
+ 
+         case 'shipping':
+             if ($order->order_status !== 'confirmed') {
+                 return response()->json(['message' => 'Không thể chuyển trạng thái đơn hàng này sang đang giao hàng'], 400);
+             }
+             $order->order_status = 'shipping';
+             break;
+ 
+         case 'delivered':
+             if ($order->order_status !== 'shipping') {
+                 return response()->json(['message' => 'Không thể chuyển trạng thái đơn hàng này sang đã giao hàng'], 400);
+             }
+             $order->order_status = 'delivered';
+             $order->delivered_at = now();
+             $order->payment_status = 'paid'; // Cập nhật trạng thái thanh toán thành paid khi đơn hàng đã giao
+             break;
+ 
+         case 'received':
+             if ($order->order_status !== 'delivered') {
+                 return response()->json(['message' => 'Không thể đánh dấu đơn hàng này là đã nhận hàng'], 400);
+             }
+             $order->order_status = 'received'; 
+             break;
+ 
+         case 'completed':
+             if ($order->order_status !== 'received') {
+                 return response()->json(['message' => 'Không thể hoàn thành đơn hàng này'], 400);
+             }
+             $order->order_status = 'completed';
+             break;
+ 
+         case 'cancelled':
+             if ($order->order_status === 'completed') {
+                 return response()->json(['message' => 'Không thể hủy đơn hàng đã hoàn thành'], 400);
+             }
+             $order->order_status = 'cancelled';
+             $order->note = $reason;
+             $order->cancelled_by = Auth::user()->id; 
+             break;
+ 
+         default:
+             return response()->json(['message' => 'Trạng thái không hợp lệ'], 400);
+     }
+ 
+     // Lưu các thay đổi
+     $order->save();
+ 
+     return response()->json([
+         'message' => 'Trạng thái đơn hàng đã được cập nhật thành công.',
+         'order' => $order
+     ]);
+ }
+ 
+ 
 /**
  * @OA\Get(
  *     path="/api/admin/orders/search",
