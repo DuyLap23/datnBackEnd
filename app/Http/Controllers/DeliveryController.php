@@ -57,7 +57,7 @@ public function index(Request $request)
     }
 
     $status = $request->query('status');
-    $validStatuses = ['pending'];
+    $validStatuses = ['shipped'];
 
     if ($status && !in_array($status, $validStatuses)) {
         return response()->json(['message' => 'Trạng thái không hợp lệ.'], 400);
@@ -256,20 +256,22 @@ public function updateDeliveryStatus($id, Request $request)
     if (!Auth::check() || !in_array(Auth::user()->role, ['admin', 'staff'])) {
         return response()->json(['message' => 'Bạn không có quyền quản lý trạng thái giao hàng.'], 403);
     }
+
     $order = Order::find($id);
     if (!$order) {
         return response()->json(['message' => 'Đơn hàng không tồn tại.'], 404);
     }
+
     $status = $request->input('status');
-    $reason = $request->input('reason', null); 
+    $reason = $request->input('reason', null);
+
     if ($order->order_status === 'shipped') {
         if ($status === 'failed') {
             $order->order_status = 'failed';
-            $order->note = $reason; 
+            $order->note = $reason;
         } elseif ($status === 'cancelled') {
             $order->order_status = 'cancelled';
-            $order->note = $reason; 
-            return response()->json(['message' => 'Không thể lên lịch lại khi đơn hàng đang trong quá trình giao.'], 400);
+            $order->note = $reason;
         } else {
             return response()->json(['message' => 'Trạng thái không hợp lệ.'], 400);
         }
@@ -283,10 +285,12 @@ public function updateDeliveryStatus($id, Request $request)
     } else {
         return response()->json(['message' => 'Trạng thái đơn hàng hiện tại không cho phép cập nhật.'], 400);
     }
+
     $order->save();
 
     return response()->json(['message' => 'Trạng thái giao hàng đã được cập nhật thành công.', 'status' => $order->order_status]);
 }
+
 
 
     
