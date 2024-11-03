@@ -97,7 +97,8 @@ Route::group(
     ],
     function ($router) {
         Route::get('/orders/delivery', [DeliveryController::class, 'index']);
-        Route::put('/orders/{id}/status', [DeliveryController::class, 'updateOrderStatus']);
+        Route::post('/orders/confirm/{id}', [DeliveryController::class, 'confirmOrder']);
+
     }
 );
 //ADMIN

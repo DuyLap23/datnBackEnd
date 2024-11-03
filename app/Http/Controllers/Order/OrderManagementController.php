@@ -259,30 +259,30 @@ class OrderManagementController extends Controller
      $reason = $request->input('reason');
  
      // Kiểm tra trạng thái hợp lệ
-     $allowedStatuses = ["pending", "confirmed", "shipping", "delivered", "received", "completed", "cancelled"];
+     $allowedStatuses = ["pending", "processing", "shipped", "delivered", "received", "completed", "cancelled"];
      if (!in_array($status, $allowedStatuses)) {
          return response()->json(['message' => 'Trạng thái không hợp lệ'], 400);
      }
  
      // Cập nhật trạng thái
      switch ($status) {
-         case 'confirmed':
+         case 'processing':
              if ($order->order_status !== 'pending') {
                  return response()->json(['message' => 'Không thể xác nhận đơn hàng này'], 400);
              }
-             $order->order_status = 'confirmed';
+             $order->order_status = 'processing';
              $order->payment_status = 'unpaid'; // Thiết lập trạng thái thanh toán là unpaid
              break;
  
-         case 'shipping':
-             if ($order->order_status !== 'confirmed') {
+         case 'shipped':
+             if ($order->order_status !== 'processing') {
                  return response()->json(['message' => 'Không thể chuyển trạng thái đơn hàng này sang đang giao hàng'], 400);
              }
-             $order->order_status = 'shipping';
+             $order->order_status = 'shipped';
              break;
  
          case 'delivered':
-             if ($order->order_status !== 'shipping') {
+             if ($order->order_status !== 'shipped') {
                  return response()->json(['message' => 'Không thể chuyển trạng thái đơn hàng này sang đã giao hàng'], 400);
              }
              $order->order_status = 'delivered';
