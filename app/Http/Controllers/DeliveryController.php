@@ -57,7 +57,7 @@ public function index(Request $request)
     }
 
     $status = $request->query('status');
-    $validStatuses = ['processing', 'pending', 'shipped'];
+    $validStatuses = ['pending'];
 
     if ($status && !in_array($status, $validStatuses)) {
         return response()->json(['message' => 'Trạng thái không hợp lệ.'], 400);
@@ -146,6 +146,148 @@ public function confirmOrder($id)
     $order->save();
     return response()->json(['message' => 'Đơn hàng đã được xác nhận.']);
 }
+/**
+ * @OA\Post(
+ *     path="/api/orders/confirm-delivery/{id}",
+ *     summary="Xác nhận giao hàng thành công",
+ *     tags={"Delivery Management"},
+ *     security={{"Bearer": {}}},
+ *     @OA\Parameter(
+ *         name="id",
+ *         in="path",
+ *         required=true,
+ *         description="ID của đơn hàng cần xác nhận giao hàng",
+ *         @OA\Schema(type="integer")
+ *     ),
+ *     @OA\Parameter(
+ *         name="recipient_name",
+ *         in="query",
+ *         required=false,
+ *         description="Tên người nhận",
+ *         @OA\Schema(type="string")
+ *     ),
+ *     @OA\Parameter(
+ *         name="signature",
+ *         in="query",
+ *         required=false,
+ *         description="Chữ ký của người nhận",
+ *         @OA\Schema(type="string")
+ *     ),
+ *     @OA\Response(
+ *         response=200,
+ *         description="Đơn hàng đã được xác nhận giao hàng thành công",
+ *         @OA\JsonContent(
+ *             @OA\Property(property="message", type="string", example="Đơn hàng đã được xác nhận giao hàng thành công.")
+ *         )
+ *     ),
+ *     @OA\Response(response=404, description="Đơn hàng không tồn tại."),
+ *     @OA\Response(response=403, description="Bạn không có quyền xác nhận giao hàng.")
+ * )
+ */
+public function confirmDelivery($id, Request $request)
+{
+    if (!Auth::check() || !in_array(Auth::user()->role, ['admin', 'staff'])) {
+        return response()->json(['message' => 'Bạn không có quyền xác nhận giao hàng.'], 403);
+    }
+
+    $order = Order::find($id);
+    if (!$order) {
+        return response()->json(['message' => 'Đơn hàng không tồn tại.'], 404);
+    }
+    if ($order->order_status !== 'shipped') {
+        return response()->json(['message' => 'Đơn hàng này chưa được giao.'], 400);
+    }
+    $order->order_status = 'delivered';
+    $order->delivered_at = now();
+    $order->recipient_name = $request->input('recipient_name', null); 
+    $order->recipient_signature = $request->input('signature', null);
+    $order->save();
+
+    return response()->json(['message' => 'Đơn hàng đã được xác nhận giao hàng thành công.']);
+}
+/**
+ * @OA\Post(
+ *     path="/api/admin/orders/update-status/{id}",
+ *     summary="Cập nhật trạng thái giao hàng",
+ *     tags={"Delivery Management"},
+ *     security={{"Bearer": {}}},
+ *     @OA\Parameter(
+ *         name="id",
+ *         in="path",
+ *         required=true,
+ *         description="ID của đơn hàng cần cập nhật trạng thái",
+ *         @OA\Schema(type="integer")
+ *     ),
+ *     @OA\Parameter(
+ *         name="status",
+ *         in="query",
+ *         required=true,
+ *         description="Trạng thái mới của đơn hàng (có thể là: 'failed', 'cancelled', 'reschedule')",
+ *         @OA\Schema(type="string")
+ *     ),
+ *     @OA\Parameter(
+ *         name="reason",
+ *         in="query",
+ *         required=false,
+ *         description="Lý do hủy hoặc giao thất bại",
+ *         @OA\Schema(type="string")
+ *     ),
+ *     @OA\Parameter(
+ *         name="reschedule_time",
+ *         in="query",
+ *         required=false,
+ *         description="Thời gian giao lại (nếu có, định dạng: 'Y-m-d H:i:s')",
+ *         @OA\Schema(type="string", format="date-time")
+ *     ),
+ *     @OA\Response(
+ *         response=200,
+ *         description="Trạng thái giao hàng đã được cập nhật thành công",
+ *         @OA\JsonContent(
+ *             @OA\Property(property="message", type="string", example="Trạng thái giao hàng đã được cập nhật thành công.")
+ *         )
+ *     ),
+ *     @OA\Response(response=404, description="Đơn hàng không tồn tại."),
+ *     @OA\Response(response=403, description="Bạn không có quyền quản lý trạng thái giao hàng."),
+ *     @OA\Response(response=400, description="Trạng thái không hợp lệ.")
+ * )
+ */
+public function updateDeliveryStatus($id, Request $request)
+{
+    if (!Auth::check() || !in_array(Auth::user()->role, ['admin', 'staff'])) {
+        return response()->json(['message' => 'Bạn không có quyền quản lý trạng thái giao hàng.'], 403);
+    }
+    $order = Order::find($id);
+    if (!$order) {
+        return response()->json(['message' => 'Đơn hàng không tồn tại.'], 404);
+    }
+    $status = $request->input('status');
+    $reason = $request->input('reason', null); 
+    if ($order->order_status === 'shipped') {
+        if ($status === 'failed') {
+            $order->order_status = 'failed';
+            $order->note = $reason; 
+        } elseif ($status === 'cancelled') {
+            $order->order_status = 'cancelled';
+            $order->note = $reason; 
+            return response()->json(['message' => 'Không thể lên lịch lại khi đơn hàng đang trong quá trình giao.'], 400);
+        } else {
+            return response()->json(['message' => 'Trạng thái không hợp lệ.'], 400);
+        }
+    } elseif ($order->order_status === 'processing') {
+        if ($status === 'reschedule') {
+            $order->order_status = 'rescheduled';
+            $order->reschedule_time = $request->input('reschedule_time');
+        } else {
+            return response()->json(['message' => 'Trạng thái không hợp lệ cho đơn hàng chưa giao.'], 400);
+        }
+    } else {
+        return response()->json(['message' => 'Trạng thái đơn hàng hiện tại không cho phép cập nhật.'], 400);
+    }
+    $order->save();
+
+    return response()->json(['message' => 'Trạng thái giao hàng đã được cập nhật thành công.', 'status' => $order->order_status]);
+}
+
 
     
 }

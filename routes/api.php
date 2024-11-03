@@ -89,7 +89,6 @@ Route::get('categories', [CategoryController::class, 'index']);
 Route::get('categories/{id}', [CategoryController::class, 'show']);
 Route::get('products', [ProductController::class, 'index'])->name('products.index');
 Route::get('products/{slug}', [ProductController::class,'show'])->name('products.show');
-// ADMIN và STAFF
 Route::group(
     [
         'middleware' => ['role:admin,staff'],
@@ -98,9 +97,11 @@ Route::group(
     function ($router) {
         Route::get('/orders/delivery', [DeliveryController::class, 'index']);
         Route::post('/orders/confirm/{id}', [DeliveryController::class, 'confirmOrder']);
-
+        Route::post('/orders/confirm-delivery/{id}', [DeliveryController::class, 'confirmDelivery']);
+        Route::post('/orders/update-status/{id}', [DeliveryController::class, 'updateDeliveryStatus']);
     }
 );
+
 //ADMIN
 Route::group(
     [
