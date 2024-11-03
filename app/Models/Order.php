@@ -42,7 +42,9 @@ class Order extends Model
         'delivered' => 'Đã giao hàng',
         'received' => 'Đã nhận',
         'completed' => 'Hoàn thành',
-        'cancelled' => 'Đã hủy'
+        'cancelled' => 'Đã hủy',
+        'failed' => 'Giao hàng thất bại',
+        'rescheduled' => 'Đã lên lịch lại'
     ];
 
     const STATUS_PAYMENT = [

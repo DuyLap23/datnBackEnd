@@ -5864,6 +5864,202 @@
                 ]
             }
         },
+        "/api/orders/{id}/confirm": {
+            "post": {
+                "tags": [
+                    "Delivery Management"
+                ],
+                "summary": "Xác nhận đơn hàng",
+                "operationId": "8844827658b99b0f84cd44baff405b81",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID của đơn hàng cần xác nhận",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Đơn hàng đã được xác nhận thành công",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Đơn hàng đã được xác nhận."
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Đơn hàng không tồn tại."
+                    },
+                    "403": {
+                        "description": "Bạn không có quyền xác nhận đơn hàng."
+                    }
+                },
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ]
+            }
+        },
+        "/api/orders/confirm-delivery/{id}": {
+            "post": {
+                "tags": [
+                    "Delivery Management"
+                ],
+                "summary": "Xác nhận giao hàng thành công",
+                "operationId": "9e48cce040a7c0a88a2332ab1d7b0b1c",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID của đơn hàng cần xác nhận giao hàng",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "recipient_name",
+                        "in": "query",
+                        "description": "Tên người nhận",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "signature",
+                        "in": "query",
+                        "description": "Chữ ký của người nhận",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Đơn hàng đã được xác nhận giao hàng thành công",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Đơn hàng đã được xác nhận giao hàng thành công."
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Đơn hàng không tồn tại."
+                    },
+                    "403": {
+                        "description": "Bạn không có quyền xác nhận giao hàng."
+                    }
+                },
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ]
+            }
+        },
+        "/api/admin/orders/update-status/{id}": {
+            "post": {
+                "tags": [
+                    "Delivery Management"
+                ],
+                "summary": "Cập nhật trạng thái giao hàng",
+                "operationId": "be38c724b714497c6583d462f45db57e",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID của đơn hàng cần cập nhật trạng thái",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "status",
+                        "in": "query",
+                        "description": "Trạng thái mới của đơn hàng (có thể là: 'failed', 'cancelled', 'reschedule')",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "reason",
+                        "in": "query",
+                        "description": "Lý do hủy hoặc giao thất bại",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "reschedule_time",
+                        "in": "query",
+                        "description": "Thời gian giao lại (nếu có, định dạng: 'Y-m-d H:i:s')",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "format": "date-time"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Trạng thái giao hàng đã được cập nhật thành công",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Trạng thái giao hàng đã được cập nhật thành công."
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Đơn hàng không tồn tại."
+                    },
+                    "403": {
+                        "description": "Bạn không có quyền quản lý trạng thái giao hàng."
+                    },
+                    "400": {
+                        "description": "Trạng thái không hợp lệ."
+                    }
+                },
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ]
+            }
+        },
         "/api/orders": {
             "post": {
                 "tags": [
