@@ -297,21 +297,23 @@ class OrderManagementController extends Controller
              $order->order_status = 'received'; 
              break;
  
-         case 'completed':
-             if ($order->order_status !== 'received') {
-                 return response()->json(['message' => 'Không thể hoàn thành đơn hàng này'], 400);
-             }
-             $order->order_status = 'completed';
-             break;
- 
-         case 'cancelled':
-             if ($order->order_status === 'completed') {
-                 return response()->json(['message' => 'Không thể hủy đơn hàng đã hoàn thành'], 400);
-             }
-             $order->order_status = 'cancelled';
-             $order->note = $reason;
-             $order->cancelled_by = Auth::user()->id; 
-             break;
+             case 'cancelled':
+                if ($order->order_status === 'completed') {
+                    return response()->json(['message' => 'Không thể hủy đơn hàng đã hoàn thành'], 400);
+                }
+                if ($order->order_status === 'received') {
+                    return response()->json(['message' => 'Không thể hủy đơn hàng đã được nhận'], 400);
+                }
+                if ($order->order_status === 'delivered') {
+                    return response()->json(['message' => 'Không thể hủy đơn hàng đã giao'], 400);
+                }
+                if ($order->order_status === 'shipped') { 
+                    return response()->json(['message' => 'Không thể hủy đơn hàng đã được giao đi'], 400);
+                }
+                $order->order_status = 'cancelled';
+                $order->note = $reason;
+                $order->cancelled_by = Auth::user()->id; 
+                break;
  
          default:
              return response()->json(['message' => 'Trạng thái không hợp lệ'], 400);
