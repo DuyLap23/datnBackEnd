@@ -109,6 +109,43 @@ public function index(Request $request)
         'order_count_by_status' => $orderCountByStatus
     ]);
 }
+/**
+ * @OA\Post(
+ *     path="/api/orders/{id}/confirm",
+ *     summary="Xác nhận đơn hàng",
+ *     tags={"Delivery Management"},
+ *     security={{"Bearer": {}}},
+ *     @OA\Parameter(
+ *         name="id",
+ *         in="path",
+ *         required=true,
+ *         description="ID của đơn hàng cần xác nhận",
+ *         @OA\Schema(type="integer")
+ *     ),
+ *     @OA\Response(
+ *         response=200,
+ *         description="Đơn hàng đã được xác nhận thành công",
+ *         @OA\JsonContent(
+ *             @OA\Property(property="message", type="string", example="Đơn hàng đã được xác nhận.")
+ *         )
+ *     ),
+ *     @OA\Response(response=404, description="Đơn hàng không tồn tại."),
+ *     @OA\Response(response=403, description="Bạn không có quyền xác nhận đơn hàng.")
+ * )
+ */
+public function confirmOrder($id)
+{
+    if (!Auth::check() || !in_array(Auth::user()->role, ['admin', 'staff'])) {
+        return response()->json(['message' => 'Bạn không có quyền xác nhận đơn hàng.'], 403);
+    }
+    $order = Order::find($id);
+    if (!$order) {
+        return response()->json(['message' => 'Đơn hàng không tồn tại.'], 404);
+    }
+    $order->order_status = 'shipped'; 
+    $order->save();
+    return response()->json(['message' => 'Đơn hàng đã được xác nhận.']);
+}
 
     
 }
