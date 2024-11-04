@@ -11,6 +11,9 @@ use App\Http\Controllers\API\CartController;
 use App\Http\Controllers\API\CategoryController;
 use App\Http\Controllers\API\CommentController;
 use App\Http\Controllers\API\FavouriteListController;
+use App\Http\Controllers\API\Order\OrderController;
+use App\Http\Controllers\API\Order\OrderManagementController;
+use App\Http\Controllers\API\Order\OrderUserManagementController;
 use App\Http\Controllers\API\ProductColorController;
 use App\Http\Controllers\API\ProductController;
 use App\Http\Controllers\API\ProductSizeController;
@@ -19,12 +22,15 @@ use App\Http\Controllers\API\Search\FilterController;
 use App\Http\Controllers\API\TagController;
 use App\Http\Controllers\Api\UserCommentController;
 use App\Http\Controllers\API\VouCherController;
+<<<<<<< HEAD
+=======
 use App\Http\Controllers\DeliveryController;
 use App\Http\Controllers\Order\OrderController;
 use App\Http\Controllers\Order\OrderManagementController;
 use App\Http\Controllers\Order\OrderTrackingController;
 use App\Http\Controllers\Order\OrderUserManagementController;
 use App\Http\Controllers\Order\VnpayController;
+>>>>>>> 979ac7d352fd781a97cc57bab9d9283c4ab69f02
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -47,10 +53,8 @@ Route::group(
     function ($router) {
         Route::post('login', [LoginController::class, 'login']);
         Route::post('register', [RegisterController::class, 'register']);
-
         // Cần middleware auth:api để chỉ người dùng đăng nhập mới có thể đăng xuất
         Route::post('logout', [LoginController::class, 'logout'])->middleware('auth:api');
-
         // Làm mới token, cần kiểm tra đã đăng nhập
         Route::post('refresh', [LoginController::class, 'refresh'])->middleware('auth:api');
 
@@ -173,38 +177,25 @@ Route::post('/user/comments', [UserCommentController::class, 'store']);
 Route::get('/user/comments/{id}', [UserCommentController::class, 'show']);
 Route::get('/vnpay/return',[OrderController::class, 'paymentReturn'])->name('vnpay.return');
 
-//STAFF
-//Route::group(
-//    [
-//        'middleware' => ['auth:api', 'role:staff'],
-//        'prefix' => 'staff',
-//    ],
-//    function ($router) {
-//        Route::apiResource('orders', OrderController::class);
-//        Route::apiResource('order/items', OrderItemController::class);
-//        Route::apiResource('favourites', FavouriteListController::class);
-//        Route::apiResource('carts', CartController::class);
-//
-//    }
-//);
-
 // CUSTOMER
 Route::group(
     [
         'middleware' => ['role:staff,customer,admin'],
     ],
     function ($router) {
-        Route::post('orders', [OrderController::class, 'order']);
         Route::post('/carts', [CartController::class, 'addProductToCart']);
         Route::delete('/carts/{id}', [CartController::class, 'deleteProductFromCart']);
         Route::get('/carts', [CartController::class, 'listProductsInCart']);
         Route::patch('/cart/{id}', [CartController::class, 'updateCartItemQuantity']);
+
         Route::put('/user/comments/{id}', [UserCommentController::class, 'update']);
         Route::delete('/user/comments/{id}', [UserCommentController::class, 'destroy']);
+
         Route::get('/favourites', [FavouriteListController::class, 'index']);
         Route::post('/favourites', [FavouriteListController::class, 'store']);
         Route::delete('/favourites/{id}', [FavouriteListController::class, 'destroy']);
 
+        Route::post('orders', [OrderController::class, 'order']);
 
         Route::get('/user/orders', [OrderUserManagementController::class, 'index']);
         Route::patch('/user/orders/{id}/cancel', [OrderUserManagementController::class, 'cancelOrder']);

@@ -12,6 +12,7 @@ class Order extends Model
 
     protected $fillable = [
         'user_id',
+        'order_code',
         'address_id',
         'payment_method',
         'payment_status',
@@ -38,7 +39,7 @@ class Order extends Model
     const STATUS_ORDER = [
         'pending' => 'Chờ xác nhận',
         'processing' => 'Đã xác nhận',
-        'shipped' => 'Đang vận chuyển',
+        'shipping' => 'Đang vận chuyển',
         'delivered' => 'Đã giao hàng',
         'received' => 'Đã nhận',
         'completed' => 'Hoàn thành',

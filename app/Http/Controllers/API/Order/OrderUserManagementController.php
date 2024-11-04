@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Order;
+namespace App\Http\Controllers\API\Order;
 
 use App\Http\Controllers\Controller;
 use App\Models\Address;
@@ -39,7 +39,7 @@ public function index(Request $request)
     if (!Auth::check()) {
         return response()->json(['message' => 'Vui lòng đăng nhập'], 401);
     }
-    
+
     $status = $request->query('status', 'all');
     $query = Order::where('user_id', Auth::id());
 
@@ -65,7 +65,7 @@ public function index(Request $request)
     }
 
     // Lấy danh sách đơn hàng
-    $orders = $query->with(['orderItems.product'])->get(); 
+    $orders = $query->with(['orderItems.product'])->get();
     if ($orders->isEmpty()) {
         return response()->json(['message' => 'Không có đơn hàng nào'], 404);
     }
@@ -118,7 +118,7 @@ public function index(Request $request)
     {
         if (!Auth::check()) {
             return response()->json(['message' => 'Vui lòng đăng nhập'], 401);
-        } 
+        }
         $order = Order::find($id);
         if (!$order) {
             return response()->json(['message' => 'Không tìm thấy đơn hàng.'], 404);
@@ -129,10 +129,10 @@ public function index(Request $request)
         if ($order->order_status !== 'pending' && $order->order_status !== 'processing') {
             return response()->json(['message' => 'Không thể hủy đơn hàng trong trạng thái này.'], 400);
         }
-        $order->order_status = 'cancelled'; 
-        $order->note = $request->input('note'); 
+        $order->order_status = 'cancelled';
+        $order->note = $request->input('note');
         $order->save();
-    
+
         return response()->json(['message' => 'Đơn hàng đã được hủy.']);
     }
     /**
@@ -167,13 +167,13 @@ public function index(Request $request)
      *     )
      * )
      */
-    public function updateAddress(Request $request)  
+    public function updateAddress(Request $request)
     {
         if (!Auth::check()) {
             return response()->json(['message' => 'Vui lòng đăng nhập'], 401);
         }
         $userId = Auth::id();
-        $address = Address::where('user_id', $userId)->first(); 
+        $address = Address::where('user_id', $userId)->first();
 
         if (!$address) {
             return response()->json(['message' => 'Không tìm thấy địa chỉ.'], 404);
@@ -243,10 +243,10 @@ public function index(Request $request)
        }
 
        $request->validate([
-           'payment_method' => 'required|in:credit_card,paypal,cash', 
+           'payment_method' => 'required|in:credit_card,paypal,cash',
        ]);
 
-       $order->payment_method = $request->payment_method; 
+       $order->payment_method = $request->payment_method;
        $order->save();
 
        return response()->json(['message' => 'Hình thức thanh toán đã được cập nhật.', 'order' => $order]);
