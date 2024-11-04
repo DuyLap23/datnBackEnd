@@ -591,19 +591,19 @@ class ProductController extends Controller
      *     )
      * )
      */
-    public function show($id)
+    public function show($slug)
     {
         try {
-            $product = Product::findOrFail($id); // Tìm sản phẩm dựa trên ID
+            $product = Product::where('slug', $slug)->firstOrFail(); // Tìm sản phẩm dựa trên Slug
             $productData = $product->load([
-                'category.name',
-                'brand.name',
+                'category',
+                'brand',
                 'tags',
                 'productImages',
                 'productVariants.productColor',
                 'productVariants.productSize'
             ]);
-
+    
             return response()->json($productData, 200);
         } catch (ModelNotFoundException $e) {
             Log::error('Sản phẩm không tìm thấy: ' . $e->getMessage());
@@ -618,7 +618,7 @@ class ProductController extends Controller
             ], 500);
         }
     }
-
+    
 
     /**
      * @OA\Put(
@@ -793,7 +793,7 @@ class ProductController extends Controller
 
             DB::commit();
 
-            return response()->json($product->load(['category.name', 'brand.name', 'tags', 'productImages', 'productVariants.productColor', 'productVariants.productSize']));
+            return response()->json($product->load(['category', 'brand', 'tags', 'productImages', 'productVariants.productColor', 'productVariants.productSize']));
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('Lỗi chỉnh sửa sản phẩm: ' . $e->getMessage());
@@ -876,4 +876,17 @@ class ProductController extends Controller
             return response()->json(['error' => 'Lỗi xoá sản phẩm: ' . $e->getMessage()], 500);
         }
     }
+
+
+    public function toggleActive(Product $id)
+    {
+        $id->is_active = !$id->is_active;
+        $id->save();
+
+        return response()->json([
+            'message' => 'Thay đổi trạng thái sản phẩm thành công',
+            'is_active' => $id->is_active,
+        ]);
+    }
+
 }

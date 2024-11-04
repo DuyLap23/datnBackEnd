@@ -1,28 +1,29 @@
 <?php
 
+use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\API\TagController;
+use App\Http\Controllers\API\CartController;
+use App\Http\Controllers\DeliveryController;
+use App\Http\Controllers\API\BrandController;
 use App\Http\Controllers\API\AddressController;
-use App\Http\Controllers\API\Auth\LoginController;
-use App\Http\Controllers\API\Auth\RegisterController;
+use App\Http\Controllers\API\CommentController;
+use App\Http\Controllers\API\ProductController;
+use App\Http\Controllers\API\VouCherController;
 use App\Http\Controllers\API\Auth\ResetPassword;
+use App\Http\Controllers\API\CategoryController;
 use App\Http\Controllers\API\Auth\UserController;
 use App\Http\Controllers\API\BannerMktController;
-use App\Http\Controllers\API\BrandController;
-use App\Http\Controllers\API\CartController;
-use App\Http\Controllers\API\CategoryController;
-use App\Http\Controllers\API\CommentController;
-use App\Http\Controllers\API\FavouriteListController;
+use App\Http\Controllers\API\Auth\LoginController;
 use App\Http\Controllers\API\Order\OrderController;
+use App\Http\Controllers\API\ProductSizeController;
+use App\Http\Controllers\Api\UserCommentController;
+use App\Http\Controllers\API\ProductColorController;
+use App\Http\Controllers\API\Auth\RegisterController;
+use App\Http\Controllers\API\FavouriteListController;
+use App\Http\Controllers\API\Search\FilterController;
+use App\Http\Controllers\API\ProductVariantController;
 use App\Http\Controllers\API\Order\OrderManagementController;
 use App\Http\Controllers\API\Order\OrderUserManagementController;
-use App\Http\Controllers\API\ProductColorController;
-use App\Http\Controllers\API\ProductController;
-use App\Http\Controllers\API\ProductSizeController;
-use App\Http\Controllers\API\ProductVariantController;
-use App\Http\Controllers\API\Search\FilterController;
-use App\Http\Controllers\API\TagController;
-use App\Http\Controllers\Api\UserCommentController;
-use App\Http\Controllers\API\VouCherController;
-use Illuminate\Support\Facades\Route;
 
 /*
 |--------------------------------------------------------------------------
@@ -121,6 +122,8 @@ Route::group(
 
         Route::post('products', [ProductController::class, 'store']);
         Route::put('products/{id}', [ProductController::class, 'update']);
+          
+        Route::put('/products/{id}/toggle-active', [ProductController::class, 'toggleActive']);
 
         Route::delete('products/{id}', [ProductController::class, 'destroy']);
         Route::apiResource('product/colors', ProductColorController::class);
