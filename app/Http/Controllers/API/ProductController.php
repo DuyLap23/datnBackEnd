@@ -596,8 +596,8 @@ class ProductController extends Controller
         try {
             $product = Product::findOrFail($id); // Tìm sản phẩm dựa trên ID
             $productData = $product->load([
-                'category',
-                'brand',
+                'category.name',
+                'brand.name',
                 'tags',
                 'productImages',
                 'productVariants.productColor',
@@ -793,7 +793,7 @@ class ProductController extends Controller
 
             DB::commit();
 
-            return response()->json($product->load(['category', 'tags', 'productImages', 'productVariants.productColor', 'productVariants.productSize']));
+            return response()->json($product->load(['category.name', 'brand.name', 'tags', 'productImages', 'productVariants.productColor', 'productVariants.productSize']));
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('Lỗi chỉnh sửa sản phẩm: ' . $e->getMessage());
