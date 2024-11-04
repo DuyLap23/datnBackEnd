@@ -596,15 +596,38 @@ class ProductController extends Controller
         try {
             $product = Product::where('slug', $slug)->firstOrFail(); // Tìm sản phẩm dựa trên Slug
             $productData = $product->load([
-                'category',
-                'brand',
                 'tags',
                 'productImages',
                 'productVariants.productColor',
                 'productVariants.productSize'
             ]);
     
-            return response()->json($productData, 200);
+            // Chỉ lấy ra tên của category và brand
+            $productData->category_name = $product->category->name ?? null; // Lấy tên category
+            $productData->brand_name = $product->brand->name ?? null; // Lấy tên brand
+    
+            // Chỉ giữ lại các trường cần thiết
+            $result = [
+                'id' => $productData->id,
+                'name' => $productData->name,
+                'category_name' => $productData->category_name,
+                'brand_name' => $productData->brand_name,
+                'img_thumbnail' => $productData->img_thumbnail,
+                'is_active' => $productData->is_active,
+                'is_new' => $productData->is_new,
+                'is_show_home' => $productData->is_show_home,
+                'description' => $productData->description,
+                'content' => $productData->content,
+                'view' => $productData->view,
+                'user_manual'  => $productData->user_manual,
+                'price_regular' => $productData->price_regular,
+                'price_sale' => $productData->price_sale,
+                'tags' => $productData->tags,
+                'productImages' => $productData->productImages,
+                'productVariants' => $productData->productVariants,
+            ];
+    
+            return response()->json($result, 200);
         } catch (ModelNotFoundException $e) {
             Log::error('Sản phẩm không tìm thấy: ' . $e->getMessage());
             return response()->json([
@@ -618,6 +641,7 @@ class ProductController extends Controller
             ], 500);
         }
     }
+    
     
 
     /**
