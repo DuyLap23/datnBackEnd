@@ -1,10 +1,9 @@
 <?php
 
-namespace App\Http\Controllers\Order;
+namespace App\Http\Controllers\API\Order;
 
 use App\Http\Controllers\Controller;
 use App\Models\Order;
-use App\Models\OrderItem;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -48,7 +47,7 @@ class OrderManagementController extends Controller
     if (!Auth::check() || Auth::user()->role !== 'admin') {
         return response()->json(['message' => 'Bạn không có quyền cập nhật trạng thái đơn hàng.'], 403);
     }
-   
+
        // Lấy trạng thái đơn hàng từ query string, mặc định là 'all'
        $status = $request->query('status', 'all');
        $query = Order::query();
@@ -74,21 +73,21 @@ class OrderManagementController extends Controller
            default:
                break;
        }
-   
+
        // Lấy danh sách đơn hàng
-       $orders = $query->with(['orderItems.product'])->get();  
-   
+       $orders = $query->with(['orderItems.product'])->get();
+
        if ($orders->isEmpty()) {
            return response()->json(['message' => 'Không có đơn hàng nào', 'orders' => []], 404);
        }
-   
+
        return response()->json([
            'message' => "Có {$orders->count()} đơn hàng.",
            'order_count' => $orders->count(),
            'orders' => $orders,
        ], 200);
    }
-   
+
     /**
  * @OA\Get(
  *     path="/api/admin/orders/{id}",
@@ -139,17 +138,17 @@ class OrderManagementController extends Controller
  * )
  */
 
- 
+
 
  public function detall($id)
  {
      if (!Auth::check() || Auth::user()->role !== 'admin') {
          return response()->json(['message' => 'Bạn không có quyền truy cập chi tiết đơn hàng.'], 403);
      }
- 
+
 
      $order = Order::with(['orderItems.product', 'address', 'user'])
-         ->where('user_id', Auth::id()) 
+         ->where('user_id', Auth::id())
          ->findOrFail($id);
     $totalAllOrders = Order::sum('total_amount');
      return response()->json([
@@ -303,7 +302,7 @@ public function updateStatus(Request $request, $id)
  *                         type="object",
  *                         @OA\Property(property="order_id", type="integer", description="ID đơn hàng"),
  *                         @OA\Property(property="product_id", type="integer", description="ID sản phẩm"),
- *                         @OA\Property(property="product_name", type="string", description="Tên sản phẩm"), 
+ *                         @OA\Property(property="product_name", type="string", description="Tên sản phẩm"),
  *                         @OA\Property(property="quantity", type="integer", description="Số lượng sản phẩm"),
  *                         @OA\Property(property="price", type="number", format="float", description="Giá của sản phẩm"),
  *                         @OA\Property(property="size", type="string", description="Kích thước của sản phẩm"),
@@ -488,7 +487,7 @@ public function filterByDate(Request $request)
         $startDate = $startDate->startOfDay();
         $endDate = $endDate->endOfDay();
         $orders = Order::with(['orderItems.product'])
-            ->whereNull('deleted_at')    
+            ->whereNull('deleted_at')
             ->whereBetween('created_at', [$startDate, $endDate])
             ->get();
 
@@ -633,10 +632,10 @@ public function refund(Request $request, $id)
 private function processRefund(Order $order)
 {
     $vnp_TmnCode = env('VNP_TMNCODE');
-    $vnp_HashSecret = env('VNP_HASHSECRET'); 
+    $vnp_HashSecret = env('VNP_HASHSECRET');
     $vnp_Url = env('VNP_URL');
-    $vnp_Amount = $order->total_amount * 100; 
-    $vnp_TxnRef = $order->transaction_id; 
+    $vnp_Amount = $order->total_amount * 100;
+    $vnp_TxnRef = $order->transaction_id;
     $vnp_OrderInfo = "Hoàn tiền cho đơn hàng ID: {$order->id}";
     $inputData = array(
         "vnp_Version" => "2.1.0",
