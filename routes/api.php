@@ -22,6 +22,15 @@ use App\Http\Controllers\API\Search\FilterController;
 use App\Http\Controllers\API\TagController;
 use App\Http\Controllers\Api\UserCommentController;
 use App\Http\Controllers\API\VouCherController;
+<<<<<<< HEAD
+=======
+use App\Http\Controllers\DeliveryController;
+use App\Http\Controllers\Order\OrderController;
+use App\Http\Controllers\Order\OrderManagementController;
+use App\Http\Controllers\Order\OrderTrackingController;
+use App\Http\Controllers\Order\OrderUserManagementController;
+use App\Http\Controllers\Order\VnpayController;
+>>>>>>> 979ac7d352fd781a97cc57bab9d9283c4ab69f02
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -84,6 +93,18 @@ Route::get('categories', [CategoryController::class, 'index']);
 Route::get('categories/{id}', [CategoryController::class, 'show']);
 Route::get('products', [ProductController::class, 'index'])->name('products.index');
 Route::get('products/{slug}', [ProductController::class,'show'])->name('products.show');
+Route::group(
+    [
+        'middleware' => ['role:admin,staff'],
+        'prefix' => 'admin',
+    ],
+    function ($router) {
+        Route::get('/orders/delivery', [DeliveryController::class, 'index']);
+        Route::post('/orders/confirm/{id}', [DeliveryController::class, 'confirmOrder']);
+        Route::post('/orders/confirm-delivery/{id}', [DeliveryController::class, 'confirmDelivery']);
+        Route::post('/orders/update-status/{id}', [DeliveryController::class, 'updateDeliveryStatus']);
+    }
+);
 
 //ADMIN
 Route::group(
@@ -130,14 +151,14 @@ Route::group(
         Route::get('banners/{id}', [BannerMktController::class, 'show']);
         Route::delete('banners/{id}', [BannerMktController::class, 'destroy']);
 
+        Route::get('/orders/order-status-tracking', [OrderTrackingController::class, 'index']);
         Route::get('/orders', [OrderManagementController::class, 'index']);
         Route::get('/orders/filter', [OrderManagementController::class, 'filterByDate']);
         Route::get('/orders/search', [OrderManagementController::class, 'search']);
         Route::get('/orders/{id}', [OrderManagementController::class, 'detall']);
-        Route::patch('/orders/status/{id}', [OrderManagementController::class, 'updateStatus']);
+        Route::put('/orders/status/{id}', [OrderManagementController::class, 'updateStatus']);
         Route::post('/orders/{id}/refund', [OrderManagementController::class, 'refund']);
         Route::delete('/orders/{id}', [OrderManagementController::class, 'destroy']);
-        Route::get('/orders/{id}/tracking', [OrderManagementController::class, 'tracking']);
 
     }
 );
@@ -181,6 +202,7 @@ Route::group(
         Route::patch('/user/orders/address', [OrderUserManagementController::class, 'updateAddress']);
         Route::patch('/user/orders/{id}/payment-method', [OrderUserManagementController::class, 'updatePaymentMethod']);
         Route::get('/user/orders/{id}', [OrderUserManagementController::class, 'show']);
+        Route::patch('/user/orders/mark-as-received/{id}', [OrderUserManagementController::class, 'markAsReceived']);
     }
 );
 

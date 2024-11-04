@@ -41,7 +41,11 @@ class Order extends Model
         'processing' => 'Đã xác nhận',
         'shipping' => 'Đang vận chuyển',
         'delivered' => 'Đã giao hàng',
-        'cancelled' => 'Đã hủy'
+        'received' => 'Đã nhận',
+        'completed' => 'Hoàn thành',
+        'cancelled' => 'Đã hủy',
+        'failed' => 'Giao hàng thất bại',
+        'rescheduled' => 'Đã lên lịch lại'
     ];
 
     const STATUS_PAYMENT = [
@@ -55,7 +59,9 @@ class Order extends Model
     const STATUS_ORDER_PROCESSING = 'processing';
     const STATUS_ORDER_SHIPPING = 'shipping';
     const STATUS_ORDER_DELIVERED = 'delivered';
+    const STATUS_ORDER_RECEIVED = 'received';
     const STATUS_ORDER_CANCELLED = 'cancelled';
+    const STATUS_ORDER_COMLETTED = 'completed';
     const STATUS_PAYMENT_UNPAID = 'unpaid';
     const STATUS_PAYMENT_PAID = 'paid';
     const STATUS_PAYMENT_FAILED = 'failed';

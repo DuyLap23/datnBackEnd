@@ -5753,6 +5753,313 @@
                 ]
             }
         },
+        "/api/orders/ready-to-deliver": {
+            "get": {
+                "tags": [
+                    "Delivery Management"
+                ],
+                "summary": "Nhận danh sách đơn hàng sẵn sàng giao",
+                "operationId": "a8dcc76799d13468070246a0552bfe86",
+                "parameters": [
+                    {
+                        "name": "status",
+                        "in": "query",
+                        "description": "Trạng thái của đơn hàng để lọc",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "processing",
+                                "pending",
+                                "shipped"
+                            ]
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful retrieval of ready-to-deliver orders",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "properties": {
+                                            "order_id": {
+                                                "description": "Mã ID của đơn hàng",
+                                                "type": "integer",
+                                                "example": 1
+                                            },
+                                            "customer_name": {
+                                                "description": "Tên khách hàng",
+                                                "type": "string",
+                                                "example": "Nguyễn Văn A"
+                                            },
+                                            "address": {
+                                                "description": "Địa chỉ giao hàng",
+                                                "type": "string",
+                                                "example": "123 Đường ABC"
+                                            },
+                                            "products": {
+                                                "type": "array",
+                                                "items": {
+                                                    "properties": {
+                                                        "product_name": {
+                                                            "type": "string",
+                                                            "example": "Sản phẩm A"
+                                                        },
+                                                        "quantity": {
+                                                            "type": "integer",
+                                                            "example": 2
+                                                        },
+                                                        "price": {
+                                                            "type": "number",
+                                                            "format": "float",
+                                                            "example": 100000
+                                                        },
+                                                        "image": {
+                                                            "type": "string",
+                                                            "example": "link_to_image.jpg"
+                                                        }
+                                                    },
+                                                    "type": "object"
+                                                }
+                                            },
+                                            "total_quantity": {
+                                                "type": "integer",
+                                                "example": 2
+                                            },
+                                            "total_amount": {
+                                                "type": "number",
+                                                "format": "float",
+                                                "example": 200000
+                                            },
+                                            "order_status": {
+                                                "type": "string",
+                                                "example": "processing"
+                                            },
+                                            "delivery_time": {
+                                                "type": "string",
+                                                "format": "date-time",
+                                                "example": "2024-10-19T12:00:00Z"
+                                            }
+                                        },
+                                        "type": "object"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "404": {
+                        "description": "No orders found"
+                    }
+                },
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ]
+            }
+        },
+        "/api/orders/{id}/confirm": {
+            "post": {
+                "tags": [
+                    "Delivery Management"
+                ],
+                "summary": "Xác nhận đơn hàng",
+                "operationId": "8844827658b99b0f84cd44baff405b81",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID của đơn hàng cần xác nhận",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Đơn hàng đã được xác nhận thành công",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Đơn hàng đã được xác nhận."
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Đơn hàng không tồn tại."
+                    },
+                    "403": {
+                        "description": "Bạn không có quyền xác nhận đơn hàng."
+                    }
+                },
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ]
+            }
+        },
+        "/api/orders/confirm-delivery/{id}": {
+            "post": {
+                "tags": [
+                    "Delivery Management"
+                ],
+                "summary": "Xác nhận giao hàng thành công",
+                "operationId": "9e48cce040a7c0a88a2332ab1d7b0b1c",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID của đơn hàng cần xác nhận giao hàng",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "recipient_name",
+                        "in": "query",
+                        "description": "Tên người nhận",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "signature",
+                        "in": "query",
+                        "description": "Chữ ký của người nhận",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Đơn hàng đã được xác nhận giao hàng thành công",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Đơn hàng đã được xác nhận giao hàng thành công."
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Đơn hàng không tồn tại."
+                    },
+                    "403": {
+                        "description": "Bạn không có quyền xác nhận giao hàng."
+                    }
+                },
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ]
+            }
+        },
+        "/api/admin/orders/update-status/{id}": {
+            "post": {
+                "tags": [
+                    "Delivery Management"
+                ],
+                "summary": "Cập nhật trạng thái giao hàng",
+                "operationId": "be38c724b714497c6583d462f45db57e",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID của đơn hàng cần cập nhật trạng thái",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "status",
+                        "in": "query",
+                        "description": "Trạng thái mới của đơn hàng (có thể là: 'failed', 'cancelled', 'reschedule')",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "reason",
+                        "in": "query",
+                        "description": "Lý do hủy hoặc giao thất bại",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "reschedule_time",
+                        "in": "query",
+                        "description": "Thời gian giao lại (nếu có, định dạng: 'Y-m-d H:i:s')",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "format": "date-time"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Trạng thái giao hàng đã được cập nhật thành công",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Trạng thái giao hàng đã được cập nhật thành công."
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Đơn hàng không tồn tại."
+                    },
+                    "403": {
+                        "description": "Bạn không có quyền quản lý trạng thái giao hàng."
+                    },
+                    "400": {
+                        "description": "Trạng thái không hợp lệ."
+                    }
+                },
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ]
+            }
+        },
         "/api/orders": {
             "post": {
                 "tags": [
@@ -5792,7 +6099,7 @@
                 },
                 "responses": {
                     "201": {
-                        "description": "Đặt hàng thành công",
+                        "description": "Thanh toán thành công",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -6334,17 +6641,17 @@
             }
         },
         "/api/admin/orders/status/{id}": {
-            "patch": {
+            "put": {
                 "tags": [
                     "Orders Admin Management"
                 ],
-                "summary": "Cập nhật trạng thái của đơn hàng",
-                "operationId": "985ac06db74875c3ec430affd44146cd",
+                "summary": "Cập nhật trạng thái đơn hàng",
+                "operationId": "54889cf8892d5c235a262f5bc5437580",
                 "parameters": [
                     {
                         "name": "id",
                         "in": "path",
-                        "description": "ID của đơn hàng cần cập nhật",
+                        "description": "ID của đơn hàng",
                         "required": true,
                         "schema": {
                             "type": "integer"
@@ -6356,14 +6663,22 @@
                     "content": {
                         "application/json": {
                             "schema": {
-                                "required": [
-                                    "status"
-                                ],
                                 "properties": {
                                     "status": {
-                                        "description": "Trạng thái mới của đơn hàng (pending, shipped, delivered, cancelled, returned_refunded)",
                                         "type": "string",
-                                        "example": "shipped"
+                                        "enum": [
+                                            "pending",
+                                            "confirmed",
+                                            "shipping",
+                                            "delivered",
+                                            "received",
+                                            "completed",
+                                            "cancelled"
+                                        ]
+                                    },
+                                    "reason": {
+                                        "description": "Lý do hủy đơn (chỉ áp dụng khi trạng thái là cancelled)",
+                                        "type": "string"
                                     }
                                 },
                                 "type": "object"
@@ -6373,50 +6688,19 @@
                 },
                 "responses": {
                     "200": {
-                        "description": "Cập nhật thành công trạng thái đơn hàng",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "properties": {
-                                        "message": {
-                                            "type": "string",
-                                            "example": "Trạng thái đơn hàng đã được cập nhật thành công."
-                                        },
-                                        "order": {
-                                            "properties": {
-                                                "id": {
-                                                    "description": "ID của đơn hàng",
-                                                    "type": "integer",
-                                                    "example": 1
-                                                },
-                                                "order_status": {
-                                                    "description": "Trạng thái mới của đơn hàng",
-                                                    "type": "string",
-                                                    "example": "shipped"
-                                                },
-                                                "updated_at": {
-                                                    "description": "Thời gian cập nhật trạng thái đơn hàng",
-                                                    "type": "string",
-                                                    "format": "date-time",
-                                                    "example": "2024-10-19T12:00:00Z"
-                                                }
-                                            },
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            }
-                        }
+                        "description": "Trạng thái đơn hàng đã được cập nhật thành công."
                     },
                     "400": {
-                        "description": "Dữ liệu không hợp lệ"
+                        "description": "Yêu cầu không hợp lệ hoặc trạng thái không thể cập nhật."
                     },
                     "401": {
-                        "description": "Không được phép"
+                        "description": "Chưa đăng nhập."
                     },
                     "404": {
-                        "description": "Không tìm thấy đơn hàng"
+                        "description": "Không tìm thấy đơn hàng."
+                    },
+                    "403": {
+                        "description": "Bạn không có quyền truy cập cập nhật trạng thái đơn hàng."
                     }
                 },
                 "security": [
@@ -6829,6 +7113,161 @@
                 ]
             }
         },
+        "/api/admin/orders/order-status-tracking": {
+            "get": {
+                "tags": [
+                    "Order Tracking"
+                ],
+                "summary": "Lấy danh sách tất cả đơn hàng cùng thông tin sản phẩm và người đặt.",
+                "operationId": "c20bb135c7328a6993371ee32d748457",
+                "responses": {
+                    "200": {
+                        "description": "Danh sách đơn hàng với trạng thái, thời gian, sản phẩm và người đặt.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "properties": {
+                                            "id": {
+                                                "type": "integer",
+                                                "example": 1
+                                            },
+                                            "user_id": {
+                                                "type": "integer",
+                                                "example": 1
+                                            },
+                                            "address_id": {
+                                                "type": "integer",
+                                                "example": 101
+                                            },
+                                            "payment_method": {
+                                                "type": "string",
+                                                "example": "credit_card"
+                                            },
+                                            "payment_status": {
+                                                "type": "string",
+                                                "example": "paid"
+                                            },
+                                            "order_status": {
+                                                "type": "string",
+                                                "example": "delivered"
+                                            },
+                                            "total_amount": {
+                                                "type": "number",
+                                                "format": "float",
+                                                "example": 150
+                                            },
+                                            "note": {
+                                                "type": "string",
+                                                "example": "Ghi chú cho đơn hàng"
+                                            },
+                                            "created_at": {
+                                                "type": "string",
+                                                "format": "date-time",
+                                                "example": "2024-11-02T12:00:00Z"
+                                            },
+                                            "updated_at": {
+                                                "type": "string",
+                                                "format": "date-time",
+                                                "example": "2024-11-02T12:30:00Z"
+                                            },
+                                            "deleted_at": {
+                                                "type": "string",
+                                                "format": "date-time",
+                                                "example": "2024-11-02T13:00:00Z"
+                                            },
+                                            "delivered_at": {
+                                                "type": "string",
+                                                "format": "date-time",
+                                                "example": "2024-11-02T13:00:00Z"
+                                            },
+                                            "cancelled_by": {
+                                                "type": "integer",
+                                                "example": 2
+                                            },
+                                            "received_at": {
+                                                "type": "string",
+                                                "format": "date-time",
+                                                "example": "2024-11-02T13:00:00Z"
+                                            },
+                                            "current_status": {
+                                                "type": "string",
+                                                "example": "Đơn hàng đã được giao"
+                                            },
+                                            "user": {
+                                                "properties": {
+                                                    "id": {
+                                                        "type": "integer",
+                                                        "example": 1
+                                                    },
+                                                    "name": {
+                                                        "type": "string",
+                                                        "example": "Nguyễn Văn A"
+                                                    },
+                                                    "email": {
+                                                        "type": "string",
+                                                        "example": "nguyenvana@example.com"
+                                                    }
+                                                },
+                                                "type": "object"
+                                            },
+                                            "products": {
+                                                "type": "array",
+                                                "items": {
+                                                    "properties": {
+                                                        "product_id": {
+                                                            "type": "integer",
+                                                            "example": 101
+                                                        },
+                                                        "product_name": {
+                                                            "type": "string",
+                                                            "example": "Sản phẩm A"
+                                                        },
+                                                        "quantity": {
+                                                            "type": "integer",
+                                                            "example": 2
+                                                        },
+                                                        "price": {
+                                                            "type": "number",
+                                                            "format": "float",
+                                                            "example": 150
+                                                        }
+                                                    },
+                                                    "type": "object"
+                                                }
+                                            }
+                                        },
+                                        "type": "object"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Không có quyền truy cập.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Bạn không có quyền theo dõi đơn hàng."
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ]
+            }
+        },
         "/api/user/orders": {
             "get": {
                 "tags": [
@@ -7160,6 +7599,82 @@
                     },
                     "401": {
                         "description": "Chưa đăng nhập."
+                    }
+                },
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ]
+            }
+        },
+        "/api/user/orders/mark-as-received/{id}": {
+            "patch": {
+                "tags": [
+                    "Orders User Management"
+                ],
+                "summary": "Đánh dấu đơn hàng là đã nhận",
+                "description": "Cập nhật trạng thái đơn hàng sang 'received' nếu người dùng đã nhận hàng.",
+                "operationId": "239a05873503a365d552ef90c5eb628f",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID của đơn hàng",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Đơn hàng đã được đánh dấu là đã nhận.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Đơn hàng đã được đánh dấu là đã nhận thành công."
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Lỗi khi không thể đánh dấu đơn hàng.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Đơn hàng không thể được đánh dấu là đã nhận."
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Không tìm thấy đơn hàng.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Đơn hàng không tồn tại."
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
                     }
                 },
                 "security": [
@@ -7575,12 +8090,20 @@
             "description": "User Comments"
         },
         {
+            "name": "Delivery Management",
+            "description": "Delivery Management"
+        },
+        {
             "name": "Order",
             "description": "Order"
         },
         {
             "name": "Orders Admin Management",
             "description": "Orders Admin Management"
+        },
+        {
+            "name": "Order Tracking",
+            "description": "Order Tracking"
         },
         {
             "name": "Orders User Management",
