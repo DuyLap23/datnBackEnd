@@ -591,20 +591,43 @@ class ProductController extends Controller
      *     )
      * )
      */
-    public function show($id)
+    public function show($slug)
     {
         try {
-            $product = Product::findOrFail($id); // Tìm sản phẩm dựa trên ID
+            $product = Product::where('slug', $slug)->firstOrFail(); // Tìm sản phẩm dựa trên Slug
             $productData = $product->load([
-                'category.name',
-                'brand.name',
                 'tags',
                 'productImages',
                 'productVariants.productColor',
                 'productVariants.productSize'
             ]);
-
-            return response()->json($productData, 200);
+    
+            // Chỉ lấy ra tên của category và brand
+            $productData->category_name = $product->category->name ?? null; // Lấy tên category
+            $productData->brand_name = $product->brand->name ?? null; // Lấy tên brand
+    
+            // Chỉ giữ lại các trường cần thiết
+            $result = [
+                'id' => $productData->id,
+                'name' => $productData->name,
+                'category_name' => $productData->category_name,
+                'brand_name' => $productData->brand_name,
+                'img_thumbnail' => $productData->img_thumbnail,
+                'is_active' => $productData->is_active,
+                'is_new' => $productData->is_new,
+                'is_show_home' => $productData->is_show_home,
+                'description' => $productData->description,
+                'content' => $productData->content,
+                'view' => $productData->view,
+                'user_manual'  => $productData->user_manual,
+                'price_regular' => $productData->price_regular,
+                'price_sale' => $productData->price_sale,
+                'tags' => $productData->tags,
+                'productImages' => $productData->productImages,
+                'productVariants' => $productData->productVariants,
+            ];
+    
+            return response()->json($result, 200);
         } catch (ModelNotFoundException $e) {
             Log::error('Sản phẩm không tìm thấy: ' . $e->getMessage());
             return response()->json([
@@ -618,7 +641,8 @@ class ProductController extends Controller
             ], 500);
         }
     }
-
+    
+    
 
     /**
      * @OA\Put(
@@ -793,7 +817,7 @@ class ProductController extends Controller
 
             DB::commit();
 
-            return response()->json($product->load(['category.name', 'brand.name', 'tags', 'productImages', 'productVariants.productColor', 'productVariants.productSize']));
+            return response()->json($product->load(['category', 'brand', 'tags', 'productImages', 'productVariants.productColor', 'productVariants.productSize']));
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('Lỗi chỉnh sửa sản phẩm: ' . $e->getMessage());
@@ -876,4 +900,17 @@ class ProductController extends Controller
             return response()->json(['error' => 'Lỗi xoá sản phẩm: ' . $e->getMessage()], 500);
         }
     }
+
+
+    public function toggleActive(Product $id)
+    {
+        $id->is_active = !$id->is_active;
+        $id->save();
+
+        return response()->json([
+            'message' => 'Thay đổi trạng thái sản phẩm thành công',
+            'is_active' => $id->is_active,
+        ]);
+    }
+
 }
