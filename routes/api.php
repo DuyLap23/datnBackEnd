@@ -22,15 +22,6 @@ use App\Http\Controllers\API\Search\FilterController;
 use App\Http\Controllers\API\TagController;
 use App\Http\Controllers\Api\UserCommentController;
 use App\Http\Controllers\API\VouCherController;
-<<<<<<< HEAD
-=======
-use App\Http\Controllers\DeliveryController;
-use App\Http\Controllers\Order\OrderController;
-use App\Http\Controllers\Order\OrderManagementController;
-use App\Http\Controllers\Order\OrderTrackingController;
-use App\Http\Controllers\Order\OrderUserManagementController;
-use App\Http\Controllers\Order\VnpayController;
->>>>>>> 979ac7d352fd781a97cc57bab9d9283c4ab69f02
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -205,4 +196,3 @@ Route::group(
         Route::patch('/user/orders/mark-as-received/{id}', [OrderUserManagementController::class, 'markAsReceived']);
     }
 );
-
