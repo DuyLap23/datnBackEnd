@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Order;
+namespace App\Http\Controllers\API\Order;
 
 use App\Http\Controllers\Controller;
 use App\Models\Order;

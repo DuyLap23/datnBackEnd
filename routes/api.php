@@ -23,6 +23,7 @@ use App\Http\Controllers\API\FavouriteListController;
 use App\Http\Controllers\API\Search\FilterController;
 use App\Http\Controllers\API\ProductVariantController;
 use App\Http\Controllers\API\Order\OrderManagementController;
+use App\Http\Controllers\API\Order\OrderTrackingController;
 use App\Http\Controllers\API\Order\OrderUserManagementController;
 
 /*
