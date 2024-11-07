@@ -7047,6 +7047,165 @@
                 }
             }
         },
+        "/api/filter": {
+            "get": {
+                "tags": [
+                    "Filter"
+                ],
+                "summary": "Lọc sản phẩm theo các tiêu chí",
+                "operationId": "da2a7a55108c38211100cfe252b93c49",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "categories",
+                                    "minPrice",
+                                    "maxPrice"
+                                ],
+                                "properties": {
+                                    "categories": {
+                                        "description": "Danh mục sản phẩm cần lọc",
+                                        "type": "array",
+                                        "items": {
+                                            "type": "integer"
+                                        }
+                                    },
+                                    "brands": {
+                                        "description": "Danh sách thương hiệu cần lọc",
+                                        "type": "array",
+                                        "items": {
+                                            "type": "integer"
+                                        }
+                                    },
+                                    "minPrice": {
+                                        "description": "Giá tối thiểu để lọc",
+                                        "type": "integer",
+                                        "example": 1000000
+                                    },
+                                    "maxPrice": {
+                                        "description": "Giá tối đa để lọc",
+                                        "type": "integer",
+                                        "example": 5000000
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Danh sách sản phẩm sau khi lọc",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "properties": {
+                                            "id": {
+                                                "description": "ID sản phẩm",
+                                                "type": "integer"
+                                            },
+                                            "name": {
+                                                "description": "Tên sản phẩm",
+                                                "type": "string"
+                                            },
+                                            "price_sale": {
+                                                "description": "Giá khuyến mãi của sản phẩm",
+                                                "type": "integer"
+                                            },
+                                            "price_regular": {
+                                                "description": "Giá gốc của sản phẩm",
+                                                "type": "integer"
+                                            },
+                                            "category_id": {
+                                                "description": "ID danh mục của sản phẩm",
+                                                "type": "integer"
+                                            },
+                                            "brand_id": {
+                                                "description": "ID thương hiệu của sản phẩm",
+                                                "type": "integer"
+                                            },
+                                            "created_at": {
+                                                "description": "Thời gian tạo sản phẩm",
+                                                "type": "string",
+                                                "format": "date-time"
+                                            },
+                                            "updated_at": {
+                                                "description": "Thời gian cập nhật sản phẩm",
+                                                "type": "string",
+                                                "format": "date-time"
+                                            }
+                                        },
+                                        "type": "object"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Lỗi khi giá tối thiểu lớn hơn giá tối đa",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "error": {
+                                            "type": "string",
+                                            "example": "Giá tối thiểu phải nhỏ hơn giá tối đa"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "api/search": {
+            "get": {
+                "tags": [
+                    "Search"
+                ],
+                "summary": "Search products by name, category, or brand",
+                "description": "Tìm kiếm sản phẩm theo tên, danh mục hoặc thương hiệu. Chỉ cần một input duy nhất để thực hiện tìm kiếm.",
+                "operationId": "Search",
+                "parameters": [
+                    {
+                        "name": "search",
+                        "in": "query",
+                        "description": "Từ khóa tìm kiếm cho sản phẩm, danh mục hoặc thương hiệu",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Danh sách các sản phẩm phù hợp",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/Products"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Không tìm thấy sản phẩm phù hợp"
+                    },
+                    "500": {
+                        "description": "Lỗi server"
+                    }
+                }
+            }
+        },
         "/api/user/comments": {
             "get": {
                 "tags": [
@@ -8025,6 +8184,106 @@
                         "type": "object"
                     }
                 ]
+            },
+            "Products": {
+                "required": [
+                    "id",
+                    "name",
+                    "slug",
+                    "sku",
+                    "img_thumbnail",
+                    "price_regular",
+                    "price_sale",
+                    "description",
+                    "content",
+                    "user_manual",
+                    "category_id",
+                    "brand_id",
+                    "created_at",
+                    "updated_at"
+                ],
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "example": 60
+                    },
+                    "name": {
+                        "type": "string",
+                        "example": "Vel quo accusantium magnam nihil. Et mollitia nemo dolores quia commodi. Rerum est beatae at saepe."
+                    },
+                    "slug": {
+                        "type": "string",
+                        "example": "vel-quo-accusantium-magnam-nihil-et-mollitia-nemo-dolores-quia-commodi-rerum-est-beatae-at-saepe-cEbN7UQR"
+                    },
+                    "sku": {
+                        "type": "string",
+                        "example": "02Bmk4Q59"
+                    },
+                    "img_thumbnail": {
+                        "type": "string",
+                        "example": "https://canifa.com/img/1000/1500/resize/8/b/8bj24s003-sj859-31-1-u.webp"
+                    },
+                    "price_regular": {
+                        "type": "string",
+                        "example": "557978.00"
+                    },
+                    "price_sale": {
+                        "type": "string",
+                        "example": "446382.00"
+                    },
+                    "description": {
+                        "type": "string",
+                        "example": "Vel porro quia vero distinctio omnis. Aut qui rem mollitia quis ipsam veritatis qui voluptate. Autem error consequuntur non aperiam."
+                    },
+                    "content": {
+                        "type": "string",
+                        "example": "Fugit quam laudantium qui facere eligendi laborum eveniet quia. Fuga deserunt modi rerum debitis consequatur."
+                    },
+                    "user_manual": {
+                        "type": "string",
+                        "example": "Facere ea esse placeat est consectetur exercitationem a sed. Et modi tenetur voluptatibus doloribus cumque."
+                    },
+                    "view": {
+                        "type": "integer",
+                        "example": 0
+                    },
+                    "is_active": {
+                        "type": "boolean",
+                        "example": true
+                    },
+                    "is_new": {
+                        "type": "boolean",
+                        "example": true
+                    },
+                    "is_show_home": {
+                        "type": "boolean",
+                        "example": true
+                    },
+                    "category_id": {
+                        "type": "integer",
+                        "example": 3
+                    },
+                    "brand_id": {
+                        "type": "integer",
+                        "example": 6
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2024-10-21T06:30:19.000000Z"
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2024-10-21T06:30:19.000000Z"
+                    },
+                    "deleted_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "null"
+                    }
+                },
+                "type": "object"
             }
         },
         "securitySchemes": {
@@ -8100,6 +8359,14 @@
         {
             "name": "Product Sizes",
             "description": "Product Sizes"
+        },
+        {
+            "name": "Filter",
+            "description": "Filter"
+        },
+        {
+            "name": "Search",
+            "description": "Search"
         },
         {
             "name": "User Comments",
