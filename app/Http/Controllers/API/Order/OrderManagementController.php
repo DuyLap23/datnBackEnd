@@ -19,7 +19,7 @@ class OrderManagementController extends Controller
     *     @OA\Parameter(
     *         name="status",
     *         in="query",
-    *         description="Order status filter (all, pending, shipped, delivered, cancelled, returned_refunded)",
+    *         description="Order status filter (all, pending, shipping, delivered, cancelled, returned_refunded)",
     *         required=false,
     *         @OA\Schema(type="string")
     *     ),
@@ -57,8 +57,8 @@ class OrderManagementController extends Controller
            case 'pending':
                $query->where('order_status', 'pending'); // chờ thanh toán
                break;
-           case 'shipped':
-               $query->where('order_status', 'shipped'); // đang vận chuyển
+           case 'shipping':
+               $query->where('order_status', 'shipping'); // đang vận chuyển
                break;
            case 'delivered':
                $query->where('order_status', 'delivered'); // đã hoàn thành
@@ -75,7 +75,7 @@ class OrderManagementController extends Controller
        }
 
        // Lấy danh sách đơn hàng
-       $orders = $query->with(['orderItems.product'])->get();
+       $orders = $query->with(['orderItems.product', 'user'])->get();
 
        if ($orders->isEmpty()) {
            return response()->json(['message' => 'Không có đơn hàng nào', 'orders' => []], 404);
@@ -258,7 +258,7 @@ class OrderManagementController extends Controller
      $reason = $request->input('reason');
  
      // Kiểm tra trạng thái hợp lệ
-     $allowedStatuses = ["pending", "processing", "shipped", "delivered", "received", "completed", "cancelled"];
+     $allowedStatuses = ["pending", "processing", "shipping", "delivered", "received", "completed", "cancelled"];
      if (!in_array($status, $allowedStatuses)) {
          return response()->json(['message' => 'Trạng thái không hợp lệ'], 400);
      }
@@ -273,15 +273,15 @@ class OrderManagementController extends Controller
              $order->payment_status = 'unpaid'; // Thiết lập trạng thái thanh toán là unpaid
              break;
  
-         case 'shipped':
+         case 'shipping':
              if ($order->order_status !== 'processing') {
                  return response()->json(['message' => 'Không thể chuyển trạng thái đơn hàng này sang đang giao hàng'], 400);
              }
-             $order->order_status = 'shipped';
+             $order->order_status = 'shipping';
              break;
  
          case 'delivered':
-             if ($order->order_status !== 'shipped') {
+             if ($order->order_status !== 'shipping') {
                  return response()->json(['message' => 'Không thể chuyển trạng thái đơn hàng này sang đã giao hàng'], 400);
              }
              $order->order_status = 'delivered';
@@ -306,7 +306,7 @@ class OrderManagementController extends Controller
                 if ($order->order_status === 'delivered') {
                     return response()->json(['message' => 'Không thể hủy đơn hàng đã giao'], 400);
                 }
-                if ($order->order_status === 'shipped') { 
+                if ($order->order_status === 'shipping') { 
                     return response()->json(['message' => 'Không thể hủy đơn hàng đã được giao đi'], 400);
                 }
                 $order->order_status = 'cancelled';
