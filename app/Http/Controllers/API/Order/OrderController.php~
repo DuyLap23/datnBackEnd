@@ -556,10 +556,9 @@ class OrderController extends Controller
                 Cart::where('user_id', $order->user_id)->delete(); // Xóa giỏ hàng
 
 
-                OrderSuccess::dispatch($order,$user);
+                OrderSuccess::dispatch($order,);
                 Log::info('Thông tin gửi mail:', [
-                    'order' => $order,
-                    'user' => $user
+                    'order' => $order
                 ]);
 
                 return response()->json([

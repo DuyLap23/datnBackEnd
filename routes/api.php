@@ -11,8 +11,10 @@ use App\Http\Controllers\API\CartController;
 use App\Http\Controllers\API\CategoryController;
 use App\Http\Controllers\API\CommentController;
 use App\Http\Controllers\API\FavouriteListController;
+use App\Http\Controllers\API\Order\DeliveryController;
 use App\Http\Controllers\API\Order\OrderController;
 use App\Http\Controllers\API\Order\OrderManagementController;
+use App\Http\Controllers\API\Order\OrderTrackingController;
 use App\Http\Controllers\API\Order\OrderUserManagementController;
 use App\Http\Controllers\API\ProductColorController;
 use App\Http\Controllers\API\ProductController;
@@ -60,7 +62,9 @@ Route::group(
 
     }
 );
-
+Route::get('/', function () {
+    \App\Events\OrderSuccess::dispatch('okk khum');
+});
 
 //NHỮNG ROUTER CẦN CHECK ĐĂNG NHẬP
 Route::group(
@@ -150,7 +154,6 @@ Route::group(
         Route::put('/orders/status/{id}', [OrderManagementController::class, 'updateStatus']);
         Route::post('/orders/{id}/refund', [OrderManagementController::class, 'refund']);
         Route::delete('/orders/{id}', [OrderManagementController::class, 'destroy']);
-
     }
 );
 

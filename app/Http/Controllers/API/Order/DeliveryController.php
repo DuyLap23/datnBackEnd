@@ -1,7 +1,8 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\API\Order;
 
+use App\Http\Controllers\Controller;
 use App\Models\Order;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -142,7 +143,7 @@ public function confirmOrder($id)
     if (!$order) {
         return response()->json(['message' => 'Đơn hàng không tồn tại.'], 404);
     }
-    $order->order_status = 'shipped'; 
+    $order->order_status = 'shipped';
     $order->save();
     return response()->json(['message' => 'Đơn hàng đã được xác nhận.']);
 }
@@ -199,7 +200,7 @@ public function confirmDelivery($id, Request $request)
     }
     $order->order_status = 'delivered';
     $order->delivered_at = now();
-    $order->recipient_name = $request->input('recipient_name', null); 
+    $order->recipient_name = $request->input('recipient_name', null);
     $order->recipient_signature = $request->input('signature', null);
     $order->save();
 
@@ -293,5 +294,5 @@ public function updateDeliveryStatus($id, Request $request)
 
 
 
-    
+
 }
