@@ -43,7 +43,6 @@ use Illuminate\Support\Facades\Route;
 | be assigned to the "api" middleware group. Make something great!
 |
 */
-
 //AUTH
 Route::group(
     [
@@ -65,11 +64,8 @@ Route::group(
         Route::post('password/reset', [ResetPassword::class, 'reset'])->name('password.reset');
 
         Route::get('users/{id}', [UserController::class, 'show']);
-
-
     }
 );
-
 
 //NHỮNG ROUTER CẦN CHECK ĐĂNG NHẬP
 Route::group(
@@ -90,7 +86,6 @@ Route::group(
 
     }
 );
-
 
 //Những đầu route không cần check đăng nhập và role vất vào đây
 Route::get('categories', [CategoryController::class, 'index']);
@@ -134,13 +129,11 @@ Route::group(
         'prefix' => 'admin',
     ],
     function ($router) {
-
         //CATEGORIES
         Route::get('categories/trashed', [CategoryController::class, 'trashed']);
         Route::post('categories', [CategoryController::class, 'store']);
         Route::put('categories/{id}', [CategoryController::class, 'update']);
         Route::delete('categories/{id}', [CategoryController::class, 'destroy']);
-
 
         Route::apiResource('voucher', VouCherController::class);
         Route::apiResource('brands', BrandController::class);
@@ -148,9 +141,7 @@ Route::group(
 
         Route::post('products', [ProductController::class, 'store']);
         Route::put('products/{id}', [ProductController::class, 'update']);
-
         Route::put('products/{id}/toggle-active', [ProductController::class, 'toggleActive']);
-
         Route::delete('products/{id}', [ProductController::class, 'destroy']);
         Route::apiResource('product/colors', ProductColorController::class);
         Route::apiResource('product/sizes', ProductSizeController::class);
@@ -204,7 +195,6 @@ Route::group(
 
     }
 );
-
 
 // CUSTOMER
 Route::group(
