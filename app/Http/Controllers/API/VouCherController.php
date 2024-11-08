@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\Validator;
 
 class VouCherController extends Controller
 {
+
     public function index(Request $request)
 {
 
@@ -35,41 +36,49 @@ class VouCherController extends Controller
 }
 
 
-    public function store(Request $request)
-    {
-        $validator = Validator::make($request->all(), [
-            'minimum_order_value' => 'required|numeric|min:1',
-            'discount_type' => 'required|in:fixed,percent',
-            'discount_value' => 'required|numeric|min:0',
-            'start_date' => 'required|date|after_or_equal:' . Carbon::now()->format('Y-m-d'),
-            'end_date' => 'required|date|after:start_date',
-            'usage_limit' => 'required|integer|min:1',
-            'voucher_active' => 'required|boolean',
-        ]);
 
-        // Nếu dữ liệu không hợp lệ, trả về lỗi
-        if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 422);
-        }
-        DB::beginTransaction();
-        try {
-            // Tạo chuỗi 10 ký tự viết hoa ngẫu nhiên cho name
-            $name = Str::upper(Str::random(10));
 
-            // Tạo một Voucher mới và lưu vào database với name tự sinh
-            $voucher = Voucher::create(array_merge($request->all(), ['name' => $name]));
 
-            // Trả về Voucher mới được tạo dưới dạng JSON
-            return response()->json($voucher, 201);
-
-        } catch (Exception $e) {
-            // Xử lý lỗi và trả về thông báo lỗi
-            return response()->json([
-                'message' => 'Đã xảy ra lỗi khi tạo voucher.',
-                'error' => $e->getMessage(),
-            ], 500);
-        }
+public function store(Request $request)
+{
+    // Xác thực dữ liệu đầu vào
+    $validator = Validator::make($request->all(), [
+        'minimum_order_value' => 'required|numeric|min:1',
+        'discount_type' => 'required|in:fixed,percent',
+        'discount_value' => 'required|numeric|min:0',
+        'start_date' => 'required|date|after_or_equal:' . Carbon::now()->format('Y-m-d'),
+        'end_date' => 'required|date|after:start_date',
+        'usage_limit' => 'required|integer|min:1',
+        'voucher_active' => 'required|boolean',
+    ]);
+    
+    // Nếu dữ liệu không hợp lệ, trả về lỗi
+    if ($validator->fails()) {
+        return response()->json(['errors' => $validator->errors()], 422);
     }
+
+    DB::beginTransaction(); // Bắt đầu giao dịch với cơ sở dữ liệu
+    try {
+        // Tạo chuỗi 10 ký tự viết hoa ngẫu nhiên cho tên voucher
+        $name = Str::upper(Str::random(10));
+
+        // Tạo một Voucher mới và lưu vào database
+        $voucher = Voucher::create(array_merge($request->all(), ['name' => $name]));
+
+        DB::commit(); // Commit giao dịch nếu không có lỗi
+
+        // Trả về Voucher mới được tạo dưới dạng JSON với mã trạng thái 201
+        return response()->json($voucher, 201);
+
+    } catch (Exception $e) {
+        DB::rollBack(); // Nếu có lỗi, rollback giao dịch
+        // Xử lý lỗi và trả về thông báo lỗi
+        return response()->json([
+            'message' => 'Đã xảy ra lỗi khi tạo voucher.',
+            'error' => $e->getMessage(),
+        ], 500);
+    }
+}
     public function show(Voucher $id)
     {
         DB::beginTransaction();
