@@ -11,6 +11,10 @@ use App\Http\Controllers\API\CartController;
 use App\Http\Controllers\API\CategoryController;
 use App\Http\Controllers\API\CommentController;
 use App\Http\Controllers\API\FavouriteListController;
+
+use App\Http\Controllers\API\Search\FilterController;
+use App\Http\Controllers\API\ProductVariantController;
+use App\Http\Controllers\API\Order\OrderTrackingController;
 use App\Http\Controllers\API\Order\DeliveryController;
 use App\Http\Controllers\API\Order\OrderController;
 use App\Http\Controllers\API\Order\OrderManagementController;
@@ -26,6 +30,7 @@ use App\Http\Controllers\API\TagController;
 use App\Http\Controllers\Api\UserCommentController;
 use App\Http\Controllers\API\VouCherController;
 use Illuminate\Support\Facades\Route;
+
 
 
 /*
@@ -73,12 +78,16 @@ Route::group(
     ],
     function ($router) {
         Route::apiResource('addresses', AddressController::class);
+
+        Route::put('/addresses/{id}/default', [AddressController::class, 'setDefault'])->name('addresses.setDefault');
+       Route::get('voucher', [VouCherController::class, 'index']);
+       Route::get('voucher/{id}', [VouCherController::class, 'show']);
+       
+       Route::post('voucher/apply', [VouCherController::class, 'apply']);
+
         Route::put('addresses/{id}/default', [AddressController::class, 'setDefault'])->name('addresses.setDefault');
-//        Route::get('voucher', [VouCherController::class, 'index']);
-//        Route::post('voucher', [VouCherController::class, 'store']);
-//        Route::put('voucher/{id}', [VouCherController::class, 'update']);
-//        Route::get('voucher/{id}', [VouCherController::class, 'show']);
-//        Route::delete('voucher/{id}', [VouCherController::class, 'destroy']);
+
+
     }
 );
 
@@ -171,6 +180,17 @@ Route::group(
         Route::post('/orders/{id}/refund', [OrderManagementController::class, 'refund']);
         Route::delete('/orders/{id}', [OrderManagementController::class, 'destroy']);
 
+
+        // VouCher
+        Route::get('voucher', [VouCherController::class, 'store']);
+       Route::put('voucher/{id}', [VouCherController::class, 'update']);
+       Route::delete('voucher/{id}', [VouCherController::class, 'destroy']);
+
+    }
+);
+
+
+
         Route::get('orders/order-status-tracking', [OrderTrackingController::class, 'index']);
         Route::get('orders', [OrderManagementController::class, 'index']);
         Route::get('orders/filter', [OrderManagementController::class, 'filterByDate']);
@@ -179,6 +199,7 @@ Route::group(
         Route::put('orders/status/{id}', [OrderManagementController::class, 'updateStatus']);
         Route::post('orders/{id}/refund', [OrderManagementController::class, 'refund']);
         Route::delete('orders/{id}', [OrderManagementController::class, 'destroy']);
+
 
 
     }

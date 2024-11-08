@@ -17,6 +17,9 @@ class VouCher extends Model
         'discount_value',
         'start_date',
         'end_date',
+        'usage_limit',
+        'voucher_active',
+        'used_count',
     ];
     protected $table = 'vouchers';
 
