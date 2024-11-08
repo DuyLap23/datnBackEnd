@@ -499,9 +499,7 @@ class OrderController extends Controller
 
                 // Cập nhật số lượng sản phẩm
                 foreach ($order->orderItems as $item) {
-
                     $product_id = $item->product_id;
-
                     $productVariant = ProductVariant::with(['productColor', 'productSize'])
                         ->where('product_id', $product_id)
                         ->whereHas('productColor', function ($query) use ($item) {
@@ -569,7 +567,6 @@ class OrderController extends Controller
                         'response_code' => $request->vnp_ResponseCode,
                         'payment_status' => 'paid',
                         'payment_method' => 'Thanh toán online',
-//
                     ]
                 ]);
             } else {
