@@ -1,7 +1,8 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\API\Order;
 
+use App\Http\Controllers\Controller;
 use App\Models\Order;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -19,7 +20,7 @@ class DeliveryController extends Controller
  *         in="query",
  *         description="Trạng thái của đơn hàng để lọc",
  *         required=false,
- *         @OA\Schema(type="string", enum={"processing", "pending", "shipped"})
+ *         @OA\Schema(type="string", enum={"processing", "pending", "shipping"})
  *     ),
  *     @OA\Response(
  *         response=200,
@@ -57,7 +58,7 @@ public function index(Request $request)
     }
 
     $status = $request->query('status');
-    $validStatuses = ['shipped'];
+    $validStatuses = ['shipping'];
 
     if ($status && !in_array($status, $validStatuses)) {
         return response()->json(['message' => 'Trạng thái không hợp lệ.'], 400);
@@ -85,6 +86,7 @@ public function index(Request $request)
         'orders' => $orders->map(function ($order) {
             return [
                 'order_id' => $order->id,
+                'phone_number' => $order->address->phone_number ?? 'N/A',
                 'customer_name' => $order->user->name ?? 'N/A',
                 'address' => $order->address ? implode(', ', [
                     $order->address->detail_address,
@@ -142,7 +144,9 @@ public function confirmOrder($id)
     if (!$order) {
         return response()->json(['message' => 'Đơn hàng không tồn tại.'], 404);
     }
-    $order->order_status = 'shipped'; 
+
+    $order->order_status = 'shipping';
+
     $order->save();
     return response()->json(['message' => 'Đơn hàng đã được xác nhận.']);
 }
@@ -194,12 +198,12 @@ public function confirmDelivery($id, Request $request)
     if (!$order) {
         return response()->json(['message' => 'Đơn hàng không tồn tại.'], 404);
     }
-    if ($order->order_status !== 'shipped') {
+    if ($order->order_status !== 'shipping') {
         return response()->json(['message' => 'Đơn hàng này chưa được giao.'], 400);
     }
     $order->order_status = 'delivered';
     $order->delivered_at = now();
-    $order->recipient_name = $request->input('recipient_name', null); 
+    $order->recipient_name = $request->input('recipient_name', null);
     $order->recipient_signature = $request->input('signature', null);
     $order->save();
 
@@ -265,7 +269,7 @@ public function updateDeliveryStatus($id, Request $request)
     $status = $request->input('status');
     $reason = $request->input('reason', null);
 
-    if ($order->order_status === 'shipped') {
+    if ($order->order_status === 'shipping') {
         if ($status === 'failed') {
             $order->order_status = 'failed';
             $order->note = $reason;
@@ -293,5 +297,5 @@ public function updateDeliveryStatus($id, Request $request)
 
 
 
-    
+
 }
