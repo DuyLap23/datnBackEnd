@@ -14,11 +14,7 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::get('/', function () {
-    return view('emails.orders.order_confirmation');
+    return view('welcome');
 })->name('home');
-//Route::get('/vnpay/return', function () {
-//    return view(
-//        'pay_return'
-//    );
-//} )->name('vnpay.return');
+
 

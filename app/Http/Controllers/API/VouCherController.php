@@ -15,31 +15,28 @@ use Illuminate\Support\Facades\Validator;
 
 class VouCherController extends Controller
 {
-    public function index()
-    {
-        try {
-            // Truy vấn tất cả vouchers có voucher_active = true
-            $vouchers = Voucher::query()->where('voucher_active', true)->get();
-    
-            // Nếu không có voucher nào
-            if ($vouchers->isEmpty()) {
-                return response()->json([
-                    'message' => 'Không có voucher nào hoạt động.'
-                ], 404);
-            }
-    
-            // Trả về danh sách voucher dưới dạng JSON
-            return response()->json($vouchers, 200);
-    
-        } catch (Exception $e) {
-            // Trả về thông báo lỗi nếu có ngoại lệ
-            return response()->json([
-                'message' => 'Đã xảy ra lỗi khi truy xuất danh sách vouchers.',
-                'error' => $e->getMessage(),
-            ], 500);
-        }
+
+    public function index(Request $request)
+{
+
+    try {
+
+        $vouchers = Voucher::paginate(20);
+
+        // Trả về kết quả dưới dạng JSON
+        return response()->json($vouchers, 200);
+
+    } catch (Exception $e) {
+        // Trả về thông báo lỗi nếu xảy ra lỗi
+        return response()->json([
+            'message' => 'Đã xảy ra lỗi khi truy xuất danh sách vouchers.',
+            'error' => $e->getMessage()
+        ], 500);
     }
-    
+}
+
+
+
 
 
 public function store(Request $request)
@@ -96,7 +93,7 @@ public function store(Request $request)
             ], 500);
         }
     }
-    
+
 
     public function update(Request $request, Voucher $voucher)
 {
