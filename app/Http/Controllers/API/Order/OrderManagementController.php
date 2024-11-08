@@ -244,25 +244,25 @@ class OrderManagementController extends Controller
      if (!Auth::check() || Auth::user()->role !== 'admin') {
          return response()->json(['message' => 'Bạn không có quyền truy cập cập nhật trạng thái đơn hàng.'], 403);
      }
- 
+
      // Tìm đơn hàng theo ID
      $order = Order::find($id);
- 
+
      // Kiểm tra xem đơn hàng có tồn tại không
      if (!$order) {
          return response()->json(['message' => 'Không tìm thấy đơn hàng'], 404);
      }
- 
+
      // Lấy trạng thái và lý do từ body của yêu cầu
      $status = $request->input('status');
      $reason = $request->input('reason');
- 
+
      // Kiểm tra trạng thái hợp lệ
      $allowedStatuses = ["pending", "processing", "shipping", "delivered", "received", "completed", "cancelled"];
      if (!in_array($status, $allowedStatuses)) {
          return response()->json(['message' => 'Trạng thái không hợp lệ'], 400);
      }
- 
+
      // Cập nhật trạng thái
      switch ($status) {
          case 'processing':
@@ -272,14 +272,14 @@ class OrderManagementController extends Controller
              $order->order_status = 'processing';
              $order->payment_status = 'unpaid'; // Thiết lập trạng thái thanh toán là unpaid
              break;
- 
+
          case 'shipping':
              if ($order->order_status !== 'processing') {
                  return response()->json(['message' => 'Không thể chuyển trạng thái đơn hàng này sang đang giao hàng'], 400);
              }
              $order->order_status = 'shipping';
              break;
- 
+
          case 'delivered':
              if ($order->order_status !== 'shipping') {
                  return response()->json(['message' => 'Không thể chuyển trạng thái đơn hàng này sang đã giao hàng'], 400);
@@ -288,14 +288,14 @@ class OrderManagementController extends Controller
              $order->delivered_at = now();
              $order->payment_status = 'paid'; // Cập nhật trạng thái thanh toán thành paid khi đơn hàng đã giao
              break;
- 
+
          case 'received':
              if ($order->order_status !== 'delivered') {
                  return response()->json(['message' => 'Không thể đánh dấu đơn hàng này là đã nhận hàng'], 400);
              }
-             $order->order_status = 'received'; 
+             $order->order_status = 'received';
              break;
- 
+
              case 'cancelled':
                 if ($order->order_status === 'completed') {
                     return response()->json(['message' => 'Không thể hủy đơn hàng đã hoàn thành'], 400);
@@ -306,28 +306,28 @@ class OrderManagementController extends Controller
                 if ($order->order_status === 'delivered') {
                     return response()->json(['message' => 'Không thể hủy đơn hàng đã giao'], 400);
                 }
-                if ($order->order_status === 'shipping') { 
+                if ($order->order_status === 'shipping') {
                     return response()->json(['message' => 'Không thể hủy đơn hàng đã được giao đi'], 400);
                 }
                 $order->order_status = 'cancelled';
                 $order->note = $reason;
-                $order->cancelled_by = Auth::user()->id; 
+                $order->cancelled_by = Auth::user()->id;
                 break;
- 
+
          default:
              return response()->json(['message' => 'Trạng thái không hợp lệ'], 400);
      }
- 
+
      // Lưu các thay đổi
      $order->save();
- 
+
      return response()->json([
          'message' => 'Trạng thái đơn hàng đã được cập nhật thành công.',
          'order' => $order
      ]);
  }
- 
- 
+
+
 /**
  * @OA\Get(
  *     path="/api/admin/orders/search",
@@ -677,7 +677,7 @@ public function refund(Request $request, $id)
     if (!$order) {
         return response()->json(['message' => 'Không tìm thấy đơn hàng.'], 404);
     }
-    if (!in_array($order->order_status, ['shipped', 'delivered'])) {
+    if (!in_array($order->order_status, ['shipping', 'delivered'])) {
         return response()->json(['message' => 'Đơn hàng không đủ điều kiện để hoàn trả.'], 400);
     }
 

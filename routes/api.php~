@@ -205,7 +205,7 @@ Route::group(
 
         Route::post('orders', [OrderController::class, 'order']);
 
-        Route::get('user/orders', [OrderUserManagementController::class, 'index']);
+        Route::get('user/orders', [OrderUserManagementController::class, 'index'])->name('userOrders');
         Route::patch('user/orders/{id}/cancel', [OrderUserManagementController::class, 'cancelOrder']);
         Route::patch('user/orders/address', [OrderUserManagementController::class, 'updateAddress']);
         Route::patch('user/orders/{id}/payment-method', [OrderUserManagementController::class, 'updatePaymentMethod']);
