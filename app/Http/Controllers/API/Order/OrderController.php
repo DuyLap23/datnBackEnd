@@ -7,7 +7,6 @@ use App\Http\Controllers\Controller;
 use App\Models\Cart;
 use App\Models\Order;
 use App\Models\OrderItem;
-use App\Models\Product;
 use App\Models\ProductVariant;
 use App\Models\User;
 use App\Models\VnpayTransaction;
@@ -143,8 +142,6 @@ class OrderController extends Controller
     public function order()
     {
         try {
-            Log::info('Bắt đầu quy trình đặt hàng.');
-
             $user = auth('api')->user();
             if (!$user) {
                 return response()->json([
@@ -184,14 +181,9 @@ class OrderController extends Controller
                 ];
             }
 
-            // Kiểm tra phương thức thanh toán
             if ($paymentMethod == 1) {
-                // Thanh toán qua VNPAY
-                Log::info('Bắt đầu thanh toán qua VNPAY.');
 
-                // Lưu đơn hàng vào database trước
                 $order = DB::transaction(function () use ($user, $defaultAddress, $paymentMethod, $totalAmount, $dataItem) {
-                    Log::info('Lưu order vào database');
 
                     $order = Order::create([
                         'user_id' => $user->id,
@@ -217,16 +209,12 @@ class OrderController extends Controller
 
                 // Gọi hàm xử lý thanh toán VNPAY sau khi đã lưu đơn hàng
                 $vnpayResponse = $this->processVNPayment($totalAmount);
-
                 if (!$vnpayResponse['success']) {
-                    Log::error("Thanh toán thất bại");
                     return response()->json([
                         'success' => false,
-                        'message' => 'Thanh toán VNPAY thất bại.'
+                        'message' => 'Thanh toán VNPAY thất bại.' . $vnpayResponse['message']
                     ], 400);
                 }
-
-                Log::info("Chuyển hướng thanh toán");
 
                 return response()->json([
                     'success' => true,
@@ -235,7 +223,6 @@ class OrderController extends Controller
                 ], 201);
             } elseif ($paymentMethod == 0) {
                 // Thanh toán tiền mặt
-                Log::info("Thanh toán bằng tiền mặt");
                 $order = DB::transaction(function () use ($user, $defaultAddress, $paymentMethod, $totalAmount, $dataItem) {
                     $order = Order::create([
                         'user_id' => $user->id,
@@ -249,13 +236,10 @@ class OrderController extends Controller
                     ]);
                     foreach ($dataItem as $item) {
                         $item['order_id'] = $order->id;
-                        $quantityItems = $item['quantity'];
                         OrderItem::create($item);
                     }
-                    Log::info('quantity: ' . $quantityItems);
 
                     foreach ($order->orderItems as $item) {
-
                         $product_id = $item->product_id;
 
                         $productVariant = ProductVariant::with(['productColor', 'productSize'])
@@ -268,50 +252,17 @@ class OrderController extends Controller
                             })
                             ->first();
 
-                        Log::info('Thông tin sản phẩm:', [
-                            'product_id' => $product_id,
-                            'color_name' => $item->color,
-                            'size_name' => $item->size,
-                            'product_variant' => $productVariant ? [
-                                'id' => $productVariant->id,
-                                'quantity' => $productVariant->quantity
-                            ] : 'null'
-                        ]);
-
                         if ($productVariant) {
                             if ($productVariant->quantity >= $item->quantity) {
                                 // Trừ số lượng
                                 $productVariant->decrement('quantity', $item->quantity);
-
-                                Log::info('Cập nhật số lượng thành công', [
-                                    'product_variant_id' => $productVariant->id,
-                                    'số_lượng_ban_đầu' => $productVariant->quantity + $item->quantity,
-                                    'số_lượng_mua' => $item->quantity,
-                                    'số_lượng_còn_lại' => $productVariant->quantity
-                                ]);
-                            } else {
-                                Log::warning('Không đủ số lượng sản phẩm', [
-                                    'product_id' => $product_id,
-                                    'product_variant_id' => $productVariant->id,
-                                    'color' => $item->color,
-                                    'size' => $item->size,
-                                    'requested_quantity' => $item->quantity,
-                                    'available_quantity' => $productVariant->quantity,
-                                ]);
                             }
-                        } else {
-                            Log::error('Không tìm thấy ProductVariant', [
-                                'product_id' => $product_id,
-                                'color_name' => $item->color,
-                                'size_name' => $item->size
-                            ]);
                         }
                     }
-                    Log::info('Xoá giỏ hàng.');
+                    OrderSuccess::dispatch($order, $user);
                     Cart::where('user_id', $user->id)->delete();
                     return $order;
                 });
-
                 return response()->json([
                     'success' => true,
                     'message' => 'Đặt hàng thành công.',
@@ -336,10 +287,10 @@ class OrderController extends Controller
     public function processVNPayment(float $totalAmount)
     {
         try {
+
             // Lấy đơn hàng mới nhất
             $latestOrder = Order::find($this->orderId);
             if (!$latestOrder) {
-                Log::error('Không tìm thấy đơn hàng', ['order_id' => $this->orderId]);
                 return [
                     'success' => false,
                     'message' => 'Không tìm thấy đơn hàng'
@@ -354,7 +305,9 @@ class OrderController extends Controller
 
             // Kiểm tra các thông số bắt buộc
             if (!$vnp_TmnCode || !$vnp_HashSecret) {
-                Log::error('Thiếu thông tin cấu hình VNPAY');
+                $latestOrder->orderItems()->delete(); // Xóa mục đơn hàng
+                $latestOrder->delete(); // Xóa đơn hàn
+
                 return [
                     'success' => false,
                     'message' => 'Thiếu thông tin cấu hình thanh toán'
@@ -410,13 +363,6 @@ class OrderController extends Controller
                 $vnp_Url .= 'vnp_SecureHash=' . $vnpSecureHash;
             }
 
-            // Log thông tin để debug
-            Log::info('VNPAY Payment Data', [
-                'order_id' => $latestOrder->id,
-                'amount' => $vnp_Amount,
-                'input_data' => $inputData,
-            ]);
-
             // Lưu thông tin giao dịch
             try {
                 VnpayTransaction::create([
@@ -428,23 +374,14 @@ class OrderController extends Controller
                     'response_message' => null,
                 ]);
             } catch (Exception $e) {
-                Log::error('Lỗi khi lưu giao dịch VNPAY', [
-                    'error' => $e->getMessage(),
-                    'order_id' => $latestOrder->id
-                ]);
-            }
 
+            }
             return [
                 'success' => true,
                 'url' => $vnp_Url
             ];
 
         } catch (Exception $e) {
-            Log::error('Lỗi xử lý thanh toán VNPAY', [
-                'error' => $e->getMessage(),
-                'order_id' => $this->orderId ?? null
-            ]);
-
             return [
                 'success' => false,
                 'message' => 'Có lỗi xảy ra trong quá trình xử lý thanh toán'
@@ -454,7 +391,7 @@ class OrderController extends Controller
 
     public function paymentReturn(Request $request)
     {
-        Log::info('Phản hồi từ VNPAY: ', $request->all());
+//        Log::info('Phản hồi từ VNPAY: ', $request->all());
         $vnp_HashSecret = env('VNP_HASHSECRET');
         $vnp_SecureHash = $request->vnp_SecureHash;
         $inputData = [];
@@ -483,11 +420,9 @@ class OrderController extends Controller
 
             $order = Order::find($vnpayTransaction->order_id);
             $user = User::find($order->user_id);
-            Log::info('User  ID: ' . ($user ? $user->id : 'Not authenticated'));
 
             if ($request->vnp_ResponseCode == '00') {
-                // Xác nhận thanh toán thành công
-                Log::info('Thanh toán thành công');
+
                 // Cập nhật trạng thái đơn hàng
                 $order->update([
                     'payment_status' => Order::STATUS_PAYMENT_PAID,
@@ -495,9 +430,7 @@ class OrderController extends Controller
 
                 // Cập nhật số lượng sản phẩm
                 foreach ($order->orderItems as $item) {
-
                     $product_id = $item->product_id;
-
                     $productVariant = ProductVariant::with(['productColor', 'productSize'])
                         ->where('product_id', $product_id)
                         ->whereHas('productColor', function ($query) use ($item) {
@@ -508,101 +441,39 @@ class OrderController extends Controller
                         })
                         ->first();
 
-                    Log::info('Thông tin sản phẩm:', [
-                        'product_id' => $product_id,
-                        'color_name' => $item->color,
-                        'size_name' => $item->size,
-                        'product_variant' => $productVariant ? [
-                            'id' => $productVariant->id,
-                            'quantity' => $productVariant->quantity
-                        ] : 'null'
-                    ]);
-
                     if ($productVariant) {
                         if ($productVariant->quantity >= $item->quantity) {
                             // Trừ số lượng
                             $productVariant->decrement('quantity', $item->quantity);
 
-                            Log::info('Cập nhật số lượng thành công', [
-                                'product_variant_id' => $productVariant->id,
-                                'số_lượng_ban_đầu' => $productVariant->quantity + $item->quantity,
-                                'số_lượng_mua' => $item->quantity,
-                                'số_lượng_còn_lại' => $productVariant->quantity
-                            ]);
-                        } else {
-                            Log::warning('Không đủ số lượng sản phẩm', [
-                                'product_id' => $product_id,
-                                'product_variant_id' => $productVariant->id,
-                                'color' => $item->color,
-                                'size' => $item->size,
-                                'requested_quantity' => $item->quantity,
-                                'available_quantity' => $productVariant->quantity,
-                            ]);
                         }
-                    } else {
-                        Log::error('Không tìm thấy ProductVariant', [
-                            'product_id' => $product_id,
-                            'color_name' => $item->color,
-                            'size_name' => $item->size
-                        ]);
                     }
                 }
-
-                Log::info('Xóa giỏ hàng.');
                 Cart::where('user_id', $order->user_id)->delete(); // Xóa giỏ hàng
-//                $orderItems = OrderItem::where('order_id', $order->id)->get();
-//                $productIds = $orderItems->pluck('product_id');
-//                $totalAmount = $order->total_amount;
-//                $note = $order->note;
-//                $paymentMethod = $order->payment_method;
-//                $products = Product::whereIn('id', $productIds)->get();
-//                $data = [$products,
-//                        $orderItems,
-//                        $order,
-//                        $note,
-//                        $user,
-//                        $totalAmount,
-//                    $paymentMethod,
-//
-//                ];
-//                OrderSuccess::dispatch($data);
-                return response()->json([
-                    'success' => true,
-                    'message' => 'Thanh toán thành công',
-                    'data' => [
+
+                OrderSuccess::dispatch($order,$user);
+
+                return redirect()->to(env('FRONTEND_URL') . '/payment/success?' . http_build_query([
+                        'order_id' => $order->id,
+                        'status' => 'success',
                         'response_code' => $request->vnp_ResponseCode,
-                        'payment_status' => 'paid',
-                        'payment_method' => 'Thanh toán online',
-//                        'user_id' => $user->id,
-//                        'order_id' => $order->id,
-//                        'total_amount' => $order->total_amount,
-//                        'note' => $order->note,
-//                        'order_item' => $orderItems,
-//                        'product' => $products,
-                    ]
-                ]);
+                        'message' => 'Thanh toán thành công'
+                    ]));
             } else {
                 // Xóa đơn hàng và các mục đơn hàng nếu thanh toán thất bại
                 if ($order) {
                     $order->orderItems()->delete(); // Xóa mục đơn hàng
                     $order->delete(); // Xóa đơn hàng
 
-                    Log::warning('Đã xóa đơn hàng do thanh toán thất bại', [
-                        'order_id' => $order->id,
-                        'response_code' => $request->vnp_ResponseCode,
-                        'input_data' => $inputData
-                    ]);
                 }
+                return redirect()->to(env('FRONTEND_URL') . '/payment/failed?' . http_build_query([
+                        'status' => 'failed',
+                        'message' => 'Thanh toán thất bại',
+                        'error_code' => $request->vnp_ResponseCode
+                    ]));
 
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Thanh toán không thành công',
-                    'error_code' => $request->vnp_ResponseCode,
-                    'error_message' => $request->vnp_ResponseMessage
-                ], 400);
             }
         } else {
-            Log::error('Không tìm thấy giao dịch VNPAY để xác nhận thanh toán');
             return response()->json([
                 'success' => false,
                 'message' => 'Không tìm thấy giao dịch VNPAY'
@@ -614,11 +485,9 @@ class OrderController extends Controller
     {
         do {
             // Tạo mã đơn hàng ngẫu nhiên gồm cả chữ và số
-            $orderCode = strtoupper(Str::random(10));
+            $orderCode = '#' . strtoupper(Str::random(13));
         } while (Order::where('order_code', $orderCode)->exists()); // Gọi where() từ model Order
 
         return $orderCode;
     }
-
-
 }

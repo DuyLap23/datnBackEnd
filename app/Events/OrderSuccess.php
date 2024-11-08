@@ -11,14 +11,18 @@ class OrderSuccess
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
-    public array $data;
+    public $order;
+    public $user;
 
     /**
      * Create a new event instance.
      */
-    public function __construct()
+
+    public function __construct($order, $user)
     {
-        //
+        $this->order = $order;
+        $this->user = $user;
+
     }
 
     /**
