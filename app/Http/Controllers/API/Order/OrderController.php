@@ -7,7 +7,6 @@ use App\Http\Controllers\Controller;
 use App\Models\Cart;
 use App\Models\Order;
 use App\Models\OrderItem;
-use App\Models\Product;
 use App\Models\ProductVariant;
 use App\Models\User;
 use App\Models\VnpayTransaction;
@@ -222,7 +221,7 @@ class OrderController extends Controller
                     Log::error("Thanh toán thất bại");
                     return response()->json([
                         'success' => false,
-                        'message' => 'Thanh toán VNPAY thất bại.'
+                        'message' => 'Thanh toán VNPAY thất bại.' . $vnpayResponse['message']
                     ], 400);
                 }
 
@@ -346,6 +345,7 @@ class OrderController extends Controller
                 ];
             }
 
+
             // Các thông số cấu hình VNPAY
             $vnp_Url = "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html";
             $vnp_TmnCode = env('VNP_TMN_CODE');
@@ -354,7 +354,11 @@ class OrderController extends Controller
 
             // Kiểm tra các thông số bắt buộc
             if (!$vnp_TmnCode || !$vnp_HashSecret) {
+                $latestOrder->orderItems()->delete(); // Xóa mục đơn hàng
+                $latestOrder->delete(); // Xóa đơn hàn
+
                 Log::error('Thiếu thông tin cấu hình VNPAY');
+                Log::warning('Đã xóa đơn hàng do thanh toán thất bại');
                 return [
                     'success' => false,
                     'message' => 'Thiếu thông tin cấu hình thanh toán'
@@ -495,9 +499,7 @@ class OrderController extends Controller
 
                 // Cập nhật số lượng sản phẩm
                 foreach ($order->orderItems as $item) {
-
                     $product_id = $item->product_id;
-
                     $productVariant = ProductVariant::with(['productColor', 'productSize'])
                         ->where('product_id', $product_id)
                         ->whereHas('productColor', function ($query) use ($item) {
@@ -550,22 +552,14 @@ class OrderController extends Controller
 
                 Log::info('Xóa giỏ hàng.');
                 Cart::where('user_id', $order->user_id)->delete(); // Xóa giỏ hàng
-//                $orderItems = OrderItem::where('order_id', $order->id)->get();
-//                $productIds = $orderItems->pluck('product_id');
-//                $totalAmount = $order->total_amount;
-//                $note = $order->note;
-//                $paymentMethod = $order->payment_method;
-//                $products = Product::whereIn('id', $productIds)->get();
-//                $data = [$products,
-//                        $orderItems,
-//                        $order,
-//                        $note,
-//                        $user,
-//                        $totalAmount,
-//                    $paymentMethod,
-//
-//                ];
-//                OrderSuccess::dispatch($data);
+
+
+                OrderSuccess::dispatch($order,$user);
+                Log::info('Thông tin gửi mail:', [
+                    'order' => $order,
+                    'user' => $user
+                ]);
+
                 return response()->json([
                     'success' => true,
                     'message' => 'Thanh toán thành công',
@@ -573,12 +567,6 @@ class OrderController extends Controller
                         'response_code' => $request->vnp_ResponseCode,
                         'payment_status' => 'paid',
                         'payment_method' => 'Thanh toán online',
-//                        'user_id' => $user->id,
-//                        'order_id' => $order->id,
-//                        'total_amount' => $order->total_amount,
-//                        'note' => $order->note,
-//                        'order_item' => $orderItems,
-//                        'product' => $products,
                     ]
                 ]);
             } else {
@@ -614,7 +602,7 @@ class OrderController extends Controller
     {
         do {
             // Tạo mã đơn hàng ngẫu nhiên gồm cả chữ và số
-            $orderCode = strtoupper(Str::random(10));
+            $orderCode = '#' . strtoupper(Str::random(13));
         } while (Order::where('order_code', $orderCode)->exists()); // Gọi where() từ model Order
 
         return $orderCode;

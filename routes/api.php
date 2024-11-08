@@ -4,7 +4,6 @@ use App\Http\Controllers\API\Search\SearchController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\API\TagController;
 use App\Http\Controllers\API\CartController;
-use App\Http\Controllers\DeliveryController;
 use App\Http\Controllers\API\BrandController;
 use App\Http\Controllers\API\AddressController;
 use App\Http\Controllers\API\CommentController;
@@ -14,18 +13,20 @@ use App\Http\Controllers\API\Auth\ResetPassword;
 use App\Http\Controllers\API\CategoryController;
 use App\Http\Controllers\API\Auth\UserController;
 use App\Http\Controllers\API\BannerMktController;
-use App\Http\Controllers\API\Auth\LoginController;
-use App\Http\Controllers\API\Order\OrderController;
-use App\Http\Controllers\API\ProductSizeController;
-use App\Http\Controllers\Api\UserCommentController;
-use App\Http\Controllers\API\ProductColorController;
-use App\Http\Controllers\API\Auth\RegisterController;
 use App\Http\Controllers\API\FavouriteListController;
-use App\Http\Controllers\API\Search\FilterController;
-use App\Http\Controllers\API\ProductVariantController;
+use App\Http\Controllers\API\Order\DeliveryController;
+use App\Http\Controllers\API\Order\OrderController;
 use App\Http\Controllers\API\Order\OrderManagementController;
 use App\Http\Controllers\API\Order\OrderTrackingController;
 use App\Http\Controllers\API\Order\OrderUserManagementController;
+use App\Http\Controllers\API\ProductColorController;
+use App\Http\Controllers\API\Auth\LoginController;
+use App\Http\Controllers\API\ProductSizeController;
+use App\Http\Controllers\Api\UserCommentController;
+use App\Http\Controllers\API\Auth\RegisterController;
+use App\Http\Controllers\API\Search\FilterController;
+use App\Http\Controllers\API\ProductVariantController;
+
 
 /*
 |--------------------------------------------------------------------------
@@ -63,7 +64,9 @@ Route::group(
 
     }
 );
-
+Route::get('/', function () {
+    \App\Events\OrderSuccess::dispatch('okk khum');
+});
 
 //NHỮNG ROUTER CẦN CHECK ĐĂNG NHẬP
 Route::group(
@@ -161,6 +164,15 @@ Route::group(
         Route::get('banners/{id}', [BannerMktController::class, 'show']);
         Route::delete('banners/{id}', [BannerMktController::class, 'destroy']);
 
+        Route::get('/orders/order-status-tracking', [OrderTrackingController::class, 'index']);
+        Route::get('/orders', [OrderManagementController::class, 'index']);
+        Route::get('/orders/filter', [OrderManagementController::class, 'filterByDate']);
+        Route::get('/orders/search', [OrderManagementController::class, 'search']);
+        Route::get('/orders/{id}', [OrderManagementController::class, 'detall']);
+        Route::put('/orders/status/{id}', [OrderManagementController::class, 'updateStatus']);
+        Route::post('/orders/{id}/refund', [OrderManagementController::class, 'refund']);
+        Route::delete('/orders/{id}', [OrderManagementController::class, 'destroy']);
+
         Route::get('orders/order-status-tracking', [OrderTrackingController::class, 'index']);
         Route::get('orders', [OrderManagementController::class, 'index']);
         Route::get('orders/filter', [OrderManagementController::class, 'filterByDate']);
@@ -169,6 +181,7 @@ Route::group(
         Route::put('orders/status/{id}', [OrderManagementController::class, 'updateStatus']);
         Route::post('orders/{id}/refund', [OrderManagementController::class, 'refund']);
         Route::delete('orders/{id}', [OrderManagementController::class, 'destroy']);
+
 
     }
 );

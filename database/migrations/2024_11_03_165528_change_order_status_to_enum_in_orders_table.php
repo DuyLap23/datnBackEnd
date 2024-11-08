@@ -19,7 +19,7 @@ return new class extends Migration
             $table->enum('order_status', [
                 'pending',      
                 'processing',   
-                'shipped',      
+                'shipping',      
                 'delivered',    
                 'received',     
                 'completed',     

@@ -68,9 +68,9 @@ class OrderTrackingController extends Controller
         if (!Auth::check() || Auth::user()->role !== 'admin') {
             return response()->json(['message' => 'Bạn không có quyền theo dõi đơn hàng.'], 403);
         }
-    
-        $orders = Order::with(['user', 'orderItems.product'])->get(); 
-    
+
+        $orders = Order::with(['user', 'orderItems.product'])->get();
+
         $orderDetails = $orders->map(function($order) {
             $currentStatus = match ($order->order_status) {
                 'pending' => 'Đơn hàng đang chờ xử lý',
@@ -79,7 +79,7 @@ class OrderTrackingController extends Controller
                 'cancelled' => 'Đơn hàng đã bị hủy',
                 default => 'Trạng thái không xác định'
             };
-    
+
             return [
                 'id' => $order->id,
                 'user_id' => $order->user_id,
@@ -95,7 +95,7 @@ class OrderTrackingController extends Controller
                 'delivered_at' => $this->formatDate($order->delivered_at),
                 'cancelled_by' => $order->cancelled_by,
                 'received_at' => $this->formatDate($order->received_at),
-                'current_status' => $currentStatus, 
+                'current_status' => $currentStatus,
                 'user' => [
                     'id' => $order->user->id,
                     'name' => $order->user->name,
@@ -111,10 +111,10 @@ class OrderTrackingController extends Controller
                 }),
             ];
         });
-    
+
         return response()->json($orderDetails, 200);
     }
-    
+
     private function formatDate($date)
     {
         if ($date instanceof \Carbon\Carbon) {
@@ -122,8 +122,8 @@ class OrderTrackingController extends Controller
         } elseif (is_string($date)) {
             return \Carbon\Carbon::parse($date)->toISOString();
         }
-    
-        return null; 
+
+        return null;
     }
-    
+
 }
