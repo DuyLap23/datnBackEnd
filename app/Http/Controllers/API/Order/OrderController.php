@@ -560,15 +560,21 @@ class OrderController extends Controller
                     'user' => $user
                 ]);
 
-                return response()->json([
-                    'success' => true,
-                    'message' => 'Thanh toán thành công',
-                    'data' => [
+                return redirect()->to(env('FRONTEND_URL') . '/payment/success?' . http_build_query([
+                        'order_id' => $order->id,
+                        'status' => 'success',
                         'response_code' => $request->vnp_ResponseCode,
-                        'payment_status' => 'paid',
-                        'payment_method' => 'Thanh toán online',
-                    ]
-                ]);
+                        'message' => 'Thanh toán thành công'
+                    ]));
+//                return response()->json([
+//                    'success' => true,
+//                    'message' => 'Thanh toán thành công',
+//                    'data' => [
+//                        'response_code' => $request->vnp_ResponseCode,
+//                        'payment_status' => 'paid',
+//                        'payment_method' => 'Thanh toán online',
+//                    ]
+//                ]);
             } else {
                 // Xóa đơn hàng và các mục đơn hàng nếu thanh toán thất bại
                 if ($order) {
@@ -581,13 +587,17 @@ class OrderController extends Controller
                         'input_data' => $inputData
                     ]);
                 }
-
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Thanh toán không thành công',
-                    'error_code' => $request->vnp_ResponseCode,
-                    'error_message' => $request->vnp_ResponseMessage
-                ], 400);
+                return redirect()->to(env('FRONTEND_URL') . '/payment/failed?' . http_build_query([
+                        'status' => 'failed',
+                        'message' => 'Thanh toán thất bại',
+                        'error_code' => $request->vnp_ResponseCode
+                    ]));
+//                return response()->json([
+//                    'success' => false,
+//                    'message' => 'Thanh toán không thành công',
+//                    'error_code' => $request->vnp_ResponseCode,
+//                    'error_message' => $request->vnp_ResponseMessage
+//                ], 400);
             }
         } else {
             Log::error('Không tìm thấy giao dịch VNPAY để xác nhận thanh toán');
@@ -597,6 +607,8 @@ class OrderController extends Controller
             ], 404);
         }
     }
+
+
 
     public function generateOrderCode()
     {

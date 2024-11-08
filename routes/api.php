@@ -1,18 +1,15 @@
 <?php
 
-use App\Http\Controllers\API\Search\SearchController;
-use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\API\TagController;
-use App\Http\Controllers\API\CartController;
-use App\Http\Controllers\API\BrandController;
 use App\Http\Controllers\API\AddressController;
-use App\Http\Controllers\API\CommentController;
-use App\Http\Controllers\API\ProductController;
-use App\Http\Controllers\API\VouCherController;
+use App\Http\Controllers\API\Auth\LoginController;
+use App\Http\Controllers\API\Auth\RegisterController;
 use App\Http\Controllers\API\Auth\ResetPassword;
-use App\Http\Controllers\API\CategoryController;
 use App\Http\Controllers\API\Auth\UserController;
 use App\Http\Controllers\API\BannerMktController;
+use App\Http\Controllers\API\BrandController;
+use App\Http\Controllers\API\CartController;
+use App\Http\Controllers\API\CategoryController;
+use App\Http\Controllers\API\CommentController;
 use App\Http\Controllers\API\FavouriteListController;
 use App\Http\Controllers\API\Order\DeliveryController;
 use App\Http\Controllers\API\Order\OrderController;
@@ -20,12 +17,15 @@ use App\Http\Controllers\API\Order\OrderManagementController;
 use App\Http\Controllers\API\Order\OrderTrackingController;
 use App\Http\Controllers\API\Order\OrderUserManagementController;
 use App\Http\Controllers\API\ProductColorController;
-use App\Http\Controllers\API\Auth\LoginController;
+use App\Http\Controllers\API\ProductController;
 use App\Http\Controllers\API\ProductSizeController;
-use App\Http\Controllers\Api\UserCommentController;
-use App\Http\Controllers\API\Auth\RegisterController;
-use App\Http\Controllers\API\Search\FilterController;
 use App\Http\Controllers\API\ProductVariantController;
+use App\Http\Controllers\API\Search\FilterController;
+use App\Http\Controllers\API\Search\SearchController;
+use App\Http\Controllers\API\TagController;
+use App\Http\Controllers\Api\UserCommentController;
+use App\Http\Controllers\API\VouCherController;
+use Illuminate\Support\Facades\Route;
 
 
 /*
@@ -106,6 +106,11 @@ Route::post('user/comments', [UserCommentController::class, 'store']);
 Route::get('user/comments/{id}', [UserCommentController::class, 'show']);
 
 Route::get('vnpay/return',[OrderController::class, 'paymentReturn'])->name('vnpay.return');
+
+Route::get('order/success', function () {
+})->name('orderSuccess');
+Route::get('order/fail', function () {
+})->name('orderFail');
 
 Route::group(
     [
