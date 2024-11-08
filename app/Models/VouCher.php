@@ -25,9 +25,6 @@ class VouCher extends Model
 
     protected $dates = ['deleted_at'];
 
-    public function categories()
-    {
-        return $this->belongsToMany(Category::class, 'category_vouchers', 'voucher_id', 'category_id');
-    }
+
 
 }

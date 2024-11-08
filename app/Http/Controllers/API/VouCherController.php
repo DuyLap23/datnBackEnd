@@ -17,9 +17,9 @@ class VouCherController extends Controller
 {
     public function index(Request $request)
 {
-  
+
     try {
-        
+
         $vouchers = Voucher::paginate(20);
 
         // Trả về kết quả dưới dạng JSON
@@ -46,7 +46,7 @@ class VouCherController extends Controller
             'usage_limit' => 'required|integer|min:1',
             'voucher_active' => 'required|boolean',
         ]);
-    
+
         // Nếu dữ liệu không hợp lệ, trả về lỗi
         if ($validator->fails()) {
             return response()->json(['errors' => $validator->errors()], 422);
@@ -55,13 +55,13 @@ class VouCherController extends Controller
         try {
             // Tạo chuỗi 10 ký tự viết hoa ngẫu nhiên cho name
             $name = Str::upper(Str::random(10));
-    
+
             // Tạo một Voucher mới và lưu vào database với name tự sinh
             $voucher = Voucher::create(array_merge($request->all(), ['name' => $name]));
-    
+
             // Trả về Voucher mới được tạo dưới dạng JSON
             return response()->json($voucher, 201);
-    
+
         } catch (Exception $e) {
             // Xử lý lỗi và trả về thông báo lỗi
             return response()->json([
@@ -84,7 +84,7 @@ class VouCherController extends Controller
             ], 500);
         }
     }
-    
+
 
     public function update(Request $request, Voucher $voucher)
 {
