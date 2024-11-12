@@ -22,6 +22,10 @@ use App\Http\Controllers\API\ProductSizeController;
 use App\Http\Controllers\API\ProductVariantController;
 use App\Http\Controllers\API\Search\FilterController;
 use App\Http\Controllers\API\Search\SearchController;
+use App\Http\Controllers\API\Statistical\OrderStatisticalController;
+use App\Http\Controllers\API\Statistical\ProductStatisticalController;
+use App\Http\Controllers\API\Statistical\RevenueStatisticalController;
+use App\Http\Controllers\API\Statistical\UserStatisticalController;
 use App\Http\Controllers\API\TagController;
 use App\Http\Controllers\Api\UserCommentController;
 use App\Http\Controllers\API\VouCherController;
@@ -150,6 +154,11 @@ Route::group(
         Route::post('voucher', [VouCherController::class, 'store']);
        Route::put('voucher/{id}', [VouCherController::class, 'update']);
        Route::delete('voucher/{id}', [VouCherController::class, 'destroy']);
+
+       Route::get('statistical/revenue', [RevenueStatisticalController::class, 'revenue'])->name('statisticalRevenue');
+       Route::get('statistical/order', [OrderStatisticalController::class, 'order'])->name('statisticalOrder');
+       Route::get('statistical/user', [UserStatisticalController::class, 'user'])->name('statisticalUser');
+       Route::get('statistical/product', [ProductStatisticalController::class, 'product'])->name('statisticalProduct');
 
     }
 );
