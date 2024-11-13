@@ -113,6 +113,11 @@ Route::group(
         Route::apiResource('brands', BrandController::class);
         Route::apiResource('tags', TagController::class);
 
+        Route::get('orders/ready-to-deliver', [DeliveryController::class, 'index']);
+        Route::post('orders/confirm/{id}', [DeliveryController::class, 'confirmOrder']);
+        Route::post('orders/confirm-delivery/{id}', [DeliveryController::class, 'confirmDelivery']);
+        Route::post('orders/update-status/{id}', [DeliveryController::class, 'updateDeliveryStatus']);
+        
         Route::post('products', [ProductController::class, 'store']);
         Route::put('products/{id}', [ProductController::class, 'update']);
         Route::put('products/{id}/toggle-active', [ProductController::class, 'toggleActive']);
@@ -145,10 +150,6 @@ Route::group(
         Route::post('/orders/{id}/refund', [OrderManagementController::class, 'refund']);
         Route::delete('/orders/{id}', [OrderManagementController::class, 'destroy']);
 
-        Route::get('orders/delivery', [DeliveryController::class, 'index']);
-        Route::post('orders/confirm/{id}', [DeliveryController::class, 'confirmOrder']);
-        Route::post('orders/confirm-delivery/{id}', [DeliveryController::class, 'confirmDelivery']);
-        Route::post('orders/update-status/{id}', [DeliveryController::class, 'updateDeliveryStatus']);
 
         // VouCher
         Route::post('voucher', [VouCherController::class, 'store']);
