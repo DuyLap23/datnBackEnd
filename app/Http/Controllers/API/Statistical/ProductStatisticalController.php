@@ -52,7 +52,7 @@ class ProductStatisticalController extends Controller
             ->map(function ($product) use ($totalRevenue, $formatter) {
                 return [
                     'id' => $product->id,
-                    'name' => Str::limit(),
+                    'name' => Str::limit( $product->name,20),
                     // Định dạng giá
                     'price' => $formatter->formatCurrency($product->price, 'VND'),
                     'total_quantity' => number_format($product->total_quantity),
