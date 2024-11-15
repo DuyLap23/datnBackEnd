@@ -17,7 +17,45 @@ use Illuminate\Support\Facades\Validator;
 
 class VouCherController extends Controller
 {
-
+/**
+     * @OA\Get(
+     *     path="/api/vouchers",
+     *     summary="Danh sách voucher",
+     *     description="Lấy danh sách tất cả các voucher khả dụng trong hệ thống.",
+     *     tags={"Voucher"},
+     *     @OA\Parameter(
+     *         name="page",
+     *         in="query",
+     *         description="Trang hiện tại để phân trang",
+     *         required=false,
+     *         @OA\Schema(type="integer", example=1)
+     *     ),
+     *     @OA\Parameter(
+     *         name="limit",
+     *         in="query",
+     *         description="Số lượng bản ghi trên mỗi trang",
+     *         required=false,
+     *         @OA\Schema(type="integer", example=10)
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Danh sách voucher",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(property="data", type="array", @OA\Items(ref="#/components/schemas/Voucher")),
+     *             @OA\Property(property="pagination", type="object",
+     *                 @OA\Property(property="current_page", type="integer", example=1),
+     *                 @OA\Property(property="total_pages", type="integer", example=5),
+     *                 @OA\Property(property="total_items", type="integer", example=50)
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=500,
+     *         description="Lỗi server"
+     *     )
+     * )
+     */
     public function index(Request $request)
     {
         try {
@@ -60,7 +98,56 @@ class VouCherController extends Controller
             ], 500);
         }
     }
-
+    /**
+     * @OA\Post(
+     *     path="/api/vouchers",
+     *     summary="Tạo voucher mới",
+     *     description="Thêm voucher mới vào hệ thống. Người dùng phải có quyền admin.",
+     *     tags={"Voucher"},
+     *     security={{"Bearer": {}}},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"name", "discount_value", "start_date", "end_date"},
+     *             @OA\Property(property="name", type="string", example="Mã khuyến mãi 20%"),
+     *             @OA\Property(property="discount_type", type="string", enum={"fixed", "percent"}, example="percent"),
+     *             @OA\Property(property="discount_value", type="number", format="float", example=20),
+     *             @OA\Property(property="minimum_order_value", type="number", format="float", example=500000),
+     *             @OA\Property(property="start_date", type="string", format="date-time", example="2024-11-01T00:00:00Z"),
+     *             @OA\Property(property="end_date", type="string", format="date-time", example="2024-12-01T23:59:59Z"),
+     *             @OA\Property(property="usage_limit", type="integer", example=100),
+     *             @OA\Property(property="applicable_type", type="string", enum={"product", "category"}, example="product"),
+     *             @OA\Property(property="applicable_ids", type="array", @OA\Items(type="integer"), example={1, 2, 3})
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=201,
+     *         description="Tạo voucher thành công",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(property="message", type="string", example="Voucher đã được tạo."),
+     *             @OA\Property(property="voucher", ref="#/components/schemas/Voucher")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=422,
+     *         description="Dữ liệu không hợp lệ",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(property="message", type="string", example="Dữ liệu không hợp lệ."),
+     *             @OA\Property(property="errors", type="object")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=403,
+     *         description="Không có quyền truy cập",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(property="message", type="string", example="Bạn không có quyền tạo voucher.")
+     *         )
+     *     )
+     * )
+     */
 
     public function store(Request $request)
     {
@@ -150,6 +237,34 @@ class VouCherController extends Controller
         }
     }
     
+    /**
+     * @OA\Get(
+     *     path="/api/vouchers/{id}",
+     *     summary="Chi tiết voucher",
+     *     description="Xem thông tin chi tiết về một voucher cụ thể bằng ID.",
+     *     tags={"Voucher"},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         description="ID của voucher cần xem",
+     *         required=true,
+     *         @OA\Schema(type="integer", example=1)
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Chi tiết voucher",
+     *         @OA\JsonContent(ref="#/components/schemas/Voucher")
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Voucher không tìm thấy",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(property="message", type="string", example="Không tìm thấy voucher.")
+     *         )
+     *     )
+     * )
+     */
     public function show($id)
     {
         try {
@@ -340,6 +455,38 @@ class VouCherController extends Controller
             ], 500);
         }
     }
+    /**
+     * @OA\Delete(
+     *     path="/api/vouchers/{id}",
+     *     summary="Xóa voucher",
+     *     description="Xóa voucher khỏi hệ thống bằng ID. Yêu cầu quyền admin.",
+     *     tags={"Voucher"},
+     *     security={{"Bearer": {}}},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         description="ID của voucher cần xóa",
+     *         required=true,
+     *         @OA\Schema(type="integer", example=1)
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Xóa thành công",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(property="message", type="string", example="Voucher đã được xóa.")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Voucher không tìm thấy",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(property="message", type="string", example="Không tìm thấy voucher.")
+     *         )
+     *     )
+     * )
+     */
 
     public function destroy($id)
     {
