@@ -15,9 +15,12 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
+use App\Services\VoucherService;
 
 class OrderController extends Controller
 {
+    
+   
     /**
      * @OA\Post(
      *     path="/api/orders",
@@ -139,6 +142,8 @@ class OrderController extends Controller
      * )
      */
     private $orderId;
+    private $voucherDiscount = 0;
+    
     public function order()
     {
         try {
