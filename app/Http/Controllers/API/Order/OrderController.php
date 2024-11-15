@@ -2,20 +2,21 @@
 
 namespace App\Http\Controllers\API\Order;
 
-use App\Events\OrderSuccess;
-use App\Http\Controllers\Controller;
+use Exception;
 use App\Models\Cart;
+use App\Models\User;
 use App\Models\Order;
 use App\Models\OrderItem;
-use App\Models\ProductVariant;
-use App\Models\User;
-use App\Models\VnpayTransaction;
-use Exception;
+use Illuminate\Support\Str;
+use App\Events\OrderSuccess;
 use Illuminate\Http\Request;
+use App\Models\ProductVariant;
+use App\Models\VnpayTransaction;
+use App\Http\Controllers\API\VoucherService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Str;
-use App\Services\VoucherService;
+use App\Http\Controllers\Controller;
+
 
 class OrderController extends Controller
 {
@@ -143,7 +144,7 @@ class OrderController extends Controller
      */
     private $orderId;
     private $voucherDiscount = 0;
-    
+
     public function order()
     {
         try {
@@ -172,24 +173,48 @@ class OrderController extends Controller
             }
 
             $paymentMethod = request('payment_method');
+            $voucherCode = request('voucher_code');
             $totalAmount = 0;
             $dataItem = [];
 
-            foreach ($cart as $cartItem) {
-                $totalAmount += $cartItem->quantity * ($cartItem->product->price_sale ?? $cartItem->product->price_regular);
+              // Tính tổng tiền và chuẩn bị dữ liệu sản phẩm
+              foreach ($cart as $cartItem) {
+                $price = $cartItem->product->price_sale ?? $cartItem->product->price_regular;
+                $totalAmount += $cartItem->quantity * $price;
                 $dataItem[] = [
                     'product_id' => $cartItem->product_id,
                     'color' => $cartItem->color,
                     'size' => $cartItem->size,
                     'quantity' => $cartItem->quantity,
-                    'price' => $cartItem->product->price_sale ?? $cartItem->product->price_regular,
+                    'price' => $price,
                 ];
+            }
+               // Xử lý voucher nếu có
+            if ($voucherCode) {
+                $voucherService = new VoucherService();
+                $voucherResponse = $voucherService->apply([
+                    'code' => $voucherCode,
+                    'order_total' => $totalAmount,
+                    'products' => $dataItem
+                ]);
+
+                
+                if (!$voucherResponse->successful()) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Voucher không hợp lệ: ' . $voucherResponse->json()['error']
+                    ], 400);
+                }
+                
+            
+                
+                $discountAmount = $voucherResponse->json('discount_amount');
+                $totalAmount -= $discountAmount;
             }
 
             if ($paymentMethod == 1) {
 
-                $order = DB::transaction(function () use ($user, $defaultAddress, $paymentMethod, $totalAmount, $dataItem) {
-
+                $order = DB::transaction(function () use ($user, $defaultAddress, $paymentMethod, $totalAmount, $dataItem, $voucherCode) {
                     $order = Order::create([
                         'user_id' => $user->id,
                         'order_code' => $this->generateOrderCode(),
@@ -198,6 +223,8 @@ class OrderController extends Controller
                         'payment_status' => Order::STATUS_PAYMENT_UNPAID,
                         'order_status' => Order::STATUS_ORDER_PENDING,
                         'total_amount' => $totalAmount,
+                        'voucher_code' => $voucherCode,
+                        'voucher_discount' => $this->voucherDiscount,
                         'note' => request('note'),
                     ]);
 
@@ -224,11 +251,17 @@ class OrderController extends Controller
                 return response()->json([
                     'success' => true,
                     'message' => 'Đặt hàng thành công, chờ thanh toán.',
-                    'payment_url' => $vnpayResponse['url']
+                    'payment_url' => $vnpayResponse['url'],
+                    'data' => [
+                        'order_id' => $order->id,
+                        'total_amount' => $totalAmount,
+                        'voucher_discount' => $this->voucherDiscount,
+                        'final_amount' => $totalAmount
+                    ]
                 ], 201);
             } elseif ($paymentMethod == 0) {
                 // Thanh toán tiền mặt
-                $order = DB::transaction(function () use ($user, $defaultAddress, $paymentMethod, $totalAmount, $dataItem) {
+                $order = DB::transaction(function () use ($user, $defaultAddress, $paymentMethod, $totalAmount, $dataItem, $voucherCode) {
                     $order = Order::create([
                         'user_id' => $user->id,
                         'order_code' => $this->generateOrderCode(),
@@ -237,6 +270,8 @@ class OrderController extends Controller
                         'payment_status' => Order::STATUS_PAYMENT_UNPAID,
                         'order_status' => Order::STATUS_ORDER_PENDING,
                         'total_amount' => $totalAmount,
+                        'voucher_code' => $voucherCode,
+                        'voucher_discount' => $this->voucherDiscount,
                         'note' => request('note'),
                     ]);
                     foreach ($dataItem as $item) {
@@ -272,6 +307,12 @@ class OrderController extends Controller
                     'success' => true,
                     'message' => 'Đặt hàng thành công.',
                     'order_id' => $order->id,
+                    'data' => [
+                        'order_id' => $order->id,
+                        'total_amount' => $totalAmount,
+                        'voucher_discount' => $this->voucherDiscount,
+                        'final_amount' => $totalAmount
+                    ]
                 ], 201);
             } else {
                 return response()->json([

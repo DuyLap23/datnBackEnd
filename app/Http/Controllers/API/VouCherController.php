@@ -328,92 +328,92 @@ class VouCherController extends Controller
 
     
 
-public function apply(Request $request)
-{
-    $validator = Validator::make($request->all(), [
-        'code' => 'required|string',
-        'order_total' => 'required|numeric|min:0',
-        'products' => 'required|array|min:1',
-        'products.*.id' => 'required|integer|exists:products,id',
-        'products.*.price' => 'required|numeric|min:0',
-        'products.*.quantity' => 'required|integer|min:1',
-        'products.*.category_id' => 'required|integer|exists:categories,id'
-    ]);
+// public function apply(Request $request)
+// {
+//     $validator = Validator::make($request->all(), [
+//         'code' => 'required|string',
+//         'order_total' => 'required|numeric|min:0',
+//         'products' => 'required|array|min:1',
+//         'products.*.id' => 'required|integer|exists:products,id',
+//         'products.*.price' => 'required|numeric|min:0',
+//         'products.*.quantity' => 'required|integer|min:1',
+//         'products.*.category_id' => 'required|integer|exists:categories,id'
+//     ]);
 
-    if ($validator->fails()) {
-        return response()->json(['errors' => $validator->errors()], 422);
-    }
+//     if ($validator->fails()) {
+//         return response()->json(['errors' => $validator->errors()], 422);
+//     }
 
-    try {
-        $voucher = Voucher::where('code', $request->code)->first();
-        if (!$voucher) {
-            return response()->json(['error' => 'Mã voucher không hợp lệ'], 404);
-        }
+//     try {
+//         $voucher = Voucher::where('code', $request->code)->first();
+//         if (!$voucher) {
+//             return response()->json(['error' => 'Mã voucher không hợp lệ'], 404);
+//         }
 
-        // Validate trạng thái voucher
-        $now = Carbon::now();
-        if (!$voucher->voucher_active ||
-        $now < $voucher->start_date ||
-        $now > $voucher->end_date ||
-        $voucher->used_count >= $voucher->usage_limit) {
-        return response()->json(['error' => 'Voucher không còn hiệu lực'], 400);
-    }
+//         // Validate trạng thái voucher
+//         $now = Carbon::now();
+//         if (!$voucher->voucher_active ||
+//         $now < $voucher->start_date ||
+//         $now > $voucher->end_date ||
+//         $voucher->used_count >= $voucher->usage_limit) {
+//         return response()->json(['error' => 'Voucher không còn hiệu lực'], 400);
+//     }
 
-        // Calculate applicable total
-        $products = collect($request->products);
-        $applicableProducts = $products->filter(function ($product) use ($voucher) {
-            $applicableIds = json_decode($voucher->applicable_ids);
-            // Kiểm tra voucher áp dụng cho sản phẩm hay danh mục
-            return $voucher->applicable_type === 'product' 
-                ? in_array($product['id'], $applicableIds)
-                : in_array($product['category_id'], $applicableIds);
-        });
+//         // Calculate applicable total
+//         $products = collect($request->products);
+//         $applicableProducts = $products->filter(function ($product) use ($voucher) {
+//             $applicableIds = json_decode($voucher->applicable_ids);
+//             // Kiểm tra voucher áp dụng cho sản phẩm hay danh mục
+//             return $voucher->applicable_type === 'product' 
+//                 ? in_array($product['id'], $applicableIds)
+//                 : in_array($product['category_id'], $applicableIds);
+//         });
         
-        $applicableTotal = $applicableProducts->sum(function ($product) {
-            return $product['price'] * $product['quantity']; 
-        });
+//         $applicableTotal = $applicableProducts->sum(function ($product) {
+//             return $product['price'] * $product['quantity']; 
+//         });
 
-        if ($applicableTotal < $voucher->minimum_order_value) {
-            return response()->json([
-                'error' => 'Tổng đơn hàng không đạt giá trị tối thiểu',
-                'minimum_required' => $voucher->minimum_order_value,
-                'applicable_total' => $applicableTotal
-            ], 400);
-        }
+//         if ($applicableTotal < $voucher->minimum_order_value) {
+//             return response()->json([
+//                 'error' => 'Tổng đơn hàng không đạt giá trị tối thiểu',
+//                 'minimum_required' => $voucher->minimum_order_value,
+//                 'applicable_total' => $applicableTotal
+//             ], 400);
+//         }
 
-        // Calculate discount
-        $discount = $this->calculateDiscount($voucher, $applicableTotal);
+//         // Calculate discount
+//         $discount = $this->calculateDiscount($voucher, $applicableTotal);
 
-        return response()->json([
-            'discount_amount' => $discount, // Số tiền giảm giá
-            'applicable_products' => $applicableProducts->pluck('id'), // Danh sách ID sản phẩm được áp dụng
-            'applicable_total' => $applicableTotal, // Tổng tiền được áp dụng
-            'voucher_details' => $voucher // Chi tiết voucher
-        ]);
+//         return response()->json([
+//             'discount_amount' => $discount, // Số tiền giảm giá
+//             'applicable_products' => $applicableProducts->pluck('id'), // Danh sách ID sản phẩm được áp dụng
+//             'applicable_total' => $applicableTotal, // Tổng tiền được áp dụng
+//             'voucher_details' => $voucher // Chi tiết voucher
+//         ]);
 
-    } catch (Exception $e) {
-    return response()->json([
-        'message' => 'Lỗi khi áp dụng voucher',
-        'error' => $e->getMessage()
-    ], 500);
-}
-}
+//     } catch (Exception $e) {
+//     return response()->json([
+//         'message' => 'Lỗi khi áp dụng voucher',
+//         'error' => $e->getMessage()
+//     ], 500);
+// }
+// }
 
-private function calculateDiscount(Voucher $voucher, float $total): float
-{
-    $discount = $voucher->discount_type === 'percent'
-        ? $total * ($voucher->discount_value / 100)
-        : $voucher->discount_value;
+// private function calculateDiscount(Voucher $voucher, float $total): float
+// {
+//     $discount = $voucher->discount_type === 'percent'
+//         ? $total * ($voucher->discount_value / 100)
+//         : $voucher->discount_value;
 
-    // Apply max discount if set and applicable
-    if ($voucher->discount_type === 'percent' && 
-        $voucher->max_discount && 
-        $discount > $voucher->max_discount) {
-        $discount = $voucher->max_discount;
-    }
+//     // Apply max discount if set and applicable
+//     if ($voucher->discount_type === 'percent' && 
+//         $voucher->max_discount && 
+//         $discount > $voucher->max_discount) {
+//         $discount = $voucher->max_discount;
+//     }
 
-    return round($discount, 2);
-}
+//     return round($discount, 2);
+// }
    
 
 }
