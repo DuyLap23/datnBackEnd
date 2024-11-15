@@ -184,6 +184,70 @@ class VouCherController extends Controller
             ], 500);
         }
     }
+/**
+ * @OA\Put(
+ *     path="/api/vouchers/{id}",
+ *     summary="Cập nhật voucher",
+ *     description="Cập nhật thông tin voucher đã tồn tại. Yêu cầu quyền admin.",
+ *     tags={"Voucher"},
+ *     security={{"Bearer": {}}},
+ *     @OA\Parameter(
+ *         name="id",
+ *         in="path",
+ *         description="ID của voucher cần cập nhật",
+ *         required=true,
+ *         @OA\Schema(type="integer", example=1)
+ *     ),
+ *     @OA\RequestBody(
+ *         required=true,
+ *         @OA\JsonContent(
+ *             @OA\Property(property="name", type="string", example="Cập nhật khuyến mãi 20%"),
+ *             @OA\Property(property="discount_type", type="string", enum={"fixed", "percent"}, example="fixed"),
+ *             @OA\Property(property="discount_value", type="number", format="float", example=50000),
+ *             @OA\Property(property="minimum_order_value", type="number", format="float", example=300000),
+ *             @OA\Property(property="start_date", type="string", format="date-time", example="2024-11-01T00:00:00Z"),
+ *             @OA\Property(property="end_date", type="string", format="date-time", example="2024-12-31T23:59:59Z"),
+ *             @OA\Property(property="usage_limit", type="integer", example=50),
+ *             @OA\Property(property="applicable_type", type="string", enum={"product", "category"}, example="category"),
+ *             @OA\Property(property="applicable_ids", type="array", @OA\Items(type="integer"), example={4, 5, 6})
+ *         )
+ *     ),
+ *     @OA\Response(
+ *         response=200,
+ *         description="Cập nhật voucher thành công",
+ *         @OA\JsonContent(
+ *             type="object",
+ *             @OA\Property(property="message", type="string", example="Voucher đã được cập nhật."),
+ *             @OA\Property(property="voucher", ref="#/components/schemas/Voucher")
+ *         )
+ *     ),
+ *     @OA\Response(
+ *         response=404,
+ *         description="Voucher không tìm thấy",
+ *         @OA\JsonContent(
+ *             type="object",
+ *             @OA\Property(property="message", type="string", example="Không tìm thấy voucher.")
+ *         )
+ *     ),
+ *     @OA\Response(
+ *         response=422,
+ *         description="Dữ liệu không hợp lệ",
+ *         @OA\JsonContent(
+ *             type="object",
+ *             @OA\Property(property="message", type="string", example="Dữ liệu không hợp lệ."),
+ *             @OA\Property(property="errors", type="object")
+ *         )
+ *     ),
+ *     @OA\Response(
+ *         response=403,
+ *         description="Không có quyền truy cập",
+ *         @OA\JsonContent(
+ *             type="object",
+ *             @OA\Property(property="message", type="string", example="Bạn không có quyền cập nhật voucher.")
+ *         )
+ *     )
+ * )
+ */
 
     public function update(Request $request, $id)
     {
