@@ -74,9 +74,7 @@ Route::group(
     function ($router) {
         Route::apiResource('addresses', AddressController::class);
         Route::put('addresses/{id}/default', [AddressController::class, 'setDefault'])->name('addresses.setDefault');
-       Route::get('voucher', [VouCherController::class, 'index']);
-       Route::get('voucher/{id}', [VouCherController::class, 'show']);
-       Route::post('voucher/apply', [VouCherController::class, 'apply']);
+     
 
     }
 );
@@ -96,6 +94,9 @@ Route::post('user/comments', [UserCommentController::class, 'store']);
 Route::get('user/comments/{id}', [UserCommentController::class, 'show']);
 
 Route::get('vnpay/return',[OrderController::class, 'paymentReturn'])->name('vnpay.return');
+Route::get('voucher', [VouCherController::class, 'index']);
+Route::get('voucher/{id}', [VouCherController::class, 'show']);
+Route::post('voucher/apply', [VouCherController::class, 'apply']);
 
 //ADMIN
 Route::group(

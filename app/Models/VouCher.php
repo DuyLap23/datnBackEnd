@@ -20,6 +20,9 @@ class VouCher extends Model
         'usage_limit',
         'voucher_active',
         'used_count',
+        'applicable_type',
+        'applicable_ids',
+        'code'
     ];
     protected $table = 'vouchers';
 
