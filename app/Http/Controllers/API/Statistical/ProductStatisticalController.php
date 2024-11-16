@@ -8,7 +8,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
-use NumberFormatter;
 
 class ProductStatisticalController extends Controller
 {
@@ -30,7 +29,7 @@ class ProductStatisticalController extends Controller
             ->sum(DB::raw('order_items.quantity * order_items.price'));
 
         // Định dạng số tiền theo định dạng tiền tệ
-        $formatter = new NumberFormatter('vi_VN', NumberFormatter::CURRENCY);
+
 
         // Lấy top sản phẩm bán chạy nhất
         $topProducts = OrderItem::query()
@@ -49,14 +48,14 @@ class ProductStatisticalController extends Controller
             ->orderBy('total_quantity', 'desc')
             ->limit(5)
             ->get()
-            ->map(function ($product) use ($totalRevenue, $formatter) {
+            ->map(function ($product) use ($totalRevenue) {
                 return [
                     'id' => $product->id,
                     'name' => Str::limit( $product->name,20),
                     // Định dạng giá
-                    'price' => $formatter->formatCurrency($product->price, 'VND'),
-                    'total_quantity' => number_format($product->total_quantity),
-                    'total_revenue' => $formatter->formatCurrency($product->total_revenue, 'VND'),
+                    'price' => $product->price, 'VND',
+                    'total_quantity' =>$product->total_quantity,
+                    'total_revenue' => $product->total_revenue, 'VND',
                     'revenue_percentage' => $totalRevenue > 0
                         ? number_format(($product->total_revenue / $totalRevenue) * 100, 2)
                         : 0

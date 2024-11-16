@@ -27,35 +27,43 @@ class VoucherService
                return response()->json(['error' => 'Voucher không tồn tại hoặc đã hết hạn'], 404);
            }
 
+           $applicableIds = json_decode($voucher->applicable_ids, true) ?? [];
+
            // Calculate applicable products and total
            $applicableTotal = collect($data['products'])
-               ->filter(function ($product) use ($voucher) {
-                   $applicableIds = json_decode($voucher->applicable_ids, true) ?? [];
-                   return $voucher->applicable_type === 'product'
-                       ? in_array($product['product_id'], $applicableIds)
-                       : in_array($product['category_id'], $applicableIds);
+               ->filter(function ($product) use ($voucher, $applicableIds) {
+                   if ($voucher->applicable_type === 'product') {
+                       return in_array($product['product_id'], $applicableIds);
+                   } else { // category type
+                       // Nếu product_id nằm trong danh sách applicable_ids (đã được lưu khi tạo voucher)
+                       return in_array($product['product_id'], $applicableIds);
+                   }
                })
                ->sum(function ($product) {
                    return $product['price'] * $product['quantity'];
                });
-              // kiểm tra giá trị tối thiểu
-               Log::info('Voucher application', [
-                'applicableTotal' => $applicableTotal,
-                'minimum_order_value' => $voucher->minimum_order_value,
-                'products' => $data['products']
-            ]);
-            if ($applicableTotal < $voucher->minimum_order_value) {
-                return response()->json([
-                    'error' => 'Đơn hàng chưa đạt giá trị tối thiểu để áp dụng voucher',
-                    'minimum_required' => $voucher->minimum_order_value,
-                    'current_total' => $applicableTotal,
-                    'difference' => $voucher->minimum_order_value - $applicableTotal,
-                    'voucher_details' => $voucher,
-                    'products_data' => $data['products'], // Hiển thị thông tin sản phẩm
-                    'applicable_type' => $voucher->applicable_type, // Loại áp dụng (product/category)
-                    'applicable_ids' => json_decode($voucher->applicable_ids, true) // Danh sách IDs áp dụng
-                ], 400);
-            }
+
+           // Log thông tin để debug
+           Log::info('Voucher application check', [
+               'voucher_type' => $voucher->applicable_type,
+               'applicable_ids' => $applicableIds,
+               'products' => $data['products'],
+               'applicableTotal' => $applicableTotal
+           ]);
+
+           if ($applicableTotal < $voucher->minimum_order_value) {
+               return response()->json([
+                   'error' => 'Đơn hàng chưa đạt giá trị tối thiểu để áp dụng voucher',
+                   'minimum_required' => $voucher->minimum_order_value,
+                   'current_total' => $applicableTotal,
+                   'difference' => $voucher->minimum_order_value - $applicableTotal,
+                   'voucher_details' => $voucher,
+                   'applicable_products' => collect($data['products'])
+                       ->filter(function ($product) use ($voucher, $applicableIds) {
+                           return in_array($product['product_id'], $applicableIds);
+                       })->values()->all(),
+               ], 400);
+           }
 
 
            // Calculate discount
@@ -71,7 +79,11 @@ class VoucherService
                'success' => true,
                'discount_amount' => $discount,
                'voucher_details' => $voucher,
-               'applicable_total' => $applicableTotal
+               'applicable_total' => $applicableTotal,
+               'applicable_products' => collect($data['products'])
+                   ->filter(function ($product) use ($voucher, $applicableIds) {
+                       return in_array($product['product_id'], $applicableIds);
+                   })->values()->all()
            ]);
 
        } catch (\Exception $e) {
