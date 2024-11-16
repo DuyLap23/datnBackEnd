@@ -170,7 +170,7 @@ class OrderController extends Controller
                 ], 404);
             }
 
-            $defaultAddress = $user->addresses()->where('is_default', true)->first();
+            $defaultAddress = $user->addresses->where('is_default', true)->first();
             if (!$defaultAddress) {
                 return response()->json([
                     'success' => false,
@@ -197,6 +197,12 @@ class OrderController extends Controller
             }
                // Xử lý voucher nếu có
             if ($voucherCode) {
+                if (!preg_match('/^[A-Za-z0-9]+$/', $voucherCode)) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Mã voucher không hợp lệ'
+                    ], 400);
+                }
                 $voucherService = new VoucherService();
                 $voucherResponse = $voucherService->apply([
                     'code' => $voucherCode,
@@ -205,10 +211,16 @@ class OrderController extends Controller
                 ]);
 
                 
-                if (!$voucherResponse->successful()) {
+                $responseData = json_decode($voucherResponse->getContent(), true);
+    
+                if ($voucherResponse->getStatusCode() >= 400) {
+                    $errorMessage = isset($responseData['error']) 
+                        ? 'Voucher không hợp lệ: ' . $responseData['error']
+                        : 'Không thể áp dụng voucher. Vui lòng kiểm tra lại điều kiện sử dụng.';
+                        
                     return response()->json([
                         'success' => false,
-                        'message' => 'Voucher không hợp lệ: ' . $voucherResponse->json()['error']
+                        'message' => $errorMessage
                     ], 400);
                 }
                 
@@ -216,6 +228,10 @@ class OrderController extends Controller
                 
                 $discountAmount = $voucherResponse->json('discount_amount');
                 $totalAmount -= $discountAmount;
+                Log::info('Voucher response:', [
+                    'status' => $voucherResponse->getStatusCode(),
+                    'content' => $voucherResponse->getContent()
+                ]);
             }
 
             if ($paymentMethod == 1) {
@@ -286,6 +302,7 @@ class OrderController extends Controller
                     }
 
                     foreach ($order->orderItems as $item) {
+
                         $product_id = $item->product_id;
 
                         $productVariant = ProductVariant::with(['productColor', 'productSize'])
