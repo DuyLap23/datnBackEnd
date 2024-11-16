@@ -26,7 +26,7 @@ class VoucherService
         // Tính toán sản phẩm áp dụng được
         $applicableProducts = collect($data['products'])->filter(function ($product) use ($voucher) {
             $applicableIds = json_decode($voucher->applicable_ids);
-            return $voucher->applicable_type === 'product' 
+            return $voucher->applicable_type === 'product'
                 ? in_array($product['product_id'], $applicableIds)
                 : in_array($product['category_id'], $applicableIds);
         });
@@ -58,7 +58,7 @@ class VoucherService
         }
 
         $discount = ($total * $voucher->discount_value) / 100;
-        
+
         if ($voucher->max_discount > 0) {
             return min($discount, $voucher->max_discount);
         }

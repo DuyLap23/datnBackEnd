@@ -20,8 +20,8 @@ use App\Http\Controllers\Controller;
 
 class OrderController extends Controller
 {
-    
-   
+
+
     /**
      * @OA\Post(
      *     path="/api/orders",
@@ -198,23 +198,25 @@ class OrderController extends Controller
                // Xử lý voucher nếu có
             if ($voucherCode) {
                 $voucherService = new VoucherService();
+
                 $voucherResponse = $voucherService->apply([
                     'code' => $voucherCode,
                     'order_total' => $totalAmount,
-                    'products' => $dataItem
+                    'products' => $dataItem,
                 ]);
 
-                
-                if (!$voucherResponse->successful()) {
+
+                if ($voucherResponse->status() !== 200) {
                     return response()->json([
                         'success' => false,
-                        'message' => 'Voucher không hợp lệ: ' . $voucherResponse->json()['error']
+                        'message' => 'Voucher không hợp lệ: ' . ($voucherResponse->getData()->error ?? 'Không xác định')
                     ], 400);
                 }
-                
-            
-                
+
+
+
                 $discountAmount = $voucherResponse->json('discount_amount');
+                Log::info('discount_amount', $discountAmount);
                 $totalAmount -= $discountAmount;
             }
 
