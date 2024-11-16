@@ -196,43 +196,60 @@ class OrderController extends Controller
                 ];
             }
                // Xử lý voucher nếu có
-            if ($voucherCode) {
-                if (!preg_match('/^[A-Za-z0-9]+$/', $voucherCode)) {
-                    return response()->json([
-                        'success' => false,
-                        'message' => 'Mã voucher không hợp lệ'
-                    ], 400);
-                }
-                $voucherService = new VoucherService();
+        if ($voucherCode) {
+            if (!preg_match('/^[A-Za-z0-9]+$/', $voucherCode)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Mã voucher không hợp lệ'
+                ], 400);
+            }
 
-                $voucherResponse = $voucherService->apply([
-                    'code' => $voucherCode,
-                    'order_total' => $totalAmount,
-                    'products' => $dataItem,
+            $voucherService = new VoucherService();
+            $voucherResponse = $voucherService->apply([
+                'code' => $voucherCode,
+                'order_total' => $totalAmount,
+                'products' => $dataItem
+            ]);
+
+            $responseData = $voucherResponse->getData(true);
+
+            if ($voucherResponse->getStatusCode() >= 400) {
+                $errorMessage = isset($responseData['error'])
+                    ? 'Voucher không hợp lệ: ' . $responseData['error']
+                    : 'Không thể áp dụng voucher. Vui lòng kiểm tra lại điều kiện sử dụng.';
+
+                Log::error('Lỗi áp dụng voucher:', [
+                    'voucher_code' => $voucherCode,
+                    'error_message' => $errorMessage,
+                    'response' => $responseData
                 ]);
 
-                $responseData = json_decode($voucherResponse->getContent(), true);
-                if ($voucherResponse->getStatusCode() >= 400) {
-                    $errorMessage = isset($responseData['error'])
-                        ? 'Voucher không hợp lệ: ' . $responseData['error']
-                        : 'Không thể áp dụng voucher. Vui lòng kiểm tra lại điều kiện sử dụng.';
+                return response()->json([
+                    'success' => false,
+                    'message' => $errorMessage
+                ], 400);
+            }
 
-                    return response()->json([
-                        'success' => false,
-                        'message' => $errorMessage
-                    ], 400);
-                }
+            // Giả sử dữ liệu phản hồi có trường 'discount_amount'
+            if (isset($responseData['discount_amount'])) {
+                $totalAmount -= $responseData['discount_amount'];
 
-
-
-                $discountAmount = $voucherResponse->json('discount_amount');
-                Log::info('discount_amount', $discountAmount);
-                $totalAmount -= $discountAmount;
                 Log::info('Voucher response:', [
                     'status' => $voucherResponse->getStatusCode(),
                     'content' => $voucherResponse->getContent()
                 ]);
+            } else {
+                Log::error('Voucher không có discount_amount:', [
+                    'voucher_code' => $voucherCode,
+                    'response' => $responseData
+                ]);
+
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Voucher không có giá trị giảm giá.'
+                ], 400);
             }
+        }
 
             if ($paymentMethod == 1) {
 
