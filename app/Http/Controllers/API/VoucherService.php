@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Api;
+namespace App\Http\Controllers\API;
 
 use App\Models\Voucher;
 use Illuminate\Http\JsonResponse;
@@ -28,7 +28,7 @@ class VoucherService
            }
 
            $applicableIds = json_decode($voucher->applicable_ids, true) ?? [];
-           
+
            // Calculate applicable products and total
            $applicableTotal = collect($data['products'])
                ->filter(function ($product) use ($voucher, $applicableIds) {
@@ -65,9 +65,10 @@ class VoucherService
                ], 400);
            }
 
+
            // Calculate discount
-           $discount = $voucher->discount_type === 'fixed' 
-               ? $voucher->discount_value 
+           $discount = $voucher->discount_type === 'fixed'
+               ? $voucher->discount_value
                : ($applicableTotal * $voucher->discount_value) / 100;
 
            if (isset($voucher->max_discount) && $voucher->max_discount > 0) {

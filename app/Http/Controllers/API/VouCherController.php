@@ -9,7 +9,6 @@ use App\Models\Voucher;
 use App\Models\Category;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
-use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Validator;
@@ -60,12 +59,12 @@ class VouCherController extends Controller
     {
         try {
             $query = Voucher::query();
-            
+
             // Lọc theo trạng thái
             if ($request->has('status')) {
                 $status = $request->status;
                 $now = Carbon::now();
-                
+
                 switch($status) {
                     case 'active':
                         $query->where('voucher_active', true)
@@ -83,7 +82,7 @@ class VouCherController extends Controller
                         break;
                 }
             }
-            
+
             if ($request->has('type')) {
                 $query->where('discount_type', $request->type);
             }
@@ -165,29 +164,29 @@ class VouCherController extends Controller
             'applicable_ids' => 'required|array|min:1',
             'applicable_ids.*' => 'required|integer|min:1',
         ]);
-    
+
         if ($validator->fails()) {
             return response()->json([
                 'message' => 'Dữ liệu không hợp lệ',
                 'errors' => $validator->errors()
             ], 422);
         }
-    
+
         DB::beginTransaction();
         try {
             $applicable_ids = $request->applicable_ids;
-    
+
             if ($request->applicable_type === 'category') {
                 // Lấy tất cả sản phẩm thuộc danh mục
                 $productIds = Product::whereIn('category_id', $applicable_ids)->pluck('id')->toArray();
-    
+
                 if (count($productIds) === 0) {
                     return response()->json([
                         'message' => 'Dữ liệu không hợp lệ',
                         'error' => 'Không tìm thấy sản phẩm nào trong danh mục đã chọn'
                     ], 400);
                 }
-    
+
                 // Gán danh sách product IDs vào applicable_ids
                 $applicable_ids = $productIds;
             } else {
@@ -200,13 +199,13 @@ class VouCherController extends Controller
                     ], 400);
                 }
             }
-    
+
             // Tạo mã voucher
             $code = strtoupper(Str::random(10));
             while (Voucher::where('code', $code)->exists()) {
                 $code = strtoupper(Str::random(10));
             }
-    
+
             // Tạo voucher mới
             $voucher = Voucher::create([
                 'name' => $request->name,
@@ -219,15 +218,15 @@ class VouCherController extends Controller
                 'voucher_active' => $request->voucher_active,
                 'applicable_type' => $request->applicable_type,
                 'applicable_ids' => json_encode($applicable_ids), // Lưu applicable_ids dưới dạng JSON
-                'code' => $code, 
+                'code' => $code,
             ]);
-    
+
             DB::commit();
             return response()->json([
                 'message' => 'Tạo voucher thành công',
                 'data' => $voucher
             ], 201);
-    
+
         } catch (Exception $e) {
             DB::rollBack();
             return response()->json([
@@ -236,7 +235,7 @@ class VouCherController extends Controller
             ], 500);
         }
     }
-    
+
     /**
      * @OA\Get(
      *     path="/api/vouchers/{id}",
@@ -270,7 +269,7 @@ class VouCherController extends Controller
         try {
             // Tìm voucher theo ID
             $voucher = Voucher::findOrFail($id);
-            
+
             // Kiểm tra xem voucher có tồn tại không
             if (!$voucher) {
                 return response()->json([
@@ -373,7 +372,7 @@ class VouCherController extends Controller
                 'message' => 'Không tìm thấy voucher'
             ], 404);
         }
-    
+
         // Validation dữ liệu
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255',
@@ -388,14 +387,14 @@ class VouCherController extends Controller
             'applicable_ids' => 'required|array|min:1',
             'applicable_ids.*' => 'required|integer|min:1',
         ]);
-    
+
         if ($validator->fails()) {
             return response()->json([
                 'message' => 'Dữ liệu không hợp lệ',
                 'errors' => $validator->errors()
             ], 422);
         }
-    
+
         // Kiểm tra applicable_type
         if (!in_array($request->applicable_type, ['product', 'category'])) {
             return response()->json([
@@ -403,12 +402,12 @@ class VouCherController extends Controller
                 'error' => 'Loại áp dụng phải là "product" hoặc "category"'
             ], 422);
         }
-    
+
         DB::beginTransaction();
         try {
             // Kiểm tra ID sản phẩm/danh mục
             $applicable_ids = is_array($request->applicable_ids) ? $request->applicable_ids : [];
-            
+
             if ($request->applicable_type === 'product') {
                 $existingCount = Product::whereIn('id', $applicable_ids)->count();
                 if ($existingCount !== count($applicable_ids)) {
@@ -426,7 +425,7 @@ class VouCherController extends Controller
                     ], 400);
                 }
             }
-    
+
             // Cập nhật voucher
             $voucher->update([
                 'name' => $request->name,
@@ -440,13 +439,13 @@ class VouCherController extends Controller
                 'applicable_type' => $request->applicable_type,
                 'applicable_ids' => json_encode($applicable_ids)
             ]);
-    
+
             DB::commit();
             return response()->json([
                 'message' => 'Cập nhật voucher thành công',
                 'data' => $voucher
             ]);
-    
+
         } catch (Exception $e) {
             DB::rollBack();
             return response()->json([
@@ -537,7 +536,7 @@ class VouCherController extends Controller
         return 'Đang hoạt động';
     }
 
-    
+
 
 // public function apply(Request $request)
 // {
@@ -575,13 +574,13 @@ class VouCherController extends Controller
 //         $applicableProducts = $products->filter(function ($product) use ($voucher) {
 //             $applicableIds = json_decode($voucher->applicable_ids);
 //             // Kiểm tra voucher áp dụng cho sản phẩm hay danh mục
-//             return $voucher->applicable_type === 'product' 
+//             return $voucher->applicable_type === 'product'
 //                 ? in_array($product['id'], $applicableIds)
 //                 : in_array($product['category_id'], $applicableIds);
 //         });
-        
+
 //         $applicableTotal = $applicableProducts->sum(function ($product) {
-//             return $product['price'] * $product['quantity']; 
+//             return $product['price'] * $product['quantity'];
 //         });
 
 //         if ($applicableTotal < $voucher->minimum_order_value) {
@@ -617,14 +616,14 @@ class VouCherController extends Controller
 //         : $voucher->discount_value;
 
 //     // Apply max discount if set and applicable
-//     if ($voucher->discount_type === 'percent' && 
-//         $voucher->max_discount && 
+//     if ($voucher->discount_type === 'percent' &&
+//         $voucher->max_discount &&
 //         $discount > $voucher->max_discount) {
 //         $discount = $voucher->max_discount;
 //     }
 
 //     return round($discount, 2);
 // }
-   
+
 
 }

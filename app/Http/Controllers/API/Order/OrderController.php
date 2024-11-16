@@ -20,8 +20,8 @@ use App\Http\Controllers\Controller;
 
 class OrderController extends Controller
 {
-    
-   
+
+
     /**
      * @OA\Post(
      *     path="/api/orders",
@@ -217,7 +217,7 @@ class OrderController extends Controller
                 $errorMessage = isset($responseData['error'])
                     ? 'Voucher không hợp lệ: ' . $responseData['error']
                     : 'Không thể áp dụng voucher. Vui lòng kiểm tra lại điều kiện sử dụng.';
-                
+
                 Log::error('Lỗi áp dụng voucher:', [
                     'voucher_code' => $voucherCode,
                     'error_message' => $errorMessage,
@@ -236,7 +236,7 @@ class OrderController extends Controller
                 $this->voucherDiscount = $responseData['discount_amount'];
                 // Trừ giá trị voucher vào tổng tiền
                 $totalAmount = $totalAmount - $this->voucherDiscount;
-                
+
                 Log::info('Áp dụng voucher thành công:', [
                     'original_amount' => $totalAmount + $this->voucherDiscount,
                     'discount_amount' => $this->voucherDiscount,
@@ -247,7 +247,7 @@ class OrderController extends Controller
                     'voucher_code' => $voucherCode,
                     'response' => $responseData
                 ]);
-        
+
                 return response()->json([
                     'success' => false,
                     'message' => 'Voucher không có giá trị giảm giá.'
