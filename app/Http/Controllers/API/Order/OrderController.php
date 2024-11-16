@@ -232,17 +232,22 @@ class OrderController extends Controller
 
             // Giả sử dữ liệu phản hồi có trường 'discount_amount'
             if (isset($responseData['discount_amount'])) {
-                $totalAmount -= $responseData['discount_amount'];
-                Log::info('Voucher response:', [
-                    'status' => $voucherResponse->getStatusCode(),
-                    'content' => $voucherResponse->getContent()
+                // Lưu giá trị giảm giá vào biến class
+                $this->voucherDiscount = $responseData['discount_amount'];
+                // Trừ giá trị voucher vào tổng tiền
+                $totalAmount = $totalAmount - $this->voucherDiscount;
+                
+                Log::info('Áp dụng voucher thành công:', [
+                    'original_amount' => $totalAmount + $this->voucherDiscount,
+                    'discount_amount' => $this->voucherDiscount,
+                    'final_amount' => $totalAmount
                 ]);
             } else {
                 Log::error('Voucher không có discount_amount:', [
                     'voucher_code' => $voucherCode,
                     'response' => $responseData
                 ]);
-
+        
                 return response()->json([
                     'success' => false,
                     'message' => 'Voucher không có giá trị giảm giá.'
@@ -292,9 +297,9 @@ class OrderController extends Controller
                     'payment_url' => $vnpayResponse['url'],
                     'data' => [
                         'order_id' => $order->id,
-                        'total_amount' => $totalAmount,
+                        'total_amount' => $totalAmount + $this->voucherDiscount, // Giá gốc
                         'voucher_discount' => $this->voucherDiscount,
-                        'final_amount' => $totalAmount
+                        'final_amount' => $totalAmount // Giá sau khi trừ voucher
                     ]
                 ], 201);
             } elseif ($paymentMethod == 0) {
@@ -338,19 +343,18 @@ class OrderController extends Controller
                             }
                         }
                     }
-                    OrderSuccess::dispatch($order, $user);
+                    // OrderSuccess::dispatch($order, $user);
                     Cart::where('user_id', $user->id)->delete();
                     return $order;
                 });
                 return response()->json([
                     'success' => true,
                     'message' => 'Đặt hàng thành công.',
-                    'order_id' => $order->id,
                     'data' => [
                         'order_id' => $order->id,
-                        'total_amount' => $totalAmount,
+                        'total_amount' => $totalAmount + $this->voucherDiscount, // Giá gốc
                         'voucher_discount' => $this->voucherDiscount,
-                        'final_amount' => $totalAmount
+                        'final_amount' => $totalAmount // Giá sau khi trừ voucher
                     ]
                 ], 201);
             } else {
@@ -536,7 +540,7 @@ class OrderController extends Controller
                 }
                 Cart::where('user_id', $order->user_id)->delete(); // Xóa giỏ hàng
 
-                OrderSuccess::dispatch($order,$user);
+                // OrderSuccess::dispatch($order,$user);
 
                 return redirect()->to(env('FRONTEND_URL') . '/payment/success?' . http_build_query([
                         'order_id' => $order->id,
