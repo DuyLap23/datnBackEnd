@@ -4,6 +4,7 @@ namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
 use App\Models\Category;
+use App\Models\Product;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -514,29 +515,42 @@ class CategoryController extends Controller
     public function show(string $id)
     {
         try {
-//            $category = Category::findOrFail($id);
-            $category = Category::query()
-                ->with(['children.products'])
-                ->findOrFail($id);
+            // Kiểm tra danh mục
+            $category = Category::find($id);
 
-
-            return response()->json(
-                [
-                    'success' => true,
-                    'message' => 'Lấy thành công dữ liệu của bản ghi ' . $id,
-                    'category' => $category,
-                ],
-                200,
-            );
-        } catch (\Exception $exception) {
-            return response()->json(
-                [
+            if (!$category) {
+                return response()->json([
                     'success' => false,
-                    'message' => 'lấy dữ liệu không thành công',
-                    'error' => "Không tồn tại danh mục này."
-                ],
-                500,
-            );
+                    'message' => 'Danh mục không tồn tại!',
+                ], 404);
+            }
+
+            if ($category->parent_id == 0) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Đây là danh mục cha, vui lòng chọn danh mục con!',
+                ], 400);
+            }
+
+            // Lấy sản phẩm thuộc danh mục
+            $products = Product::where('category_id', $id)
+                ->where('is_active', 1)
+                ->select(['id', 'name', 'img_thumbnail', 'price_sale', 'price_regular', 'brand_id']) // Chỉ chọn các cột cần thiết
+                ->get();
+
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Lấy thành công dữ liệu của danh mục: ' . $category->name,
+                'products' => $products,
+            ], 200);
+
+        } catch (\Exception $exception) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Lấy dữ liệu không thành công!',
+                'error' => $exception->getMessage(),
+            ], 500);
         }
     }
 
