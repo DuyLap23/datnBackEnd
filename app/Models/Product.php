@@ -26,12 +26,14 @@ class Product extends Model
         'is_show_home',
         'category_id',
         'brand_id',
-        
+
     ];
     protected $casts = [
         'is_active' => 'boolean',
         'is_new' => 'boolean',
         'is_show_home' => 'boolean',
+        'price_regular' => 'float',
+        'price_sale' => 'float',
     ];
     public $date = ['deleted_at'];
 
@@ -69,7 +71,7 @@ class Product extends Model
     {
         return $this->hasMany(ProductVariant::class);
     }
-   
-    
+
+
 }
 
