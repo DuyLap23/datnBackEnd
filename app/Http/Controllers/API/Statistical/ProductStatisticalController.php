@@ -21,16 +21,11 @@ class ProductStatisticalController extends Controller
         $startDate = Carbon::parse($request->start_date)->startOfDay();
         $endDate = Carbon::parse($request->end_date)->endOfDay();
 
-        // Tính tổng doanh thu của tất cả các sản phẩm trong khoảng thời gian
         $totalRevenue = OrderItem::query()
             ->join('orders', 'order_items.order_id', '=', 'orders.id')
             ->whereBetween('orders.created_at', [$startDate, $endDate])
             ->where('orders.order_status', 'completed')
             ->sum(DB::raw('order_items.quantity * order_items.price'));
-
-        // Định dạng số tiền theo định dạng tiền tệ
-
-
         // Lấy top sản phẩm bán chạy nhất
         $topProducts = OrderItem::query()
             ->select(
@@ -52,10 +47,10 @@ class ProductStatisticalController extends Controller
                 return [
                     'id' => $product->id,
                     'name' => Str::limit( $product->name,20),
-                    // Định dạng giá
-                    'price' => $product->price, 'VND',
+
+                    'price' => number_format($product->price, 0, ',', '.') . 'đ',
                     'total_quantity' =>$product->total_quantity,
-                    'total_revenue' => $product->total_revenue, 'VND',
+                    'total_revenue' => number_format($product->total_revenue, 0, ',', '.') . 'đ',
                     'revenue_percentage' => $totalRevenue > 0
                         ? number_format(($product->total_revenue / $totalRevenue) * 100, 2)
                         : 0
