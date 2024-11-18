@@ -95,7 +95,16 @@ use Illuminate\Routing\Controller as BaseController;
  *             @OA\Property(property="id", type="integer", example=1),
  *             @OA\Property(property="name", type="string", example="Danh mục sản phẩm"),
  *             @OA\Property(property="deleted_at", type="string", format="date-time", example="2024-10-08T00:00:00Z")
- *         )
+ *         ),
+ *      @OA\Schema(
+ *      schema="Voucher",
+ *      type="object",
+ *      description="Thông tin chi tiết của voucher",
+ *      @OA\Property(property="id", type="integer", example=1, description="ID của voucher"),
+ *      @OA\Property(property="name", type="string", example="SALE20", description="Tên voucher"),
+ *      @OA\Property(property="discount_percentage", type="integer", example=20, description="Phần trăm giảm giá"),
+ *      @OA\Property(property="expiration_date", type="string", format="date", example="2024-12-31", description="Ngày hết hạn")
+ *  )
  *     )
  * )
  */

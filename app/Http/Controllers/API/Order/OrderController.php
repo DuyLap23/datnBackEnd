@@ -45,7 +45,7 @@ class OrderController extends Controller
      *                 type="string",
      *                 example="Giao hàng trong giờ hành chính",
      *                 description="Ghi chú cho đơn hàng"
-     *             )
+     *             ),
      *             @OA\Property(
      *                 property="voucher_code",
      *                 type="string",
