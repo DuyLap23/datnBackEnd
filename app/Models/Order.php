@@ -12,19 +12,19 @@ class Order extends Model
 
     protected $fillable = [
         'user_id',
-        'order_code', 
+        'order_code',
         'address_id',
         'payment_method',
         'payment_status',
         'order_status',
         'total_amount',
         'voucher_code',
-        'voucher_discount', 
+        'voucher_discount',
         'note',
-        
-
     ];
-
+    protected $casts = [
+        'total_amount' => 'float',
+    ];
     public function user()
     {
         return $this->belongsTo(User::class);

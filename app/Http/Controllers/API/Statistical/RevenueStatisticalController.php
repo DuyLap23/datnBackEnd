@@ -36,14 +36,14 @@ class RevenueStatisticalController extends Controller
             // Chuyển đổi thành mảng các object {time, price}
             $formattedResult = $result->map(function ($value, $date) {
                 return [
-                    'time' => $date,
-                    'price' => number_format($value, 0, ',', '.') . 'đ'
+                    'time' => date('d-m-Y', strtotime($date)),
+                    'price' => intval($value)
                 ];
             })->values(); // Dùng values() để chuyển collection thành mảng tuần tự
 
             return response()->json([
                 'total_revenue_default' => $formattedResult,
-                'total_revenue' => number_format($result->sum(), 0, ',', '.') . 'đ',
+                'total_revenue' => $result->sum(),
             ]);
         }
 
@@ -58,9 +58,9 @@ class RevenueStatisticalController extends Controller
             ->sum('total_amount');
         Log::info('', ['total_revenue' => $totalRevenue]);
         return response()->json([
-            'total_revenue' => number_format($totalRevenue, 0, ',', '.') . 'đ',
-            'start_date' => date_format($startDate, 'Y-m-d'),
-            'end_date' => date_format($endDate, 'Y-m-d'),
+            'total_revenue' => intval($totalRevenue),
+            'start_date' => date_format($startDate, 'd-m-Y') ,
+            'end_date' => date_format($endDate, 'd-m-Y'),
         ]);
     }
 }

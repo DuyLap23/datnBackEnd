@@ -64,17 +64,18 @@ public function index(Request $request)
             break;
     }
 
-    // Lấy danh sách đơn hàng
-    $orders = $query->with(['orderItems.product'])->get();
+    $orders = $query->with(['orderItems.product'])
+                    ->orderBy('created_at', 'desc') 
+                    ->get();
     if ($orders->isEmpty()) {
         return response()->json(['message' => 'Không có đơn hàng nào'], 404);
     }
-    // Tính tổng giá trị đơn hàng
-    // foreach ($orders as $order) {
-    //     $order->total_price = $order->orderItems->sum(function($item) {
-    //         return $item->quantity * $item->price;
-    //     });
-    // }
+    foreach ($orders as $order) {
+        $order->image_url = $order->orderItems->first()->product->img_thumbnail ?? null;
+
+        foreach ($order->orderItems as $item) {
+        }
+    }
     return response()->json([
         'message' => 'Số lượng đơn hàng: ' . $orders->count(),
         'orders' => $orders

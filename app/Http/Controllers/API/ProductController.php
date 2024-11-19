@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\API;
 
+use App\Models\Category;
 use App\Models\Tag;
 use App\Models\Product;
 use App\Models\ProductSize;
@@ -266,7 +267,7 @@ class ProductController extends Controller
      *                     description="Lượng người truy cập sản phẩm",
      *                     example=true
      *                 ),
-     *                 
+     *
      *                 @OA\Property(
      *                     property="user_manual",
      *                     type="boolean",
@@ -469,7 +470,12 @@ class ProductController extends Controller
                 $path = $request->file('img_thumbnail')->store('products', 'public');
                 $dataProduct['img_thumbnail'] = asset('storage/' . $path);
             }
-
+            $category = Category::find($request->category_id);
+            if ($category &&  $category->parent_id === 0) {
+                return response()->json([
+                    'error' => 'Danh mục phải là danh mục con.'
+                ]);
+            }
             // Tạo sản phẩm
             $product = Product::create($dataProduct);
 
@@ -496,14 +502,14 @@ class ProductController extends Controller
             }
 
             // Xử lý thẻ
-            if ($request->has('tags')) {
-                $product->tags()->sync($request->tags);
-            }
+            // if ($request->has('tags')) {
+            //     $product->tags()->sync($request->tags);
+            // }
 
             DB::commit();
 
             return response()->json(
-                $product->load(['category', 'brand', 'tags', 'productImages', 'productVariants.productColor', 'productVariants.productSize']),
+                $product->load(['category', 'brand', 'productImages', 'productVariants.productColor', 'productVariants.productSize']),
                 201
             );
         } catch (\Exception $e) {
@@ -601,11 +607,11 @@ class ProductController extends Controller
                 'productVariants.productColor',
                 'productVariants.productSize'
             ]);
-    
+
             // Chỉ lấy ra tên của category và brand
             $productData->category_name = $product->category->name ?? null; // Lấy tên category
             $productData->brand_name = $product->brand->name ?? null; // Lấy tên brand
-    
+
             // Chỉ giữ lại các trường cần thiết
             $result = [
                 'id' => $productData->id,
@@ -626,7 +632,7 @@ class ProductController extends Controller
                 'productImages' => $productData->productImages,
                 'productVariants' => $productData->productVariants,
             ];
-    
+
             return response()->json($result, 200);
         } catch (ModelNotFoundException $e) {
             Log::error('Sản phẩm không tìm thấy: ' . $e->getMessage());
@@ -641,8 +647,8 @@ class ProductController extends Controller
             ], 500);
         }
     }
-    
-    
+
+
 
     /**
      * @OA\Put(
@@ -730,8 +736,13 @@ class ProductController extends Controller
      * )
      */
 
-    public function update(Request $request, Product $product)
-    {
+     public function update(Request $request, $id)
+     {
+         $product = Product::find($id);
+         
+         if (!$product) {
+             return response()->json(['error' => 'Không tìm thấy sản phẩm'], 404);
+         }
         DB::beginTransaction();
         try {
             // Kiểm tra và xác thực dữ liệu
@@ -745,8 +756,10 @@ class ProductController extends Controller
 
             // Xử lý hình ảnh thumbnail
             if ($request->hasFile('img_thumbnail')) {
-                // Xóa hình ảnh cũ
-                Storage::delete($product->img_thumbnail);
+                // Xóa hình ảnh cũ nếu tồn tại
+                if ($product->img_thumbnail) {
+                    Storage::delete(str_replace(asset('storage/'), '', $product->img_thumbnail));
+                }
                 // Lưu hình ảnh mới và tạo URL công khai
                 $path = $request->file('img_thumbnail')->store('products', 'public');
                 $dataProduct['img_thumbnail'] = asset('storage/' . $path);
@@ -782,8 +795,10 @@ class ProductController extends Controller
                     if (isset($existingVariants[$variantKey])) {
                         $variant = $existingVariants[$variantKey];
                         if (isset($value['image']) && $value['image'] instanceof \Illuminate\Http\UploadedFile) {
-                            // Xóa hình ảnh cũ
-                            Storage::delete($variant->image);
+                            // Xóa hình ảnh cũ nếu tồn tại
+                            if ($variant->image) {
+                                Storage::delete($variant->image);
+                            }
                             // Lưu hình ảnh mới và tạo URL công khai
                             $path = $value['image']->store('products', 'public');
                             $dataProductVariant['image'] = asset('storage/' . $path);
@@ -805,19 +820,27 @@ class ProductController extends Controller
 
                 // Xóa các biến thể không còn tồn tại
                 foreach ($existingVariants as $variant) {
-                    Storage::delete($variant->image);
+                    if ($variant->image) {
+                        Storage::delete($variant->image);
+                    }
                     $variant->delete();
                 }
             }
 
-            // Xử lý thẻ
-            if ($request->has('tags')) {
-                $product->tags()->sync($request->tags);
-            }
+
 
             DB::commit();
-
-            return response()->json($product->load(['category', 'brand', 'tags', 'productImages', 'productVariants.productColor', 'productVariants.productSize']));
+            // Kiểm tra xem update có thành công không
+            if (!$product) {
+                return response()->json(['error' => 'Không tìm thấy sản phẩm'], 404);
+            }
+            return response()->json($product->fresh()->load([
+                'category',
+                'brand',
+                'productImages',
+                'productVariants.productColor',
+                'productVariants.productSize'
+            ]));
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('Lỗi chỉnh sửa sản phẩm: ' . $e->getMessage());
@@ -912,5 +935,4 @@ class ProductController extends Controller
             'is_active' => $id->is_active,
         ]);
     }
-
 }
