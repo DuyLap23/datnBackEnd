@@ -69,12 +69,13 @@ Route::group(
 //NHỮNG ROUTER CẦN CHECK ĐĂNG NHẬP
 Route::group(
     [
-        'middleware' => ['api','auth:api'],
+        'middleware' => ['auth:api'],
     ],
     function ($router) {
+        Route::post('products/{id_product}/comments', [CommentController::class, 'store']);
         Route::apiResource('addresses', AddressController::class);
         Route::put('addresses/{id}/default', [AddressController::class, 'setDefault'])->name('addresses.setDefault');
-     
+
 
     }
 );
@@ -89,9 +90,12 @@ Route::get('products/{slug}', [ProductController::class,'show'])->name('products
 Route::get('filter', [FilterController::class, 'filter'])->name('filter');
 Route::get('search', [SearchController::class, 'search'])->name('search');
 
-Route::get('user/comments', [UserCommentController::class, 'index']);
-Route::post('user/comments', [UserCommentController::class, 'store']);
-Route::get('user/comments/{id}', [UserCommentController::class, 'show']);
+Route::get('get/comments/{product_id}', [CommentController::class, 'getCommentsByProduct']);
+
+//Route::get('user/comments', [UserCommentController::class, 'index']);
+//Route::get('user/comments/{id}', [UserCommentController::class, 'show']);
+//Route::put('comments/{id}', [CommentController::class, 'update']);
+//Route::post('comments', [CommentController::class, 'store']);
 
 Route::get('vnpay/return',[OrderController::class, 'paymentReturn'])->name('vnpay.return');
 Route::get('voucher', [VouCherController::class, 'index']);
@@ -118,7 +122,7 @@ Route::group(
         Route::post('orders/confirm/{id}', [DeliveryController::class, 'confirmOrder']);
         Route::post('orders/confirm-delivery/{id}', [DeliveryController::class, 'confirmDelivery']);
         Route::post('orders/update-status/{id}', [DeliveryController::class, 'updateDeliveryStatus']);
-        
+
         Route::post('products', [ProductController::class, 'store']);
         Route::put('products/{id}', [ProductController::class, 'update']);
         Route::put('products/{id}/toggle-active', [ProductController::class, 'toggleActive']);
@@ -131,9 +135,6 @@ Route::group(
 
         // Comments routes
         Route::get('comments', [CommentController::class, 'index']);
-        Route::post('comments', [CommentController::class, 'store']);
-        Route::get('comments/{id}', [CommentController::class, 'show']);
-        Route::put('comments/{id}', [CommentController::class, 'update']);
         Route::delete('comments/{id}', [CommentController::class, 'destroy']);
 
         Route::get('banners', [BannerMktController::class, 'index']);
