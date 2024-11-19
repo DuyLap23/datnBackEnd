@@ -546,7 +546,15 @@ class CategoryController extends Controller
     {
         try {
             // Kiểm tra danh mục
-            $category = Category::find($id);
+            $category = Category::query()
+                ->with(['children'])
+                ->where('id', $id)
+                ->where(function ($query) {
+                    $query->where('parent_id', 0)
+                        ->orWhereNull('parent_id');
+                })
+                ->latest('id')
+                ->get();
 
             if (!$category) {
                 return response()->json([
@@ -558,7 +566,7 @@ class CategoryController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'Lấy thành công dữ liệu của danh mục: ' . $category->name,
+                'message' => 'Lấy thành công dữ liệu của danh mục: ',
                 'products' => $category,
             ], 200);
 
