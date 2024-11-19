@@ -51,8 +51,8 @@ class ProductRequest extends FormRequest
         'img_thumbnail' => 'required|mimes:jpeg,jpg,png,svg,webp|max:1500',
         'price_regular' => 'required|numeric',
         'price_sale' => 'nullable|numeric',
-        'tags' => 'nullable|array',
-        'tags.*' => 'nullable|exists:tags,id',
+        // 'tags' => 'nullable|array',
+        // 'tags.*' => 'nullable|exists:tags,id',
     ];
 }
 
