@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use Exception;
 use Carbon\Carbon;
+use App\Models\Cart;
 use App\Models\Product;
 use App\Models\Voucher;
 use App\Models\Category;
@@ -14,58 +15,76 @@ use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Validator;
 
 
+
 class VouCherController extends Controller
 {
-/**
+    protected $voucherService;
+
+    public function __construct(VoucherService $voucherService)
+    {
+        $this->voucherService = $voucherService;
+    }
+ /**
      * @OA\Get(
      *     path="/api/vouchers",
-     *     summary="Danh sách voucher",
-     *     description="Lấy danh sách tất cả các voucher khả dụng trong hệ thống.",
-     *     tags={"Voucher"},
+     *     tags={"Vouchers"},
+     *     summary="Lấy danh sách voucher có thể áp dụng cho giỏ hàng",
+     *     security={{"Bearer": {}}},
      *     @OA\Parameter(
-     *         name="page",
+     *         name="status",
      *         in="query",
-     *         description="Trang hiện tại để phân trang",
+     *         description="Lọc voucher theo trạng thái (active/inactive)",
      *         required=false,
-     *         @OA\Schema(type="integer", example=1)
+     *         @OA\Schema(type="string", enum={"active", "inactive"})
      *     ),
      *     @OA\Parameter(
-     *         name="limit",
+     *         name="type",
      *         in="query",
-     *         description="Số lượng bản ghi trên mỗi trang",
+     *         description="Lọc voucher theo loại giảm giá",
      *         required=false,
-     *         @OA\Schema(type="integer", example=10)
+     *         @OA\Schema(type="string", enum={"fixed", "percentage"})
      *     ),
      *     @OA\Response(
      *         response=200,
-     *         description="Danh sách voucher",
-     *         @OA\JsonContent(
-     *             type="object",
-     *             @OA\Property(property="data", type="array", @OA\Items(ref="#/components/schemas/Voucher")),
-     *             @OA\Property(property="pagination", type="object",
-     *                 @OA\Property(property="current_page", type="integer", example=1),
-     *                 @OA\Property(property="total_pages", type="integer", example=5),
-     *                 @OA\Property(property="total_items", type="integer", example=50)
-     *             )
-     *         )
-     *     ),
-     *     @OA\Response(
-     *         response=500,
-     *         description="Lỗi server"
+     *         description="Thành công"
      *     )
      * )
      */
     public function index(Request $request)
     {
         try {
+            // Lấy sản phẩm trong giỏ hàng của người dùng
+            $cartItems = Cart::where('user_id', auth('api')->id())
+                ->with(['product' => function ($query) {
+                    $query->select('id', 'price_regular', 'price_sale');
+                }])
+                ->get();
+
+            // Tính tổng giá trị giỏ hàng và chuẩn bị mảng sản phẩm
+            $cartProducts = [];
+            $cartTotal = 0;
+
+            foreach ($cartItems as $item) {
+                $price = $item->product->price_sale > 0 
+                    ? $item->product->price_sale 
+                    : $item->product->price_regular;
+                
+                $cartTotal += $price * $item->quantity;
+                
+                $cartProducts[] = [
+                    'product_id' => $item->product_id,
+                    'price' => $price,
+                    'quantity' => $item->quantity
+                ];
+            }
+
+            // Query cơ bản cho voucher đang hoạt động
             $query = Voucher::query();
+            $now = Carbon::now();
 
             // Lọc theo trạng thái
             if ($request->has('status')) {
-                $status = $request->status;
-                $now = Carbon::now();
-
-                switch($status) {
+                switch($request->status) {
                     case 'active':
                         $query->where('voucher_active', true)
                               ->where('start_date', '<=', $now)
@@ -81,14 +100,71 @@ class VouCherController extends Controller
                         });
                         break;
                 }
+            } else {
+                // Mặc định chỉ lấy voucher đang hoạt động
+                $query->where('voucher_active', true)
+                      ->where('start_date', '<=', $now)
+                      ->where('end_date', '>=', $now)
+                      ->where('used_count', '<', DB::raw('usage_limit'));
             }
 
+            // Lọc theo loại giảm giá
             if ($request->has('type')) {
                 $query->where('discount_type', $request->type);
             }
 
-            $vouchers = $query->paginate(20);
-            return response()->json($vouchers);
+            // Lấy tất cả voucher tiềm năng
+            $vouchers = $query->get();
+
+            // Lọc và bổ sung thông tin chi tiết cho từng voucher
+            $applicableVouchers = $vouchers->map(function ($voucher) use ($cartProducts, $cartTotal) {
+                // Bỏ qua nếu tổng giỏ hàng nhỏ hơn giá trị đơn hàng tối thiểu
+                if ($cartTotal < $voucher->minimum_order_value) {
+                    return null;
+                }
+
+                $applicableIds = json_decode($voucher->applicable_ids, true) ?? [];
+                
+                // // Tính tổng giá trị có thể áp dụng cho voucher này
+                // $applicableTotal = collect($cartProducts)
+                //     ->filter(function ($product) use ($voucher, $applicableIds) {
+                //         return in_array($product['product_id'], $applicableIds);
+                //     })
+                //     ->sum(function ($product) {
+                //         return $product['price'] * $product['quantity'];
+                //     });
+
+                // // Bỏ qua nếu không có sản phẩm nào áp dụng được
+                // if ($applicableTotal <= 0) {
+                //     return null;
+                // }
+
+              
+
+                // // Bổ sung thông tin cho voucher
+                // $voucher->potential_discount = round($discount, 2);
+                // $voucher->applicable_total = round($applicableTotal, 2);
+                // $voucher->remaining_uses = $voucher->usage_limit - $voucher->used_count;
+                // $voucher->expires_in_days = Carbon::now()->diffInDays($voucher->end_date);
+
+                // // Thêm thông tin hiển thị cho frontend
+                // $voucher->discount_display = $voucher->discount_type === 'fixed' 
+                //     ? number_format($voucher->discount_value) . 'đ' 
+                //     : $voucher->discount_value . '%';
+                // $voucher->min_order_display = number_format($voucher->minimum_order_value) . 'đ';
+                // $voucher->potential_discount_display = number_format($discount) . 'đ';
+
+                return $voucher;
+            })
+            ->filter() // Loại bỏ các giá trị null
+            ->sortByDesc('potential_discount') // Sắp xếp theo giảm giá cao nhất
+            ->values(); // Reset keys của mảng
+
+            return response()->json([
+                'vouchers' => $applicableVouchers,
+                'total_available_vouchers' => $applicableVouchers->count(),
+                'message' => 'Lấy danh sách voucher thành công'
+            ]);
 
         } catch (Exception $e) {
             return response()->json([
@@ -96,7 +172,8 @@ class VouCherController extends Controller
                 'error' => $e->getMessage()
             ], 500);
         }
-    }
+}
+
     /**
      * @OA\Post(
      *     path="/api/vouchers",
