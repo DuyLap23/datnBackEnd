@@ -195,19 +195,19 @@ class ProductController extends Controller
      */
 
 
-    public function index()
-    {
+     public function index()
+     {
         $products = Product::with(
             [
                 'category',
-                'brand',
+                'brand', 
                 'tags',
                 'productImages',
                 'productVariants.productColor',
                 'productVariants.productSize'
             ]
-        )->get();
-
+        )->whereNull('deleted_at')->get(); // Chỉ lấy các sản phẩm chưa bị soft delete
+     
         return response()->json(
             [
                 'success' => true,
@@ -216,7 +216,7 @@ class ProductController extends Controller
             ],
             200,
         );
-    }
+     }
     /**
      * @OA\Post(
      *     path="/api/admin/products",
