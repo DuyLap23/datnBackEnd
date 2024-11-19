@@ -21,16 +21,20 @@ class CommentRequest extends FormRequest
      */
     public function rules()
     {
-        $rules = [
-            'rating' => 'nullable|numeric|min:0|max:5',
+        return [
+            'rating' => [
+                'required',
+                'numeric',
+                'in:1,1.5,2,2.5,3,3.5,4,4.5,5'
+            ],
             'content' => 'required|string|max:1000',
         ];
-
-        if ($this->isMethod('PUT') || $this->isMethod('PATCH')) {
-            $rules['post_id'] = 'nullable|exists:posts,id';
-            $rules['user_id'] = 'nullable|exists:users,id';
-        }
-
-        return $rules;
+    }
+    public function messages()
+    {
+        return [
+            'rating.in' => 'Vui lòng chọn sao từ 1-5.',
+            'content.required' => 'Nội dung không được để trống.',
+        ];
     }
 }

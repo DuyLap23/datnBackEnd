@@ -133,20 +133,19 @@ class CommentController extends Controller
                 return response()->json(['message' => 'Vui lòng đăng nhập.'], 401);
             }
 
-            $product = Product::where('id', $request->id_product)->first();
-            if (!$product || !$product->id) {
+            $product = Product::find($id_product);
+            if (!$product) {
                 return response()->json(['message' => 'Sản phẩm không tồn tại.'], 404);
             }
 
             $hasOrderedProduct = Order::query()
                 ->where('user_id', $user->id)
-                ->whereHas('orderItems', function ($query) use ($product) {
-                    $query->where('product_id', $product->id);
+                ->whereHas('orderItems', function ($query) use ($id_product) {
+                    $query->where('product_id', $id_product);
                 })
                 ->exists();
 
-            $existingComment = Comment::query()
-                ->where('product_id', $id_product)
+            $existingComment = Comment::where('product_id', $id_product)
                 ->where('user_id', $user->id)
                 ->first();
 
@@ -156,10 +155,10 @@ class CommentController extends Controller
 
             if ($hasOrderedProduct) {
                 $comment = Comment::create([
-                    'product_id' => $request->id_product,
+                    'product_id' => $id_product,
                     'user_id' => $user->id,
                     'rating' => $data['rating'],
-                    'content' => $data['content']
+                    'content' => $data['content'],
                 ]);
 
                 return response()->json(['message' => 'Đánh giá đã được đăng.', 'data' => $comment], 201);
@@ -170,6 +169,7 @@ class CommentController extends Controller
             return response()->json(['message' => 'Có lỗi xảy ra.', 'error' => $e->getMessage()], 500);
         }
     }
+
 
     /**
      * @OA\Get(
@@ -278,22 +278,45 @@ class CommentController extends Controller
      *     )
      * )
      */
-    public function update(Request $request, $id)
+    public function update(CommentRequest $request, $id_product)
     {
-        $request->validate([
-            'content' => 'required|string|max:500',
-        ]);
-
         try {
-            $comment = Comment::findOrFail($id);
-            $comment->content = $request->content;
-            $comment->save();
+            $data = $request->validated();
 
-            return response()->json(['success' => true, 'data' => $comment]);
-        } catch (\Exception $e) {
-            return response()->json(['success' => false, 'message' => 'Bình luận không tồn tại.'], 404);
+            $user = auth('api')->user();
+            if (!$user) {
+                return response()->json(['message' => 'Vui lòng đăng nhập.'], 401);
+            }
+
+            $product = Product::find($id_product);
+            if (!$product) {
+                return response()->json(['message' => 'Sản phẩm không tồn tại.'], 404);
+            }
+
+            $existingComment = Comment::query()
+                ->where('product_id', $id_product)
+                ->where('user_id', $user->id)
+                ->first();
+
+            if (!$existingComment) {
+                return response()->json(['message' => 'Bạn chưa đánh giá sản phẩm này.'], 404);
+            }
+
+            // Cập nhật đánh giá
+            $existingComment->update([
+                'rating' => $data['rating'],
+                'content' => $data['content']
+            ]);
+
+            return response()->json([
+                'message' => 'Đánh giá đã được cập nhật.',
+                'data' => $existingComment
+            ], 200);
+        } catch (Exception $e) {
+            return response()->json(['message' => 'Có lỗi xảy ra.', 'error' => $e->getMessage()], 500);
         }
     }
+
 
     /**
      * @OA\Delete(
@@ -334,4 +357,34 @@ class CommentController extends Controller
             return response()->json(['success' => false, 'message' => 'Bài đánh giá không tồn tại.'], 404);
         }
     }
+
+    public function userDestroy($id)
+    {
+        try {
+            $user = auth('api')->user();
+            if (!$user) {
+                return response()->json(['message' => 'Vui lòng đăng nhập.'], 401);
+            }
+
+            // Tìm bình luận
+            $comment = Comment::find($id);
+
+            if (!$comment) {
+                return response()->json(['message' => 'Bình luận không tồn tại.'], 404);
+            }
+
+            // Kiểm tra bình luận có thuộc về người dùng hiện tại không
+            if ($comment->user_id !== $user->id) {
+                return response()->json(['message' => 'Bạn không có quyền xoá bình luận này.'], 403);
+            }
+
+            // Xoá bình luận
+            $comment->delete();
+
+            return response()->json(['message' => 'Bình luận đã được xoá.'], 200);
+        } catch (Exception $e) {
+            return response()->json(['message' => 'Có lỗi xảy ra.', 'error' => $e->getMessage()], 500);
+        }
+    }
+
 }
