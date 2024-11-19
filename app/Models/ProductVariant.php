@@ -17,6 +17,9 @@ class ProductVariant extends Model
         'image'
     ];
 
+    protected $casts = [
+        'price' => 'float',
+    ];
     public function product()
     {
         return $this->belongsTo(Product::class);

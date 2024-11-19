@@ -2,10 +2,14 @@
 
 namespace App\Http\Controllers\API\Order;
 
+use App\Events\OrderDelivered as EventsOrderDelivered;
 use App\Http\Controllers\Controller;
+use App\Mail\OrderDelivered;
+use App\Mail\OrderDeliveredMail;
 use App\Models\Order;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Mail;
 
 class DeliveryController extends Controller
 {
@@ -206,7 +210,7 @@ public function confirmDelivery($id, Request $request)
     $order->recipient_name = $request->input('recipient_name', null);
     $order->recipient_signature = $request->input('signature', null);
     $order->save();
-
+    event(new EventsOrderDelivered($order));
     return response()->json(['message' => 'Đơn hàng đã được xác nhận giao hàng thành công.']);
 }
 /**
@@ -291,7 +295,7 @@ public function updateDeliveryStatus($id, Request $request)
     }
 
     $order->save();
-
+       event(new EventsOrderDelivered($order));
     return response()->json(['message' => 'Trạng thái giao hàng đã được cập nhật thành công.', 'status' => $order->order_status]);
 }
 

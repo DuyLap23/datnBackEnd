@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\API;
 
+use App\Models\Category;
 use App\Models\Tag;
 use App\Models\Product;
 use App\Models\ProductSize;
@@ -266,7 +267,7 @@ class ProductController extends Controller
      *                     description="Lượng người truy cập sản phẩm",
      *                     example=true
      *                 ),
-     *                 
+     *
      *                 @OA\Property(
      *                     property="user_manual",
      *                     type="boolean",
@@ -469,7 +470,12 @@ class ProductController extends Controller
                 $path = $request->file('img_thumbnail')->store('products', 'public');
                 $dataProduct['img_thumbnail'] = asset('storage/' . $path);
             }
-
+            $category = Category::find($request->category_id);
+            if ($category &&  $category->parent_id === 0) {
+              return response()->json([
+                  'error' => 'Danh mục phải là danh mục con.'
+              ]);
+            }
             // Tạo sản phẩm
             $product = Product::create($dataProduct);
 
@@ -601,11 +607,11 @@ class ProductController extends Controller
                 'productVariants.productColor',
                 'productVariants.productSize'
             ]);
-    
+
             // Chỉ lấy ra tên của category và brand
             $productData->category_name = $product->category->name ?? null; // Lấy tên category
             $productData->brand_name = $product->brand->name ?? null; // Lấy tên brand
-    
+
             // Chỉ giữ lại các trường cần thiết
             $result = [
                 'id' => $productData->id,
@@ -626,7 +632,7 @@ class ProductController extends Controller
                 'productImages' => $productData->productImages,
                 'productVariants' => $productData->productVariants,
             ];
-    
+
             return response()->json($result, 200);
         } catch (ModelNotFoundException $e) {
             Log::error('Sản phẩm không tìm thấy: ' . $e->getMessage());
@@ -641,8 +647,8 @@ class ProductController extends Controller
             ], 500);
         }
     }
-    
-    
+
+
 
     /**
      * @OA\Put(
