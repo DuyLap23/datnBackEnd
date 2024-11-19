@@ -73,6 +73,8 @@ Route::group(
     ],
     function ($router) {
         Route::post('products/{id_product}/comments', [CommentController::class, 'store']);
+        Route::put('products/{id_product}/comments', [CommentController::class, 'update']);
+        Route::delete('products/{id}/comments', [CommentController::class, 'userDestroy']);
         Route::apiResource('addresses', AddressController::class);
         Route::put('addresses/{id}/default', [AddressController::class, 'setDefault'])->name('addresses.setDefault');
 
@@ -91,11 +93,6 @@ Route::get('filter', [FilterController::class, 'filter'])->name('filter');
 Route::get('search', [SearchController::class, 'search'])->name('search');
 
 Route::get('get/comments/{product_id}', [CommentController::class, 'getCommentsByProduct']);
-
-//Route::get('user/comments', [UserCommentController::class, 'index']);
-//Route::get('user/comments/{id}', [UserCommentController::class, 'show']);
-//Route::put('comments/{id}', [CommentController::class, 'update']);
-//Route::post('comments', [CommentController::class, 'store']);
 
 Route::get('vnpay/return',[OrderController::class, 'paymentReturn'])->name('vnpay.return');
 Route::get('voucher', [VouCherController::class, 'index']);
