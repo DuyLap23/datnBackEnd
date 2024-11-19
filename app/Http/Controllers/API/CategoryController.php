@@ -390,72 +390,61 @@ class CategoryController extends Controller
      *     )
      * )
      */
-
-
     public function store(Request $request)
     {
-        DB::beginTransaction();
         $currentUser = auth('api')->user();
         if (!$currentUser || !$currentUser->isAdmin()) {
             return response()->json([
                 'success' => false,
                 'message' => 'Bạn không phải admin.'
-            ], 403); // 403 Forbidden
+            ], 403);
         }
+
         try {
-            // Validate dữ liệu đầu vào
             $data = $request->validate([
-                'name' => ['required', 'max:255', 'unique:categories,name'],
+                'name' => ['required', 'max:255'],
                 'image' => ['nullable', 'mimes:jpeg,jpg,png,svg,webp', 'max:1500'],
                 'parent_id' => ['nullable', 'exists:categories,id'],
             ]);
-            $data['slug'] = Str::slug($request->name);
-            // Kiểm tra và lưu ảnh nếu có
-            if ($request->hasFile('image')) {
-                $path = $request->file('image')->store(self::PATH_UPLOAD, 'public');
-                $data['image'] =  asset('storage/' . $path);
-            }
-            if($data['parent_id'] == null){
-                $data['parent_id'] = 0;
-            }
-            if ($data['parent_id']) {
-                $parentID = Category::query()->find($data['parent_id']);
-                if ($parentID && $parentID->parent_id  != 0) {
-                    return response()->json([
-                        'success' => false,
-                        'message' => 'Danh mục cha không thể là danh mục con của một danh mục khác!',
-                    ], 400);
-                }
 
-            }
-            // Tạo danh mục mới
-            $category = Category::query()->create($data);
-
-            DB::commit();
-
-            return response()->json(
-                [
-                    'success' => true,
-                    'message' => 'Thêm danh mục thành công.',
-                    'data' => [
-                        'category' => $category,
-                    ],
-                ],
-                201
-            );
-        } catch (\Exception $exception) {
-            DB::rollBack();
-
-            return response()->json(
-                [
+            if (Category::where('name', $request->name)->exists()) {
+                return response()->json([
                     'success' => false,
-                    'message' => 'Thêm danh mục thất bại',
-                    'error' => $exception->getMessage()
-                ],
-                500
-            );
+                    'message' => 'Tên danh mục đã tồn tại, vui lòng chọn tên khác.'
+                ], 400);
+            }
+
+            $data['slug'] = Str::slug($request->name);
+
+            if ($request->hasFile('image')) {
+                $data['image'] = asset('storage/' . $request->file('image')->store(self::PATH_UPLOAD, 'public'));
+            }
+
+            $data['parent_id'] = $data['parent_id'] ?? 0;
+
+            if ($data['parent_id'] && Category::find($data['parent_id'])->parent_id != 0) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Danh mục cha không thể là danh mục con của một danh mục khác!'
+                ], 400);
+            }
+
+            $category = Category::create($data);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Thêm danh mục thành công.',
+                'data' => ['category' => $category],
+            ], 201);
+        } catch (\Exception $exception) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Thêm danh mục thất bại',
+                'error' => $exception->getMessage(),
+            ], 500);
         }
     }
+
 
 
     /**
@@ -512,7 +501,7 @@ class CategoryController extends Controller
      *     )
      * )
      */
-    public function show(string $id)
+    public function showClient(string $id)
     {
         try {
             // Kiểm tra danh mục
@@ -543,6 +532,34 @@ class CategoryController extends Controller
                 'success' => true,
                 'message' => 'Lấy thành công dữ liệu của danh mục: ' . $category->name,
                 'products' => $products,
+            ], 200);
+
+        } catch (\Exception $exception) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Lấy dữ liệu không thành công!',
+                'error' => $exception->getMessage(),
+            ], 500);
+        }
+    }
+    public function show(string $id)
+    {
+        try {
+            // Kiểm tra danh mục
+            $category = Category::find($id);
+
+            if (!$category) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Danh mục không tồn tại!',
+                ], 404);
+            }
+
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Lấy thành công dữ liệu của danh mục: ' . $category->name,
+                'products' => $category,
             ], 200);
 
         } catch (\Exception $exception) {
@@ -628,8 +645,6 @@ class CategoryController extends Controller
 
     public function update(Request $request, string $id)
     {
-        DB::beginTransaction();
-
         try {
             $data = $request->validate([
                 'name' => ['required', 'max:255'],
@@ -640,10 +655,20 @@ class CategoryController extends Controller
 
             $model = Category::query()->findOrFail($id);
 
-            if($data['parent_id'] == null){
+            if (Category::where('name', $request->name)->exists()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Tên danh mục đã tồn tại, vui lòng chọn tên khác.'
+                ], 400);
+            }
+
+            // Kiểm tra nếu parent_id không tồn tại hoặc null, gán giá trị mặc định là 0
+            if (!isset($data['parent_id'])) {
                 $data['parent_id'] = 0;
             }
-            if ($data['parent_id']) {
+
+            // Kiểm tra xem parent_id có hợp lệ không
+            if ($data['parent_id'] && $data['parent_id'] != 0) {
                 $parentID = Category::query()->find($data['parent_id']);
                 if ($parentID && $parentID->parent_id != 0) {
                     return response()->json([
@@ -651,19 +676,16 @@ class CategoryController extends Controller
                         'message' => 'Danh mục cha không thể là danh mục con của một danh mục khác!',
                     ], 400);
                 }
-
             }
 
-            if ($data['parent_id'] == null){
-                $data['parent_id'] = $model->parent_id;
-            }
-
+            // Kiểm tra và cập nhật slug
             if ($request->has('slug')) {
                 $data['slug'] = Str::slug($request->input('slug'));
             } else {
                 $data['slug'] = Str::slug($request->name);
             }
 
+            // Xử lý ảnh nếu có
             if ($request->hasFile('image')) {
                 $path = $request->file('image')->store(self::PATH_UPLOAD, 'public');
                 $data['image'] = asset('storage/' . $path);
@@ -672,32 +694,26 @@ class CategoryController extends Controller
                 $image_old = null;
             }
 
+            // Cập nhật thông tin danh mục
             $model->update($data);
 
+            // Xóa ảnh cũ nếu có
             if ($image_old && Storage::exists($image_old)) {
                 Storage::delete($image_old);
             }
 
-            DB::commit();
+            return response()->json([
+                'success' => true,
+                'message' => 'Cập nhật danh mục thành công.',
+                'data' => $model,
+            ], 200);
 
-            return response()->json(
-                [
-                    'success' => true,
-                    'message' => 'Cập nhật danh mục thành công.',
-                    'data' => $model,
-                ],
-                200,
-            );
         } catch (\Exception $exception) {
-            DB::rollBack();
-            return response()->json(
-                [
-                    'success' => false,
-                    'message' => 'Cập nhật danh mục thất bại',
-                    'error' => $exception->getMessage(),
-                ],
-                500,
-            );
+            return response()->json([
+                'success' => false,
+                'message' => 'Cập nhật danh mục thất bại',
+                'error' => $exception->getMessage(),
+            ], 500);
         }
     }
 

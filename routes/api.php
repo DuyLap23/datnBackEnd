@@ -29,7 +29,6 @@ use App\Http\Controllers\API\Statistical\UserStatisticalController;
 use App\Http\Controllers\API\TagController;
 use App\Http\Controllers\Api\UserCommentController;
 use App\Http\Controllers\API\VouCherController;
-use Illuminate\Support\Facades\Route;
 
 
 /*
@@ -84,7 +83,7 @@ Route::group(
 
 //Những đầu route không cần check đăng nhập và role vất vào đây
 Route::get('categories', [CategoryController::class, 'index']);
-Route::get('categories/{id}', [CategoryController::class, 'show']);
+Route::get('categories/{id}', [CategoryController::class, 'showClient']);
 
 Route::get('products', [ProductController::class, 'index'])->name('products.index');
 Route::get('products/{slug}', [ProductController::class,'show'])->name('products.show');
@@ -95,7 +94,7 @@ Route::get('search', [SearchController::class, 'search'])->name('search');
 Route::get('get/comments/{product_id}', [CommentController::class, 'getCommentsByProduct']);
 
 Route::get('vnpay/return',[OrderController::class, 'paymentReturn'])->name('vnpay.return');
-Route::get('voucher', [VouCherController::class, 'index']);
+
 Route::get('voucher/{id}', [VouCherController::class, 'show']);
 Route::post('voucher/apply', [VouCherController::class, 'apply']);
 
@@ -110,6 +109,7 @@ Route::group(
         Route::get('categories/trashed', [CategoryController::class, 'trashed']);
         Route::post('categories', [CategoryController::class, 'store']);
         Route::put('categories/{id}', [CategoryController::class, 'update']);
+        Route::get('categories/{id}', [CategoryController::class, 'show']);
         Route::delete('categories/{id}', [CategoryController::class, 'destroy']);
 
         Route::apiResource('brands', BrandController::class);
@@ -151,9 +151,10 @@ Route::group(
 
 
         // VouCher
-        Route::post('voucher', [VouCherController::class, 'store']);
+       Route::post('voucher', [VouCherController::class, 'store']);
        Route::put('voucher/{id}', [VouCherController::class, 'update']);
        Route::delete('voucher/{id}', [VouCherController::class, 'destroy']);
+
 
        Route::get('statistical/revenue', [RevenueStatisticalController::class, 'revenue'])->name('statisticalRevenue');
        Route::get('statistical/order', [OrderStatisticalController::class, 'order'])->name('statisticalOrder');
@@ -189,5 +190,7 @@ Route::group(
         Route::patch('user/orders/{id}/payment-method', [OrderUserManagementController::class, 'updatePaymentMethod']);
         Route::get('user/orders/{id}', [OrderUserManagementController::class, 'show']);
         Route::patch('user/orders/mark-as-received/{id}', [OrderUserManagementController::class, 'markAsReceived']);
+
+        Route::get('voucher', [VouCherController::class, 'index']);
     }
 );
