@@ -95,7 +95,7 @@ Route::get('search', [SearchController::class, 'search'])->name('search');
 Route::get('get/comments/{product_id}', [CommentController::class, 'getCommentsByProduct']);
 
 Route::get('vnpay/return',[OrderController::class, 'paymentReturn'])->name('vnpay.return');
-Route::get('voucher', [VouCherController::class, 'index']);
+
 Route::get('voucher/{id}', [VouCherController::class, 'show']);
 Route::post('voucher/apply', [VouCherController::class, 'apply']);
 
@@ -151,9 +151,10 @@ Route::group(
 
 
         // VouCher
-        Route::post('voucher', [VouCherController::class, 'store']);
+       Route::post('voucher', [VouCherController::class, 'store']);
        Route::put('voucher/{id}', [VouCherController::class, 'update']);
        Route::delete('voucher/{id}', [VouCherController::class, 'destroy']);
+      
 
        Route::get('statistical/revenue', [RevenueStatisticalController::class, 'revenue'])->name('statisticalRevenue');
        Route::get('statistical/order', [OrderStatisticalController::class, 'order'])->name('statisticalOrder');
@@ -189,5 +190,7 @@ Route::group(
         Route::patch('user/orders/{id}/payment-method', [OrderUserManagementController::class, 'updatePaymentMethod']);
         Route::get('user/orders/{id}', [OrderUserManagementController::class, 'show']);
         Route::patch('user/orders/mark-as-received/{id}', [OrderUserManagementController::class, 'markAsReceived']);
+
+        Route::get('voucher', [VouCherController::class, 'index']);
     }
 );

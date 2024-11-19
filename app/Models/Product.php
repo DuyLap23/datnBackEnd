@@ -26,6 +26,9 @@ class Product extends Model
         'is_show_home',
         'category_id',
         'brand_id',
+        'tags',
+        'productImages',
+        'productVariants',
 
     ];
     protected $casts = [
