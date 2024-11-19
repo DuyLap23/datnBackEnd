@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Product extends Model
 {
-    use HasFactory,softDeletes;
+    use HasFactory, SoftDeletes;
 
     protected $fillable = [
         'name',
@@ -38,7 +38,7 @@ class Product extends Model
         'price_regular' => 'float',
         'price_sale' => 'float',
     ];
-    public $date = ['deleted_at'];
+    public $dates = ['deleted_at'];
 
     public function favoredByUsers()
     {

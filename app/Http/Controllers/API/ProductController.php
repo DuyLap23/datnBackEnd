@@ -631,6 +631,7 @@ class ProductController extends Controller
                 'tags' => $productData->tags,
                 'productImages' => $productData->productImages,
                 'productVariants' => $productData->productVariants,
+                'delete_at' => $productData->delete_at,
             ];
 
             return response()->json($result, 200);
@@ -736,9 +737,9 @@ class ProductController extends Controller
      * )
      */
 
-     public function update(Request $request, $id)
+     public function update(Request $request, $slug)
      {
-         $product = Product::find($id);
+        $product = Product::where('slug', $slug)->firstOrFail();
          
          if (!$product) {
              return response()->json(['error' => 'Không tìm thấy sản phẩm'], 404);
@@ -892,14 +893,6 @@ class ProductController extends Controller
                 Storage::delete($product->img_thumbnail);
             }
 
-            // Xóa hình ảnh sản phẩm
-            // if ($product->productImages && $product->productImages->isNotEmpty()) {
-            //     foreach ($product->productImages as $gallery) {
-            //         Storage::delete($gallery->image);
-            //         $gallery->delete();
-            //     }
-            // }
-
             // Xóa biến thể và hình ảnh của nó
             if ($product->variants && $product->variants->isNotEmpty()) {
                 foreach ($product->variants as $variant) {
@@ -910,13 +903,15 @@ class ProductController extends Controller
                 }
             }
 
-            // Ngắt kết nối thẻ
-            $product->tags()->detach();
-
+        
             // Xóa sản phẩm
-            $product->delete();
-            DB::commit();
-            return response()->json(['message' => 'Xóa sản phẩm thành công'], 200);
+            $result = $product->Delete(); 
+        
+        DB::commit();
+        return response()->json([
+            'message' => 'Xóa sản phẩm thành công', 
+            'deleted' => true
+        ], 200);
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('Lỗi xoá sản phẩm: ' . $e->getMessage());
