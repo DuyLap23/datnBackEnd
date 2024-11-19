@@ -3,9 +3,14 @@
 namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\CommentRequest;
 use App\Models\Comment;
+use App\Models\Order;
+use App\Models\Product;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Mockery\Exception;
 
 /**
  * @OA\Schema(
@@ -118,21 +123,52 @@ class CommentController extends Controller
      *     )
      * )
      */
-    public function store(Request $request)
+    public function store(CommentRequest $request, $id_product)
     {
-        $request->validate([
-            'content' => 'required|string|max:500',
-            'user_id' => 'required|integer|exists:users,id',
-            'product_id' => 'required|integer|exists:products,id',
-        ]);
+        try {
+            $data = $request->validated();
 
-        $comment = new Comment();
-        $comment->content = $request->content;
-        $comment->user_id = $request->user_id;
-        $comment->product_id = $request->product_id;
-        $comment->save();
+            $user = auth('api')->user();
+            if (!$user) {
+                return response()->json(['message' => 'Vui lòng đăng nhập.'], 401);
+            }
 
-        return response()->json(['success' => true, 'data' => $comment], 201);
+            $product = Product::where('id', $request->id_product)->first();
+            if (!$product || !$product->id) {
+                return response()->json(['message' => 'Sản phẩm không tồn tại.'], 404);
+            }
+
+            $hasOrderedProduct = Order::query()
+                ->where('user_id', $user->id)
+                ->whereHas('orderItems', function ($query) use ($product) {
+                    $query->where('product_id', $product->id);
+                })
+                ->exists();
+
+            $existingComment = Comment::query()
+                ->where('product_id', $id_product)
+                ->where('user_id', $user->id)
+                ->first();
+
+            if ($existingComment) {
+                return response()->json(['message' => 'Bạn đã đánh giá sản phẩm này.'], 409);
+            }
+
+            if ($hasOrderedProduct) {
+                $comment = Comment::create([
+                    'product_id' => $request->id_product,
+                    'user_id' => $user->id,
+                    'rating' => $data['rating'],
+                    'content' => $data['content']
+                ]);
+
+                return response()->json(['message' => 'Đánh giá đã được đăng.', 'data' => $comment], 201);
+            }
+
+            return response()->json(['message' => 'Bạn không thể đánh giá vì chưa mua sản phẩm này.'], 403);
+        } catch (Exception $e) {
+            return response()->json(['message' => 'Có lỗi xảy ra.', 'error' => $e->getMessage()], 500);
+        }
     }
 
     /**
@@ -164,20 +200,51 @@ class CommentController extends Controller
      *     )
      * )
      */
-    public function show($id)
+    public function getCommentsByProduct($product_id)
     {
-
         try {
-            $comment = Comment::findOrFail($id);
-            return response()->json(['success' => true, 'data' => $comment]);
+            $product = Product::find($product_id);
+
+            if (!$product) {
+                return response()->json(['message' => 'Sản phẩm không tồn tại.'], 404);
+            }
+            $comment = Comment::query()
+                ->where('product_id', $product_id)
+                ->orderBy('created_at', 'desc')
+                ->select('id', 'product_id', 'user_id', 'rating', 'content', 'created_at')
+                ->with('user:id,name,avatar')
+                ->get();
+
+            $ratings = Comment::select(
+                DB::raw('FLOOR(CAST(rating AS FLOAT)) as rounded_rating'),
+                DB::raw('COUNT(*) as total')
+            )
+                ->where('product_id', $product_id)
+                ->groupBy('rounded_rating')
+                ->orderBy('rounded_rating', 'desc')
+                ->get();
+
+            $formattedRatings = [];
+            for ($i = 5; $i >= 1; $i--) {
+                $ratingData = $ratings->firstWhere('rounded_rating', $i);
+                $formattedRatings["{$i}_stars"] = $ratingData ? $ratingData->total : 0;
+            }
+
+
+            $countComments = Comment::where('product_id', $product_id)->count();
+
+            return response()->json(['success' => true, 'Tất cả bình luận ' => $comment,
+                'rating' => $formattedRatings,
+                'countComments' => $countComments], 200);
+
         } catch (\Exception $e) {
-            return response()->json(['success' => false, 'message' => 'Bình luận không tồn tại.'], 404);
+            return response()->json(['success' => false, 'message' => 'Có lỗi xảy ra.'], 500);
         }
     }
 
     /**
      * @OA\Put(
-     *     path="/api/admin/comments/{id}", 
+     *     path="/api/admin/comments/{id}",
      *      tags={"Admin Comments"},
      *     summary="Cập nhật một bình luận",
      *      security={{"Bearer": {}}},
@@ -262,9 +329,9 @@ class CommentController extends Controller
             $comment = Comment::findOrFail($id);
             $comment->delete();
 
-            return response()->json(['success' => true, 'message' => 'Bình luận đã được xóa thành công.'], 204);
+            return response()->json(['success' => true, 'message' => 'Bài đánh giá đã được xóa thành công.'], 204);
         } catch (\Exception $e) {
-            return response()->json(['success' => false, 'message' => 'Bình luận không tồn tại.'], 404);
+            return response()->json(['success' => false, 'message' => 'Bài đánh giá không tồn tại.'], 404);
         }
     }
 }
