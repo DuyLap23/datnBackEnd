@@ -567,7 +567,7 @@ class CategoryController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => 'Lấy thành công dữ liệu của danh mục: ',
-                'products' => $category,
+                'categories' => $category,
             ], 200);
 
         } catch (\Exception $exception) {
