@@ -121,7 +121,7 @@ Route::group(
         Route::post('orders/update-status/{id}', [DeliveryController::class, 'updateDeliveryStatus']);
 
         Route::post('products', [ProductController::class, 'store']);
-        Route::put('products/{id}', [ProductController::class, 'update']);
+        Route::put('products/{slug}', [ProductController::class, 'update']);
         Route::put('products/{id}/toggle-active', [ProductController::class, 'toggleActive']);
         Route::delete('products/{id}', [ProductController::class, 'destroy']);
         Route::apiResource('product/colors', ProductColorController::class);
