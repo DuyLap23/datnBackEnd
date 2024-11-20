@@ -233,7 +233,7 @@ class CommentController extends Controller
 
             $countComments = Comment::where('product_id', $product_id)->count();
 
-            return response()->json(['success' => true, 'Tất cả bình luận ' => $comment,
+            return response()->json(['success' => true, 'comments ' => $comment,
                 'rating' => $formattedRatings,
                 'countComments' => $countComments], 200);
 
