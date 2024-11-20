@@ -72,7 +72,7 @@ Route::group(
     ],
     function ($router) {
         Route::post('products/{id_product}/comments', [CommentController::class, 'store']);
-        Route::put('products/{id_product}/comments', [CommentController::class, 'update']);
+        Route::patch('products/{id_product}/comments', [CommentController::class, 'update']);
         Route::delete('products/{id}/comments', [CommentController::class, 'userDestroy']);
         Route::apiResource('addresses', AddressController::class);
         Route::put('addresses/{id}/default', [AddressController::class, 'setDefault'])->name('addresses.setDefault');

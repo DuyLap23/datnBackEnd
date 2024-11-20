@@ -303,10 +303,7 @@ class CommentController extends Controller
             }
 
             // Cập nhật đánh giá
-            $existingComment->update([
-                'rating' => $data['rating'],
-                'content' => $data['content']
-            ]);
+            $existingComment->update($data);
 
             return response()->json([
                 'message' => 'Đánh giá đã được cập nhật.',

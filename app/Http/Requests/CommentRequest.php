@@ -21,14 +21,22 @@ class CommentRequest extends FormRequest
      */
     public function rules()
     {
-        return [
+        $rules = [
             'rating' => [
-                'required',
+                // Kiểm tra nếu là phương thức PATCH (cập nhật) thì chỉ cần nullable
+                request()->isMethod('patch') ? 'nullable' : 'required',
                 'numeric',
-                'in:1,1.5,2,2.5,3,3.5,4,4.5,5'
+                'in:1,1.5,2,2.5,3,3.5,4,4.5,5',
             ],
-            'content' => 'required|string|max:1000',
+            'content' => [
+                // Kiểm tra nếu là phương thức PATCH (cập nhật) thì chỉ cần nullable
+                request()->isMethod('patch') ? 'nullable' : 'required',
+                'string',
+                'max:1000',
+            ],
         ];
+    
+        return $rules;
     }
     public function messages()
     {
