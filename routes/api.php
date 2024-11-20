@@ -72,6 +72,7 @@ Route::group(
     ],
     function ($router) {
         Route::post('products/{id_product}/comments', [CommentController::class, 'store']);
+        Route::get('/comments/{id}', [CommentController::class, 'showUserComment']);
         Route::patch('products/{id_product}/comments', [CommentController::class, 'update']);
         Route::delete('products/{id}/comments', [CommentController::class, 'userDestroy']);
         Route::apiResource('addresses', AddressController::class);

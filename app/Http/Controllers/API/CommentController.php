@@ -8,6 +8,7 @@ use App\Models\Comment;
 use App\Models\Order;
 use App\Models\Product;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Mockery\Exception;
@@ -200,6 +201,38 @@ class CommentController extends Controller
      *     )
      * )
      */
+    public function showUserComment($id, Request $request)
+    {
+        try {
+            $user = auth('api')->user();
+
+            if (!$user) {
+                return response()->json(['success' => false, 'message' => 'Vui lòng đăng nhập.'], 401);
+            }
+            // Lấy product_id từ query string
+            $productId = $request->query('product_id');
+
+            // Kiểm tra nếu không có product_id
+            if (!$productId) {
+                return response()->json(['success' => false, 'message' => 'Không có product_id.'], 400);
+            }
+
+            // Truy vấn bình luận dựa trên id, user_id và product_id
+            $comment = Comment::where('id', $id)
+                ->where('user_id',$user->id )
+                ->where('product_id', $productId)
+                ->firstOrFail();
+
+            // Ghi log dữ liệu bình luận
+            Log::info('Dữ liệu bình luận.', ['comment' => $comment]);
+
+            return response()->json(['success' => true, 'comment' => $comment]);
+        } catch (\Exception $e) {
+            // Xử lý lỗi khi không tìm thấy bình luận
+            return response()->json(['success' => false, 'message' => 'Bình luận không tồn tại.'], 404);
+        }
+    }
+
     public function getCommentsByProduct($product_id)
     {
         try {
