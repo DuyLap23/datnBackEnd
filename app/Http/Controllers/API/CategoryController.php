@@ -177,16 +177,31 @@ class CategoryController extends Controller
             ->get();
 
 
-
         return response()->json(
             [
                 'success' => true,
                 'message' => 'Lấy thành công danh mục',
-                'categories' =>  $categories,
+                'categories' => $categories,
             ],
             200,
         );
     }
+
+    public function getCategoryChild()
+    {
+        $categories = Category::with('children')
+            ->where('parent_id', 0) // Lấy các danh mục cha
+            ->whereHas('children') // Kiểm tra danh mục cha có danh mục con
+            ->latest('id')
+            ->get();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Lấy thành công danh mục',
+            'categories' => $categories,
+        ], 200);
+    }
+
 
 
     /**
@@ -542,6 +557,7 @@ class CategoryController extends Controller
             ], 500);
         }
     }
+
     public function show(string $id)
     {
         try {
@@ -779,7 +795,7 @@ class CategoryController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Bạn chưa đăng nhập.',
-            ],401);
+            ], 401);
         }
         if (!$currentUser || !$currentUser->isAdmin()) {
             return response()->json([
@@ -845,9 +861,6 @@ class CategoryController extends Controller
             );
         }
     }
-
-
-
 
 
 }
