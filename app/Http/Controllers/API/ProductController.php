@@ -2,21 +2,17 @@
 
 namespace App\Http\Controllers\API;
 
-use App\Models\Category;
-use App\Models\Tag;
-use App\Models\Product;
-use App\Models\ProductSize;
-use Illuminate\Support\Str;
-use App\Models\ProductColor;
-use App\Models\ProductImage;
-use Illuminate\Http\Request;
-use App\Models\ProductVariant;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\ProductRequest;
-use Illuminate\Support\Facades\Storage;
+use App\Models\Category;
+use App\Models\Product;
+use App\Models\ProductVariant;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 class ProductController extends Controller
 {
@@ -212,11 +208,12 @@ class ProductController extends Controller
             [
                 'success' => true,
                 'message' => 'Lấy thành công sản phẩm',
-                'products' =>  $products,
+                'products' => $products,
             ],
             200,
         );
     }
+
     /**
      * @OA\Post(
      *     path="/api/admin/products",
@@ -471,7 +468,7 @@ class ProductController extends Controller
                 $dataProduct['img_thumbnail'] = asset('storage/' . $path);
             }
             $category = Category::find($request->category_id);
-            if ($category &&  $category->parent_id === 0) {
+            if ($category && $category->parent_id === 0) {
                 return response()->json([
                     'error' => 'Danh mục phải là danh mục con.'
                 ]);
@@ -593,7 +590,7 @@ class ProductController extends Controller
      *     )
      * )
      */
-    public function show($slug)
+ public function show($slug)
 {
     try {
         $product = Product::where('slug', $slug)->firstOrFail(); 
@@ -663,8 +660,6 @@ class ProductController extends Controller
         ], 500);
     }
 }
-
-
 
     /**
      * @OA\Put(
@@ -752,8 +747,11 @@ class ProductController extends Controller
      * )
      */
 
-    public function update(Request $request, $slug)
-    {
+
+
+     public function update(Request $request, $slug)
+     {
+
         $product = Product::where('slug', $slug)->firstOrFail();
 
         if (!$product) {
@@ -865,7 +863,6 @@ class ProductController extends Controller
         return response()->json(['error' => 'Lỗi chỉnh sửa sản phẩm: ' . $e->getMessage()], 500);
     }
     }
-
 
 
     /**

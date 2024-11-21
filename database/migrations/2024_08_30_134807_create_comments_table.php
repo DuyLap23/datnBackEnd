@@ -17,8 +17,8 @@ return new class extends Migration
             $table->unsignedBigInteger('id')->autoIncrement();
             $table->foreignIdFor(User::class)->constrained();
             $table->foreignIdFor(Product::class)->constrained();
+            $table->decimal('rating', 2, 1);
             $table->text('content');
-            $table->tinyInteger('stars')->default(5);
             $table->timestamps();
         });
     }

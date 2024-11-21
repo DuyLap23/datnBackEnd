@@ -29,7 +29,6 @@ use App\Http\Controllers\API\Statistical\UserStatisticalController;
 use App\Http\Controllers\API\TagController;
 use App\Http\Controllers\Api\UserCommentController;
 use App\Http\Controllers\API\VouCherController;
-use Illuminate\Support\Facades\Route;
 
 
 /*
@@ -69,19 +68,23 @@ Route::group(
 //NHỮNG ROUTER CẦN CHECK ĐĂNG NHẬP
 Route::group(
     [
-        'middleware' => ['api','auth:api'],
+        'middleware' => ['auth:api'],
     ],
     function ($router) {
+        Route::post('products/{id_product}/comments', [CommentController::class, 'store']);
+        Route::get('/comments/{id}', [CommentController::class, 'showUserComment']);
+        Route::patch('products/{id_product}/comments', [CommentController::class, 'update']);
+        Route::delete('products/{id}/comments', [CommentController::class, 'userDestroy']);
         Route::apiResource('addresses', AddressController::class);
         Route::put('addresses/{id}/default', [AddressController::class, 'setDefault'])->name('addresses.setDefault');
-     
+
 
     }
 );
 
 //Những đầu route không cần check đăng nhập và role vất vào đây
 Route::get('categories', [CategoryController::class, 'index']);
-Route::get('categories/{id}', [CategoryController::class, 'show']);
+Route::get('categories/{id}', [CategoryController::class, 'showClient']);
 
 Route::get('products', [ProductController::class, 'index'])->name('products.index');
 Route::get('products/{slug}', [ProductController::class,'show'])->name('products.show');
@@ -89,9 +92,7 @@ Route::get('products/{slug}', [ProductController::class,'show'])->name('products
 Route::get('filter', [FilterController::class, 'filter'])->name('filter');
 Route::get('search', [SearchController::class, 'search'])->name('search');
 
-Route::get('user/comments', [UserCommentController::class, 'index']);
-Route::post('user/comments', [UserCommentController::class, 'store']);
-Route::get('user/comments/{id}', [UserCommentController::class, 'show']);
+Route::get('get/comments/{product_id}', [CommentController::class, 'getCommentsByProduct']);
 
 Route::get('vnpay/return',[OrderController::class, 'paymentReturn'])->name('vnpay.return');
 
@@ -109,6 +110,7 @@ Route::group(
         Route::get('categories/trashed', [CategoryController::class, 'trashed']);
         Route::post('categories', [CategoryController::class, 'store']);
         Route::put('categories/{id}', [CategoryController::class, 'update']);
+        Route::get('categories/{id}', [CategoryController::class, 'show']);
         Route::delete('categories/{id}', [CategoryController::class, 'destroy']);
 
         Route::apiResource('brands', BrandController::class);
@@ -118,7 +120,7 @@ Route::group(
         Route::post('orders/confirm/{id}', [DeliveryController::class, 'confirmOrder']);
         Route::post('orders/confirm-delivery/{id}', [DeliveryController::class, 'confirmDelivery']);
         Route::post('orders/update-status/{id}', [DeliveryController::class, 'updateDeliveryStatus']);
-        
+
         Route::post('products', [ProductController::class, 'store']);
         Route::put('products/{slug}', [ProductController::class, 'update']);
         Route::put('products/{id}/toggle-active', [ProductController::class, 'toggleActive']);
@@ -131,9 +133,6 @@ Route::group(
 
         // Comments routes
         Route::get('comments', [CommentController::class, 'index']);
-        Route::post('comments', [CommentController::class, 'store']);
-        Route::get('comments/{id}', [CommentController::class, 'show']);
-        Route::put('comments/{id}', [CommentController::class, 'update']);
         Route::delete('comments/{id}', [CommentController::class, 'destroy']);
 
         Route::get('banners', [BannerMktController::class, 'index']);
@@ -156,7 +155,7 @@ Route::group(
        Route::post('voucher', [VouCherController::class, 'store']);
        Route::put('voucher/{id}', [VouCherController::class, 'update']);
        Route::delete('voucher/{id}', [VouCherController::class, 'destroy']);
-      
+
 
        Route::get('statistical/revenue', [RevenueStatisticalController::class, 'revenue'])->name('statisticalRevenue');
        Route::get('statistical/order', [OrderStatisticalController::class, 'order'])->name('statisticalOrder');
