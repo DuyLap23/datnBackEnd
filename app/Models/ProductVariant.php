@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class ProductVariant extends Model
 {
-    use HasFactory , SoftDeletes;
+    use HasFactory, SoftDeletes;
 
     protected $fillable = [
         'product_id',
@@ -26,14 +26,14 @@ class ProductVariant extends Model
         return $this->belongsTo(Product::class);
     }
 
-    public function productColor()
-    {
-        return $this->belongsTo(ProductColor::class);
-    }
-
     public function productSize()
     {
         return $this->belongsTo(ProductSize::class);
+    }
+
+    public function productColor()
+    {
+        return $this->belongsTo(ProductColor::class);
     }
 
     public function productImages()
