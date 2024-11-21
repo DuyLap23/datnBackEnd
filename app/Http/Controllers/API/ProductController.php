@@ -594,75 +594,74 @@ class ProductController extends Controller
      * )
      */
     public function show($slug)
-{
-    try {
-        $product = Product::where('slug', $slug)->firstOrFail(); 
+    {
+        try {
+            $product = Product::where('slug', $slug)->firstOrFail();
 
-        $productData = $product->load([
-            'tags',
-            'productImages',
-            'productVariants.productColor',
-            'productVariants.productSize'
-        ]);
+            $productData = $product->load([
+                'tags',
+                'productImages',
+                'productVariants.productColor',
+                'productVariants.productSize'
+            ]);
 
-        // Lấy tên category và brand
-        $productData->category_name = $product->category->name ?? null;
-        $productData->brand_name = $product->brand->name ?? null;
+            // Lấy tên category và brand
+            $productData->category_name = $product->category->name ?? null;
+            $productData->brand_name = $product->brand->name ?? null;
 
-        // Lấy sản phẩm liên quan
-        $relatedProducts = Product::where('category_id', $product->category_id)
-            ->where('id', '!=', $product->id)
-            ->where('is_active', 1)
-            ->limit(4)
-            ->get()
-            ->map(function ($relatedProduct) {
-                return [
-                    'id' => $relatedProduct->id,
-                    'name' => $relatedProduct->name,
-                    'img_thumbnail' => $relatedProduct->img_thumbnail,
-                    'price_regular' => $relatedProduct->price_regular,
-                    'price_sale' => $relatedProduct->price_sale,
-                ];
-            });
+            // Lấy sản phẩm liên quan
+            $relatedProducts = Product::where('category_id', $product->category_id)
+                ->where('id', '!=', $product->id)
+                ->where('is_active', 1)
+                ->limit(4)
+                ->get()
+                ->map(function ($relatedProduct) {
+                    return [
+                        'id' => $relatedProduct->id,
+                        'name' => $relatedProduct->name,
+                        'img_thumbnail' => $relatedProduct->img_thumbnail,
+                        'price_regular' => $relatedProduct->price_regular,
+                        'price_sale' => $relatedProduct->price_sale,
+                    ];
+                });
 
-        // Chuẩn bị kết quả trả về
-        $result = [
-            'id' => $productData->id,
-            'name' => $productData->name,
-            'category_name' => $productData->category_name,
-            'brand_name' => $productData->brand_name,
-            'img_thumbnail' => $productData->img_thumbnail,
-            'is_active' => $productData->is_active,
-            'is_new' => $productData->is_new,
-            'is_show_home' => $productData->is_show_home,
-            'description' => $productData->description,
-            'content' => $productData->content,
-            'view' => $productData->view,
-            'user_manual'  => $productData->user_manual,
-            'price_regular' => $productData->price_regular,
-            'price_sale' => $productData->price_sale,
-            'tags' => $productData->tags,
-            'productImages' => $productData->productImages,
-            'productVariants' => $productData->productVariants,
-            'delete_at' => $productData->delete_at,
-            'related_products' => $relatedProducts, // Thêm sản phẩm liên quan
-        ];
+            // Chuẩn bị kết quả trả về
+            $result = [
+                'id' => $productData->id,
+                'name' => $productData->name,
+                'category_name' => $productData->category_name,
+                'brand_name' => $productData->brand_name,
+                'img_thumbnail' => $productData->img_thumbnail,
+                'is_active' => $productData->is_active,
+                'is_new' => $productData->is_new,
+                'is_show_home' => $productData->is_show_home,
+                'description' => $productData->description,
+                'content' => $productData->content,
+                'view' => $productData->view,
+                'user_manual'  => $productData->user_manual,
+                'price_regular' => $productData->price_regular,
+                'price_sale' => $productData->price_sale,
+                'tags' => $productData->tags,
+                'productImages' => $productData->productImages,
+                'productVariants' => $productData->productVariants,
+                'delete_at' => $productData->delete_at,
+                'related_products' => $relatedProducts, // Thêm sản phẩm liên quan
+            ];
 
-        return response()->json($result, 200);
-
-    } catch (ModelNotFoundException $e) {
-        Log::error('Sản phẩm không tìm thấy: ' . $e->getMessage());
-        return response()->json([
-            'error' => 'Sản phẩm không tìm thấy.',
-        ], 404);
-    } catch (\Exception $e) {
-        Log::error('Lỗi khi lấy thông tin sản phẩm: ' . $e->getMessage());
-        return response()->json([
-            'error' => 'Lỗi khi lấy thông tin sản phẩm. Vui lòng thử lại sau.',
-            'message' => $e->getMessage()
-        ], 500);
+            return response()->json($result, 200);
+        } catch (ModelNotFoundException $e) {
+            Log::error('Sản phẩm không tìm thấy: ' . $e->getMessage());
+            return response()->json([
+                'error' => 'Sản phẩm không tìm thấy.',
+            ], 404);
+        } catch (\Exception $e) {
+            Log::error('Lỗi khi lấy thông tin sản phẩm: ' . $e->getMessage());
+            return response()->json([
+                'error' => 'Lỗi khi lấy thông tin sản phẩm. Vui lòng thử lại sau.',
+                'message' => $e->getMessage()
+            ], 500);
+        }
     }
-}
 
 
 
@@ -752,119 +751,76 @@ class ProductController extends Controller
      * )
      */
 
-    public function update(Request $request, $slug)
-    {
-        $product = Product::where('slug', $slug)->firstOrFail();
-
-        if (!$product) {
-            return response()->json(['error' => 'Không tìm thấy sản phẩm'], 404);
-        }
-        DB::beginTransaction();
-        try {
-            // Kiểm tra và xác thực dữ liệu
-            $dataProduct = $request->except(['product_variants', 'tags', 'product_images']);
-            $dataProduct = array_merge($dataProduct, [
-                'is_active' => $request->input('is_active', 0),
-                'is_new' => $request->input('is_new', 0),
-                'is_show_home' => $request->input('is_show_home', 0),
-                'slug' => Str::slug($dataProduct['name']) . '-' . $product->sku,
-            ]);
-
-            // Xử lý hình ảnh thumbnail
-            if ($request->hasFile('img_thumbnail')) {
-                // Xóa hình ảnh cũ nếu tồn tại
-                if ($product->img_thumbnail) {
-                    Storage::delete(str_replace(asset('storage/'), '', $product->img_thumbnail));
-                }
-                // Lưu hình ảnh mới và tạo URL công khai
-                $path = $request->file('img_thumbnail')->store('products', 'public');
-                $dataProduct['img_thumbnail'] = asset('storage/' . $path);
-            }
-
-            // Cập nhật sản phẩm
-            $product->update($dataProduct);
-
-            // Xử lý biến thể sản phẩm
-            if ($request->has('product_variants')) {
-                $existingVariants = $product->productVariants->keyBy(function ($item) {
-                    return $item->product_size_id . '-' . $item->product_color_id;
-                });
-                
-
-                foreach ($request->product_variants as $key => $value) {
-                    $tmp = explode('-', $key);
-
-                    // Kiểm tra nếu $tmp có ít nhất 2 phần
-                    if (count($tmp) < 2) {
-                        Log::error('Invalid variant key format: ' . $key);
-                        continue; // Bỏ qua biến thể này nếu định dạng không hợp lệ
-                    }
-
-                    $dataProductVariant = [
-                        'product_size_id' => $tmp[0],
-                        'product_color_id' => $tmp[1],
-                        'quantity' => $value['quantity'] ?? 0,
-                        'image' => null,
-                    ];
-
-                    $variantKey = $dataProductVariant['product_size_id'] . '-' . $dataProductVariant['product_color_id'];
-
-                    if (isset($existingVariants[$variantKey])) {
-                        $variant = $existingVariants[$variantKey];
-                        if (isset($value['image']) && $value['image'] instanceof \Illuminate\Http\UploadedFile) {
-                            // Xóa hình ảnh cũ nếu tồn tại
-                            if ($variant->image) {
-                                Storage::delete($variant->image);
-                            }
-                            // Lưu hình ảnh mới và tạo URL công khai
-                            $path = $value['image']->store('products', 'public');
-                            $dataProductVariant['image'] = asset('storage/' . $path);
-                        } else {
-                            $dataProductVariant['image'] = $variant->image; // Giữ nguyên hình ảnh cũ
-                        }
-                        $variant->update($dataProductVariant);
-                        unset($existingVariants[$variantKey]);
-                    } else {
-                        // Thêm biến thể mới
-                        $dataProductVariant['product_id'] = $product->id;
-                        if (isset($value['image']) && $value['image'] instanceof \Illuminate\Http\UploadedFile) {
-                            $path = $value['image']->store('products', 'public');
-                            $dataProductVariant['image'] = asset('storage/' . $path);
-                        }
-                        ProductVariant::create($dataProductVariant);
-                    }
-                }
-
-                // Xóa các biến thể không còn tồn tại
-                foreach ($existingVariants as $variant) {
-                    if ($variant->image) {
-                        Storage::delete($variant->image);
-                    }
-                    $variant->delete();
-                }
-            }
-
-            DB::commit();
-            // Kiểm tra xem update có thành công không
-            $productWithVariants = Product::with([
-                'category', 
-                'brand', 
-                'productImages',
-                'productVariants.productColor', 
-                'productVariants.productSize'
-            ])->find($product->id);
-            
-    
-            return response()->json([ 
-                    $productWithVariants, 
-                    200
-            ]);
-    } catch (\Exception $e) {
-        DB::rollBack();
-        Log::error('Lỗi chỉnh sửa sản phẩm: ' . $e->getMessage());
-        return response()->json(['error' => 'Lỗi chỉnh sửa sản phẩm: ' . $e->getMessage()], 500);
-    }
-    }
+     public function update(Request $request, $slug)
+     {
+         $product = Product::where('slug', $slug)->firstOrFail();
+     
+         DB::beginTransaction();
+         try {
+             $dataProduct = $request->except(['product_variants', 'tags', 'product_images']);
+             $dataProduct = array_merge($dataProduct, [
+                 'is_active' => $request->input('is_active', 0),
+                 'is_new' => $request->input('is_new', 0),
+                 'is_show_home' => $request->input('is_show_home', 0),
+                 'slug' => Str::slug($dataProduct['name']) . '-' . $product->sku,
+             ]);
+     
+             // Thumbnail handling
+             if ($request->hasFile('img_thumbnail')) {
+                 if ($product->img_thumbnail) {
+                     Storage::delete(str_replace(asset('storage/'), '', $product->img_thumbnail));
+                 }
+                 $path = $request->file('img_thumbnail')->store('products', 'public');
+                 $dataProduct['img_thumbnail'] = asset('storage/' . $path);
+             }
+     
+             $product->update($dataProduct);
+     
+             // Product Variants Handling
+             if ($request->has('product_variants')) {
+                 // Delete existing variants
+                 $product->productVariants()->delete();
+     
+                 // Create new variants
+                 foreach ($request->product_variants as $variant) {
+                     $dataProductVariant = [
+                         'product_id' => $product->id,
+                         'product_size_id' => $variant['product_size_id'],
+                         'product_color_id' => $variant['product_color_id'],
+                         'quantity' => $variant['quantity'],
+                         'image' => null,
+                     ];
+     
+                     // Image handling for variant
+                     if (isset($variant['image']) && $variant['image'] instanceof \Illuminate\Http\UploadedFile) {
+                         $path = $variant['image']->store('products', 'public');
+                         $dataProductVariant['image'] = asset('storage/' . $path);
+                     }
+     
+                     ProductVariant::create($dataProductVariant);
+                 }
+             }
+     
+             DB::commit();
+     
+             $productWithVariants = Product::with([
+                 'category',
+                 'brand',
+                 'productImages',
+                 'productVariants.productColor',
+                 'productVariants.productSize'
+             ])->find($product->id);
+     
+             return response()->json([
+                 'data' => $productWithVariants,
+                 'message' => 'Cập nhật sản phẩm thành công'
+             ], 200);
+         } catch (\Exception $e) {
+             DB::rollBack();
+             Log::error('Lỗi chỉnh sửa sản phẩm: ' . $e->getMessage());
+             return response()->json(['error' => 'Lỗi chỉnh sửa sản phẩm: ' . $e->getMessage()], 500);
+         }
+     }
 
 
 
