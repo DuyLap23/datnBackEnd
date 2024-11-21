@@ -83,7 +83,6 @@ Route::group(
 );
 
 //Những đầu route không cần check đăng nhập và role vất vào đây
-Route::get('categories', [CategoryController::class, 'index']);
 Route::get('get-categories', [CategoryController::class, 'getCategoryChild']);
 Route::get('filter-categories', [CategoryController::class, 'fillerCategory']);
 Route::get('categories/{id}', [CategoryController::class, 'showClient']);
@@ -110,6 +109,7 @@ Route::group(
     function ($router) {
         //CATEGORIES
         Route::get('categories/trashed', [CategoryController::class, 'trashed']);
+        Route::get('categories', [CategoryController::class, 'index']);
         Route::post('categories', [CategoryController::class, 'store']);
         Route::put('categories/{id}', [CategoryController::class, 'update']);
         Route::get('categories/{id}', [CategoryController::class, 'show']);
