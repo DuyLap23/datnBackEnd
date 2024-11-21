@@ -201,6 +201,21 @@ class CategoryController extends Controller
             'categories' => $categories,
         ], 200);
     }
+    public function fillerCategory()
+    {
+        // Lấy danh mục con (parent_id khác 0)
+        $categories = Category::query()
+            ->where('parent_id', '!=', 0) // Chỉ lấy danh mục con
+            ->latest('id') // Sắp xếp theo id giảm dần
+            ->get();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Lấy thành công danh mục con',
+            'categories' => $categories,
+        ], 200);
+    }
+
 
 
 
