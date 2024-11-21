@@ -195,19 +195,19 @@ class ProductController extends Controller
      */
 
 
-     public function index()
-     {
+    public function index()
+    {
         $products = Product::with(
             [
                 'category',
-                'brand', 
+                'brand',
                 'tags',
                 'productImages',
                 'productVariants.productColor',
                 'productVariants.productSize'
             ]
         )->whereNull('deleted_at')->get(); // Chỉ lấy các sản phẩm chưa bị soft delete
-     
+
         return response()->json(
             [
                 'success' => true,
@@ -216,7 +216,7 @@ class ProductController extends Controller
             ],
             200,
         );
-     }
+    }
     /**
      * @OA\Post(
      *     path="/api/admin/products",
@@ -501,10 +501,6 @@ class ProductController extends Controller
                 }
             }
 
-            // Xử lý thẻ
-            // if ($request->has('tags')) {
-            //     $product->tags()->sync($request->tags);
-            // }
 
             DB::commit();
 
@@ -598,56 +594,75 @@ class ProductController extends Controller
      * )
      */
     public function show($slug)
-    {
-        try {
-            $product = Product::where('slug', $slug)->firstOrFail(); // Tìm sản phẩm dựa trên Slug
-            $productData = $product->load([
-                'tags',
-                'productImages',
-                'productVariants.productColor',
-                'productVariants.productSize'
-            ]);
+{
+    try {
+        $product = Product::where('slug', $slug)->firstOrFail(); 
 
-            // Chỉ lấy ra tên của category và brand
-            $productData->category_name = $product->category->name ?? null; // Lấy tên category
-            $productData->brand_name = $product->brand->name ?? null; // Lấy tên brand
+        $productData = $product->load([
+            'tags',
+            'productImages',
+            'productVariants.productColor',
+            'productVariants.productSize'
+        ]);
 
-            // Chỉ giữ lại các trường cần thiết
-            $result = [
-                'id' => $productData->id,
-                'name' => $productData->name,
-                'category_name' => $productData->category_name,
-                'brand_name' => $productData->brand_name,
-                'img_thumbnail' => $productData->img_thumbnail,
-                'is_active' => $productData->is_active,
-                'is_new' => $productData->is_new,
-                'is_show_home' => $productData->is_show_home,
-                'description' => $productData->description,
-                'content' => $productData->content,
-                'view' => $productData->view,
-                'user_manual'  => $productData->user_manual,
-                'price_regular' => $productData->price_regular,
-                'price_sale' => $productData->price_sale,
-                'tags' => $productData->tags,
-                'productImages' => $productData->productImages,
-                'productVariants' => $productData->productVariants,
-                'delete_at' => $productData->delete_at,
-            ];
+        // Lấy tên category và brand
+        $productData->category_name = $product->category->name ?? null;
+        $productData->brand_name = $product->brand->name ?? null;
 
-            return response()->json($result, 200);
-        } catch (ModelNotFoundException $e) {
-            Log::error('Sản phẩm không tìm thấy: ' . $e->getMessage());
-            return response()->json([
-                'error' => 'Sản phẩm không tìm thấy.',
-            ], 404);
-        } catch (\Exception $e) {
-            Log::error('Lỗi khi lấy thông tin sản phẩm: ' . $e->getMessage());
-            return response()->json([
-                'error' => 'Lỗi khi lấy thông tin sản phẩm. Vui lòng thử lại sau.',
-                'message' => $e->getMessage()
-            ], 500);
-        }
+        // Lấy sản phẩm liên quan
+        $relatedProducts = Product::where('category_id', $product->category_id)
+            ->where('id', '!=', $product->id)
+            ->where('is_active', 1)
+            ->limit(4)
+            ->get()
+            ->map(function ($relatedProduct) {
+                return [
+                    'id' => $relatedProduct->id,
+                    'name' => $relatedProduct->name,
+                    'img_thumbnail' => $relatedProduct->img_thumbnail,
+                    'price_regular' => $relatedProduct->price_regular,
+                    'price_sale' => $relatedProduct->price_sale,
+                ];
+            });
+
+        // Chuẩn bị kết quả trả về
+        $result = [
+            'id' => $productData->id,
+            'name' => $productData->name,
+            'category_name' => $productData->category_name,
+            'brand_name' => $productData->brand_name,
+            'img_thumbnail' => $productData->img_thumbnail,
+            'is_active' => $productData->is_active,
+            'is_new' => $productData->is_new,
+            'is_show_home' => $productData->is_show_home,
+            'description' => $productData->description,
+            'content' => $productData->content,
+            'view' => $productData->view,
+            'user_manual'  => $productData->user_manual,
+            'price_regular' => $productData->price_regular,
+            'price_sale' => $productData->price_sale,
+            'tags' => $productData->tags,
+            'productImages' => $productData->productImages,
+            'productVariants' => $productData->productVariants,
+            'delete_at' => $productData->delete_at,
+            'related_products' => $relatedProducts, // Thêm sản phẩm liên quan
+        ];
+
+        return response()->json($result, 200);
+
+    } catch (ModelNotFoundException $e) {
+        Log::error('Sản phẩm không tìm thấy: ' . $e->getMessage());
+        return response()->json([
+            'error' => 'Sản phẩm không tìm thấy.',
+        ], 404);
+    } catch (\Exception $e) {
+        Log::error('Lỗi khi lấy thông tin sản phẩm: ' . $e->getMessage());
+        return response()->json([
+            'error' => 'Lỗi khi lấy thông tin sản phẩm. Vui lòng thử lại sau.',
+            'message' => $e->getMessage()
+        ], 500);
     }
+}
 
 
 
@@ -737,13 +752,13 @@ class ProductController extends Controller
      * )
      */
 
-     public function update(Request $request, $slug)
-     {
+    public function update(Request $request, $slug)
+    {
         $product = Product::where('slug', $slug)->firstOrFail();
-         
-         if (!$product) {
-             return response()->json(['error' => 'Không tìm thấy sản phẩm'], 404);
-         }
+
+        if (!$product) {
+            return response()->json(['error' => 'Không tìm thấy sản phẩm'], 404);
+        }
         DB::beginTransaction();
         try {
             // Kiểm tra và xác thực dữ liệu
@@ -771,9 +786,10 @@ class ProductController extends Controller
 
             // Xử lý biến thể sản phẩm
             if ($request->has('product_variants')) {
-                $existingVariants = $product->variants()->get()->keyBy(function ($item) {
+                $existingVariants = $product->productVariants->keyBy(function ($item) {
                     return $item->product_size_id . '-' . $item->product_color_id;
                 });
+                
 
                 foreach ($request->product_variants as $key => $value) {
                     $tmp = explode('-', $key);
@@ -828,25 +844,26 @@ class ProductController extends Controller
                 }
             }
 
-
-
             DB::commit();
             // Kiểm tra xem update có thành công không
-            if (!$product) {
-                return response()->json(['error' => 'Không tìm thấy sản phẩm'], 404);
-            }
-            return response()->json($product->fresh()->load([
-                'category',
-                'brand',
+            $productWithVariants = Product::with([
+                'category', 
+                'brand', 
                 'productImages',
-                'productVariants.productColor',
+                'productVariants.productColor', 
                 'productVariants.productSize'
-            ]));
-        } catch (\Exception $e) {
-            DB::rollBack();
-            Log::error('Lỗi chỉnh sửa sản phẩm: ' . $e->getMessage());
-            return response()->json(['error' => 'Lỗi chỉnh sửa sản phẩm: ' . $e->getMessage()], 500);
-        }
+            ])->find($product->id);
+            
+    
+            return response()->json([ 
+                    $productWithVariants, 
+                    200
+            ]);
+    } catch (\Exception $e) {
+        DB::rollBack();
+        Log::error('Lỗi chỉnh sửa sản phẩm: ' . $e->getMessage());
+        return response()->json(['error' => 'Lỗi chỉnh sửa sản phẩm: ' . $e->getMessage()], 500);
+    }
     }
 
 
@@ -903,15 +920,15 @@ class ProductController extends Controller
                 }
             }
 
-        
+
             // Xóa sản phẩm
-            $result = $product->Delete(); 
-        
-        DB::commit();
-        return response()->json([
-            'message' => 'Xóa sản phẩm thành công', 
-            'deleted' => true
-        ], 200);
+            $result = $product->Delete();
+
+            DB::commit();
+            return response()->json([
+                'message' => 'Xóa sản phẩm thành công',
+                'deleted' => true
+            ], 200);
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('Lỗi xoá sản phẩm: ' . $e->getMessage());
