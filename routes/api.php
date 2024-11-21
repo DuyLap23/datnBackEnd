@@ -84,6 +84,7 @@ Route::group(
 
 //Những đầu route không cần check đăng nhập và role vất vào đây
 Route::get('categories', [CategoryController::class, 'index']);
+Route::get('get-categories', [CategoryController::class, 'getCategoryChild']);
 Route::get('categories/{id}', [CategoryController::class, 'showClient']);
 
 Route::get('products', [ProductController::class, 'index'])->name('products.index');
