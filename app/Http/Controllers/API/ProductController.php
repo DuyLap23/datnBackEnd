@@ -610,7 +610,7 @@ class ProductController extends Controller
         $relatedProducts = Product::where('category_id', $product->category_id)
             ->where('id', '!=', $product->id)
             ->where('is_active', 1)
-            ->limit(4)
+            ->limit(20)
             ->get()
             ->map(function ($relatedProduct) {
                 return [
@@ -854,42 +854,36 @@ class ProductController extends Controller
      * )
      */
 
-    public function destroy(Product $product)
-    {
-        DB::beginTransaction();
-        try {
-            // Xóa hình ảnh thumbnail
-            if ($product->img_thumbnail) {
-                Storage::delete($product->img_thumbnail);
-            }
-
-            // Xóa biến thể và hình ảnh của nó
-            if ($product->variants && $product->variants->isNotEmpty()) {
-                foreach ($product->variants as $variant) {
-                    if ($variant->image) {
-                        Storage::delete($variant->image);
-                    }
-                    $variant->delete();
-                }
-            }
-
-
-            // Xóa sản phẩm
-            $result = $product->Delete();
-
-            DB::commit();
-            return response()->json([
-                'message' => 'Xóa sản phẩm thành công',
-                'deleted' => true
-            ], 200);
-        } catch (\Exception $e) {
-            DB::rollBack();
-            Log::error('Lỗi xoá sản phẩm: ' . $e->getMessage());
-            return response()->json(['error' => 'Lỗi xoá sản phẩm: ' . $e->getMessage()], 500);
-        }
-    }
-
-
+     public function destroy(Product $product)
+     {
+         DB::beginTransaction();
+         try {
+         
+             if ($product->img_thumbnail) {
+                 Storage::delete(str_replace(asset('storage/'), '', $product->img_thumbnail));
+             }
+     
+       
+             $product->productVariants()->get()->each(function ($variant) {
+                 if ($variant->image) {
+                     Storage::delete(str_replace(asset('storage/'), '', $variant->image));
+                     $variant->delete();
+                 }
+             });
+     
+             $product->delete();
+     
+             DB::commit();
+             return response()->json([
+                 'message' => 'Xóa sản phẩm thành công',
+                 'deleted' => true
+             ], 200);
+         } catch (\Exception $e) {
+             DB::rollBack();
+             Log::error('Lỗi xoá sản phẩm: ' . $e->getMessage());
+             return response()->json(['error' => 'Lỗi xoá sản phẩm: ' . $e->getMessage()], 500);
+         }
+     }
     public function toggleActive(Product $id)
     {
         $id->is_active = !$id->is_active;
