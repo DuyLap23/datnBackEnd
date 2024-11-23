@@ -29,6 +29,7 @@ use App\Http\Controllers\API\Statistical\UserStatisticalController;
 use App\Http\Controllers\API\TagController;
 use App\Http\Controllers\Api\UserCommentController;
 use App\Http\Controllers\API\VouCherController;
+use Illuminate\Support\Facades\Route;
 
 
 /*
