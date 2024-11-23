@@ -201,6 +201,9 @@ class DeliveryController extends Controller
         if (!$order) {
             return response()->json(['message' => 'Đơn hàng không tồn tại.'], 404);
         }
+        if ($order->order_status === 'delivered') {
+            return response()->json(['message' => 'Đơn hàng này đã được giao.'], 400);
+        }  
         if ($order->order_status !== 'shipping') {
             return response()->json(['message' => 'Đơn hàng này chưa được giao.'], 400);
         }
@@ -209,7 +212,7 @@ class DeliveryController extends Controller
         $order->recipient_name = $request->input('recipient_name', null);
         $order->recipient_signature = $request->input('signature', null);
         $order->save();
-        event(new EventsOrderDelivered($order));
+        // event(new EventsOrderDelivered($order));
         return response()->json(['message' => 'Đơn hàng đã được xác nhận giao hàng thành công.']);
     }
 
