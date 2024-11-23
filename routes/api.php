@@ -171,7 +171,7 @@ Route::group(
 // CUSTOMER
 Route::group(
     [
-        'middleware' => ['role:staff,customer,admin'],
+        'middleware' => ['role:customer,admin'],
     ],
     function ($router) {
         Route::post('carts', [CartController::class, 'addProductToCart']);

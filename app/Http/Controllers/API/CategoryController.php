@@ -839,15 +839,12 @@ class CategoryController extends Controller
         }
 
         try {
-            // Tìm danh mục theo ID, nếu không tìm thấy sẽ ném ngoại lệ
             $model = Category::findOrFail($id);
 
-            // Xóa hình ảnh nếu có
             if ($model->image && Storage::exists($model->image)) {
                 Storage::delete($model->image);
             }
 
-            // Xóa danh mục
             $model->delete();
 
             // Ghi log thành công
@@ -858,23 +855,21 @@ class CategoryController extends Controller
                     'success' => true,
                     'message' => 'Xóa danh mục thành công.',
                 ],
-                204 // Trả về mã 204 (No Content) cho thành công
+                204
             );
 
         } catch (QueryException $e) {
-            // Kiểm tra mã lỗi để xác định loại lỗi
             if ($e->errorInfo[1] == 1451) {
-                // Lỗi do khóa ngoại
                 return response()->json(
                     [
                         'success' => false,
                         'message' => 'Không thể xóa danh mục này vì nó có liên quan đến các bản ghi khác.',
                     ],
-                    400 // Trả về mã 400 cho lỗi yêu cầu không hợp lệ
+                    400
                 );
             }
 
-            // Ghi log lỗi
+
             Log::error("Lỗi khi xóa danh mục ID {$id}: " . $e->getMessage());
 
             return response()->json(
@@ -882,16 +877,15 @@ class CategoryController extends Controller
                     'success' => false,
                     'message' => 'Có lỗi xảy ra khi xóa danh mục.',
                 ],
-                400 // Trả về mã 400 thay vì 500
+                400
             );
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
-            // Xử lý ngoại lệ khi không tìm thấy danh mục
             return response()->json(
                 [
                     'success' => false,
                     'message' => 'Danh mục không tồn tại.',
                 ],
-                404 // Trả về mã 404 cho lỗi không tìm thấy
+                404
             );
         }
     }
