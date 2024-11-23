@@ -176,7 +176,12 @@ class CategoryController extends Controller
             ->latest('id')
             ->get();
 
-
+        if (!$categories) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Không tìm thấy danh mục',
+            ]);
+        }
         return response()->json(
             [
                 'success' => true,
@@ -194,7 +199,12 @@ class CategoryController extends Controller
             ->whereHas('children') // Kiểm tra danh mục cha có danh mục con
             ->latest('id')
             ->get();
-
+        if (!$categories) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Không tìm thấy danh mục',
+            ]);
+        }
         return response()->json([
             'success' => true,
             'message' => 'Lấy thành công danh mục',
@@ -203,12 +213,16 @@ class CategoryController extends Controller
     }
     public function fillerCategory()
     {
-        // Lấy danh mục con (parent_id khác 0)
         $categories = Category::query()
-            ->where('parent_id', '!=', 0) // Chỉ lấy danh mục con
-            ->latest('id') // Sắp xếp theo id giảm dần
+            ->where('parent_id', '!=', 0)
+            ->latest('id')
             ->get();
-
+        if (!$categories) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Không tìm thấy danh mục con',
+            ]);
+        }
         return response()->json([
             'success' => true,
             'message' => 'Lấy thành công danh mục con',
@@ -274,7 +288,12 @@ class CategoryController extends Controller
 
             // Lấy tất cả danh mục đã xóa
             $trashedCategories = Category::onlyTrashed()->get();
-
+            if (!$trashedCategories) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Không tìm thấy danh mục',
+                ]);
+            }
             return response()->json(
                 [
                     'success' => true,
