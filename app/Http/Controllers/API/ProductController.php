@@ -856,33 +856,74 @@ class ProductController extends Controller
 
      public function destroy(Product $product)
      {
-         DB::beginTransaction();
-         try {
-         
-             if ($product->img_thumbnail) {
-                 Storage::delete(str_replace(asset('storage/'), '', $product->img_thumbnail));
-             }
+        DB::beginTransaction();
+        try {
+          
+            Log::info('Bắt đầu xóa sản phẩm', [
+                'product_id' => $product->id,
+                'product_name' => $product->name
+            ]);
      
-       
-             $product->productVariants()->get()->each(function ($variant) {
-                 if ($variant->image) {
-                     Storage::delete(str_replace(asset('storage/'), '', $variant->image));
-                     $variant->delete();
-                 }
-             });
+            // Xóa ảnh thumbnail
+            if ($product->img_thumbnail) {
+                Log::info('Đang xóa ảnh thumbnail', [
+                    'thumbnail_path' => $product->img_thumbnail
+                ]);
+                $thumbnailPath = str_replace(asset('storage/'), '', $product->img_thumbnail);
+                $deleteThumbResult = Storage::delete($thumbnailPath);
+                Log::info('Kết quả xóa thumbnail:', ['result' => $deleteThumbResult]);
+            }
      
-             $product->delete();
+            // Xóa các biến thể và ảnh của chúng
+            Log::info('Bắt đầu xóa các biến thể sản phẩm');
+            $product->productVariants()->get()->each(function ($variant) {
+                Log::info('Đang xử lý biến thể', [
+                    'variant_id' => $variant->id
+                ]);
+                
+                if ($variant->image) {
+                    Log::info('Đang xóa ảnh biến thể', [
+                        'variant_image' => $variant->image
+                    ]);
+                    $variantImagePath = str_replace(asset('storage/'), '', $variant->image);
+                    $deleteVariantImageResult = Storage::delete($variantImagePath);
+                    Log::info('Kết quả xóa ảnh biến thể:', ['result' => $deleteVariantImageResult]);
+                }
+                
+                $deleteVariantResult = $variant->delete();
+                Log::info('Kết quả xóa biến thể:', ['result' => $deleteVariantResult]);
+            });
      
-             DB::commit();
-             return response()->json([
-                 'message' => 'Xóa sản phẩm thành công',
-                 'deleted' => true
-             ], 200);
-         } catch (\Exception $e) {
-             DB::rollBack();
-             Log::error('Lỗi xoá sản phẩm: ' . $e->getMessage());
-             return response()->json(['error' => 'Lỗi xoá sản phẩm: ' . $e->getMessage()], 500);
-         }
+            // Xóa sản phẩm
+            Log::info('Đang thực hiện xóa sản phẩm chính');
+            $deleteProductResult = $product->delete();
+            // Log::info('Kết quả xóa sản phẩm:', ['result' => $deleteProductResult]);
+     
+            DB::commit();
+            Log::info('Xóa sản phẩm hoàn tất thành công');
+            
+            return response()->json([
+                'message' => 'Xóa sản phẩm thành công',
+                'deleted' => $deleteProductResult
+            ], 200);
+     
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Lỗi trong quá trình xóa sản phẩm', [
+                'error_message' => $e->getMessage(),
+                'error_line' => $e->getLine(),
+                'error_file' => $e->getFile(),
+                'error_trace' => $e->getTraceAsString()
+            ]);
+            
+            return response()->json([
+                'error' => 'Lỗi xóa sản phẩm: ' . $e->getMessage(),
+                'details' => [
+                    'line' => $e->getLine(),
+                    'file' => $e->getFile()
+                ]
+            ], 500);
+        }
      }
     public function toggleActive(Product $id)
     {
