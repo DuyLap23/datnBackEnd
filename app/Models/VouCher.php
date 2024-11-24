@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Carbon;
 
 class VouCher extends Model
 {
@@ -27,7 +28,16 @@ class VouCher extends Model
     protected $table = 'vouchers';
 
     protected $dates = ['deleted_at'];
+    protected $appends = ['status'];
 
+    public function getStatusAttribute()
+    {
+        $now = Carbon::now();
+        return $this->voucher_active 
+            && $now->between($this->start_date, $this->end_date)
+            && $this->used_count < $this->usage_limit
+            ? 'active' : 'inactive';
+    }
 
 
 }
