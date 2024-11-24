@@ -732,38 +732,20 @@ public function getAllVouchers(Request $request)
                 
             case 'all':
             default:
-                // Không thêm điều kiện để lấy tất cả voucher
                 break;
         }
 
-        // Lọc theo loại giảm giá nếu có
-        if ($request->has('type')) {
-            $query->where('discount_type', $request->type);
-        }
-
-        // Lấy tất cả voucher
         $vouchers = $query->get();
 
-        // Bổ sung thông tin chi tiết cho từng voucher
-        $processedVouchers = $vouchers->map(function ($voucher) use ($now) {
-            // Kiểm tra trạng thái voucher
-            $isActive = $voucher->voucher_active 
-                && $now->between($voucher->start_date, $voucher->end_date)
-                && $voucher->used_count < $voucher->usage_limit;
-
-            return $voucher;
-        });
-
-        // Tạo summary để thống kê
+        // Tính toán summary trực tiếp từ collection
         $summary = [
-            'total_vouchers' => $processedVouchers->count(),
-            'active_vouchers' => $processedVouchers->where('status', 'active')->count(),
-            'inactive_vouchers' => $processedVouchers->where('status', 'inactive')->count(),
-            'expired_vouchers' => $processedVouchers->where('is_expired', true)->count()
+            'total_vouchers' => $vouchers->count(),
+            'active_vouchers' => $vouchers->where('status', 'active')->count(),
+            'inactive_vouchers' => $vouchers->where('status', 'inactive')->count(),
         ];
 
         return response()->json([
-            'vouchers' => $processedVouchers,
+            'vouchers' => $vouchers,
             'summary' => $summary,
             'message' => 'Lấy danh sách voucher thành công'
         ]);
@@ -775,5 +757,5 @@ public function getAllVouchers(Request $request)
         ], 500);
     }
 }
-
 }
+

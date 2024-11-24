@@ -12,6 +12,8 @@ class VoucherService
    public function apply(array $data): JsonResponse
    {
        try {
+           DB::beginTransaction(); // Bắt đầu transaction
+
            if (!isset($data['code']) || !isset($data['products']) || !isset($data['order_total']) || empty($data['products'])) {
                return response()->json(['error' => 'Dữ liệu không hợp lệ'], 400);
            }
@@ -21,9 +23,11 @@ class VoucherService
                ->whereDate('start_date', '<=', now())
                ->whereDate('end_date', '>=', now())
                ->where('used_count', '<', DB::raw('usage_limit'))
+               ->lockForUpdate() // Thêm lock để tránh race condition
                ->first();
 
            if (!$voucher) {
+               DB::rollBack();
                return response()->json(['error' => 'Voucher không tồn tại hoặc đã hết hạn'], 404);
            }
 
@@ -35,7 +39,6 @@ class VoucherService
                    if ($voucher->applicable_type === 'product') {
                        return in_array($product['product_id'], $applicableIds);
                    } else { // category type
-                       // Nếu product_id nằm trong danh sách applicable_ids (đã được lưu khi tạo voucher)
                        return in_array($product['product_id'], $applicableIds);
                    }
                })
@@ -43,7 +46,6 @@ class VoucherService
                    return $product['price'] * $product['quantity'];
                });
 
-           // Log thông tin để debug
            Log::info('Voucher application check', [
                'voucher_type' => $voucher->applicable_type,
                'applicable_ids' => $applicableIds,
@@ -52,6 +54,7 @@ class VoucherService
            ]);
 
            if ($applicableTotal < $voucher->minimum_order_value) {
+               DB::rollBack();
                return response()->json([
                    'error' => 'Đơn hàng chưa đạt giá trị tối thiểu để áp dụng voucher',
                    'minimum_required' => $voucher->minimum_order_value,
@@ -65,7 +68,6 @@ class VoucherService
                ], 400);
            }
 
-
            // Calculate discount
            $discount = $voucher->discount_type === 'fixed'
                ? $voucher->discount_value
@@ -75,10 +77,20 @@ class VoucherService
                $discount = min($discount, $voucher->max_discount);
            }
 
+           // Tăng used_count lên 1
+           $voucher->increment('used_count');
+           
+           // Kiểm tra nếu đã đạt giới hạn sử dụng thì tự động vô hiệu hóa voucher
+           if ($voucher->used_count >= $voucher->usage_limit) {
+               $voucher->update(['voucher_active' => false]);
+           }
+
+           DB::commit(); // Commit transaction nếu mọi thứ OK
+
            return response()->json([
                'success' => true,
                'discount_amount' => $discount,
-               'voucher_details' => $voucher,
+               'voucher_details' => $voucher->fresh(), // Lấy dữ liệu mới nhất của voucher
                'applicable_total' => $applicableTotal,
                'applicable_products' => collect($data['products'])
                    ->filter(function ($product) use ($voucher, $applicableIds) {
@@ -87,6 +99,7 @@ class VoucherService
            ]);
 
        } catch (\Exception $e) {
+           DB::rollBack(); // Rollback nếu có lỗi
            Log::error('Voucher application error', ['error' => $e->getMessage(), 'data' => $data]);
            return response()->json(['error' => 'Có lỗi xảy ra khi áp dụng voucher'], 500);
        }
