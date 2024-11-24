@@ -704,6 +704,76 @@ class VouCherController extends Controller
 
 //     return round($discount, 2);
 // }
+public function getAllVouchers(Request $request)
+{
+    try {
+        $query = Voucher::query();
+        $now = Carbon::now();
 
+        // Lấy trạng thái voucher từ request (active/inactive/all)
+        $status = $request->get('status', 'all');
+        
+        switch($status) {
+            case 'active':
+                $query->where('voucher_active', true)
+                      ->where('start_date', '<=', $now)
+                      ->where('end_date', '>=', $now)
+                      ->where('used_count', '<', DB::raw('usage_limit'));
+                break;
+                
+            case 'inactive':
+                $query->where(function($q) use ($now) {
+                    $q->where('voucher_active', false)
+                      ->orWhere('start_date', '>', $now)
+                      ->orWhere('end_date', '<', $now)
+                      ->orWhere('used_count', '>=', DB::raw('usage_limit'));
+                });
+                break;
+                
+            case 'all':
+            default:
+                // Không thêm điều kiện để lấy tất cả voucher
+                break;
+        }
+
+        // Lọc theo loại giảm giá nếu có
+        if ($request->has('type')) {
+            $query->where('discount_type', $request->type);
+        }
+
+        // Lấy tất cả voucher
+        $vouchers = $query->get();
+
+        // Bổ sung thông tin chi tiết cho từng voucher
+        $processedVouchers = $vouchers->map(function ($voucher) use ($now) {
+            // Kiểm tra trạng thái voucher
+            $isActive = $voucher->voucher_active 
+                && $now->between($voucher->start_date, $voucher->end_date)
+                && $voucher->used_count < $voucher->usage_limit;
+
+            return $voucher;
+        });
+
+        // Tạo summary để thống kê
+        $summary = [
+            'total_vouchers' => $processedVouchers->count(),
+            'active_vouchers' => $processedVouchers->where('status', 'active')->count(),
+            'inactive_vouchers' => $processedVouchers->where('status', 'inactive')->count(),
+            'expired_vouchers' => $processedVouchers->where('is_expired', true)->count()
+        ];
+
+        return response()->json([
+            'vouchers' => $processedVouchers,
+            'summary' => $summary,
+            'message' => 'Lấy danh sách voucher thành công'
+        ]);
+
+    } catch (Exception $e) {
+        return response()->json([
+            'message' => 'Lỗi khi lấy danh sách voucher',
+            'error' => $e->getMessage()
+        ], 500);
+    }
+}
 
 }
