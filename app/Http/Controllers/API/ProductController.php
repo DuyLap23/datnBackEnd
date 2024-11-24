@@ -853,7 +853,6 @@ class ProductController extends Controller
      * )
      */
 
-
     public function destroy(string $id)
     {
         $currentUser = auth('api')->user();
@@ -920,6 +919,7 @@ class ProductController extends Controller
             return response()->json(['error' => 'Lỗi xoá sản phẩm: ' . $e->getMessage()], 500);
         }
     }
+
 
     public function toggleActive(Product $id)
     {
