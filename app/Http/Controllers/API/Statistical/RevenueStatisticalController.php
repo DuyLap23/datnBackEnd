@@ -67,13 +67,13 @@ class RevenueStatisticalController extends Controller
     public function monthlyRevenue()
     {
         $months = collect();
+
         // Tạo danh sách 12 tháng gần nhất với giá trị mặc định là 0
         for ($i = 11; $i >= 0; $i--) {
             $month = Carbon::now()->subMonths($i)->format('Y-m');
             $months->put($month, 0);
         }
 
-        // Lấy doanh thu theo tháng trong 12 tháng gần nhất
         $revenueByMonth = Order::query()
             ->where('order_status', 'completed')
             ->where('created_at', '>=', Carbon::now()->subMonths(12)->startOfMonth())
@@ -85,20 +85,18 @@ class RevenueStatisticalController extends Controller
         $result = $months->merge($revenueByMonth)->sortKeys();
 
         if ($result->sum() === 0) {
-            // Nếu không có doanh thu
             return response()->json([
                 'message' => 'Không có dữ liệu doanh thu trong 12 tháng gần nhất.',
                 'data' => []
             ], 200);
         }
 
-        // Định dạng dữ liệu trả về
         $formattedResult = $result->map(function ($value, $month) {
             return [
-                'time' => date('m-Y', strtotime($month . '-01')), // Thêm ngày để format đúng
+                'time' => date('m-Y', strtotime($month . '-01')),
                 'price' => intval($value)
             ];
-        })->values(); // Dùng values() để chuyển collection thành mảng tuần tự
+        })->values();
 
         return response()->json([
             'message' => 'Lấy dữ liệu doanh thu thành công.',
