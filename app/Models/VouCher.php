@@ -18,6 +18,7 @@ class VouCher extends Model
         'discount_value',
         'start_date',
         'end_date',
+        'max_discount', 
         'usage_limit',
         'voucher_active',
         'used_count',

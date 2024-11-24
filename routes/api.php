@@ -158,7 +158,7 @@ Route::group(
        Route::post('voucher', [VouCherController::class, 'store']);
        Route::put('voucher/{id}', [VouCherController::class, 'update']);
        Route::delete('voucher/{id}', [VouCherController::class, 'destroy']);
-       Route::get('voucher', [VouCherController::class, 'getAllVouchers']);
+       Route::get('getAllVouchers', [VouCherController::class, 'getAllVouchers']);
 
 
        Route::get('statistical/revenue', [RevenueStatisticalController::class, 'revenue'])->name('statisticalRevenue');
