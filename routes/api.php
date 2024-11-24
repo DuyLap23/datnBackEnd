@@ -160,6 +160,7 @@ Route::group(
 
 
        Route::get('statistical/revenue', [RevenueStatisticalController::class, 'revenue'])->name('statisticalRevenue');
+       Route::get('statistical/monthly-revenue', [RevenueStatisticalController::class, 'monthlyRevenue'])->name('statisticalMonthlyRevenue');
        Route::get('statistical/order', [OrderStatisticalController::class, 'order'])->name('statisticalOrder');
        Route::get('statistical/user', [UserStatisticalController::class, 'user'])->name('statisticalUser');
        Route::get('statistical/product', [ProductStatisticalController::class, 'product'])->name('statisticalProduct');
