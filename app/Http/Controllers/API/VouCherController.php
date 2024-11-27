@@ -239,12 +239,42 @@ class VouCherController extends Controller
          ];
      
          if ($request->discount_type === 'percent') {
-             $rules['discount_value'] = 'required|numeric|min:0|max:100';
-             $rules['max_discount'] = 'required|numeric|min:0';
-         } else {
-             $rules['discount_value'] = 'required|numeric|min:1000';
-             $rules['max_discount'] = 'nullable|numeric|min:0';
-         }
+            $rules['discount_value'] = 'required|numeric|min:0|max:100';
+            $rules['max_discount'] = 'required|numeric|min:0';
+        } else {
+            $rules['discount_value'] = 'required|numeric|min:1000';
+            $rules['max_discount'] = 'required|numeric|min:0';  // Thay đổi thành required
+        }
+        
+        $validator = Validator::make($request->all(), $rules);
+        
+        if ($validator->fails()) {
+            return response()->json([
+                'message' => 'Dữ liệu không hợp lệ',
+                'errors' => $validator->errors()
+            ], 422);
+        }
+        
+        // Thêm kiểm tra logic cho max_discount
+        if ($request->discount_type === 'fixed') {
+            if ($request->max_discount > $request->minimum_order_value) {
+                return response()->json([
+                    'message' => 'Dữ liệu không hợp lệ',
+                    'errors' => [
+                        'max_discount' => ['Giá trị giảm tối đa không được lớn hơn giá trị đơn hàng tối thiểu']
+                    ]
+                ], 422);
+            }
+            // Đảm bảo max_discount không nhỏ hơn discount_value
+            if ($request->max_discount < $request->discount_value) {
+                return response()->json([
+                    'message' => 'Dữ liệu không hợp lệ',
+                    'errors' => [
+                        'max_discount' => ['Giá trị giảm tối đa không được nhỏ hơn giá trị giảm']
+                    ]
+                ], 422);
+            }
+        }
      
          $validator = Validator::make($request->all(), $rules);
      
