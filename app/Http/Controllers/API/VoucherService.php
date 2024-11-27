@@ -13,11 +13,11 @@ class VoucherService
     {
         try {
             DB::beginTransaction();
-
+    
             if (!isset($data['code']) || !isset($data['products']) || !isset($data['order_total']) || empty($data['products'])) {
                 return response()->json(['error' => 'Dữ liệu không hợp lệ'], 400);
             }
-
+    
             // Kiểm tra voucher còn hiệu lực và chưa hết lượt dùng
             $voucher = Voucher::where('code', $data['code'])
                 ->where('voucher_active', true)
@@ -26,18 +26,18 @@ class VoucherService
                 ->where('used_count', '<', DB::raw('usage_limit'))
                 ->lockForUpdate()
                 ->first();
-
+    
             if (!$voucher) {
                 DB::rollBack();
                 return response()->json(['error' => 'Voucher không tồn tại hoặc đã hết hạn'], 404);
             }
-
+    
             // Tính tổng giá trị đơn hàng
             $orderTotal = collect($data['products'])
                 ->sum(function ($product) {
                     return $product['price'] * $product['quantity'];
                 });
-
+    
             // Kiểm tra giá trị đơn hàng tối thiểu
             if ($orderTotal < $voucher->minimum_order_value) {
                 DB::rollBack();
@@ -49,38 +49,39 @@ class VoucherService
                     'voucher_details' => $voucher
                 ], 400);
             }
-
+    
             // Tính giá trị giảm giá
-            $discount = $voucher->discount_type === 'fixed'
-                ? $voucher->discount_value
-                : ($orderTotal * $voucher->discount_value) / 100;
-
-            // Áp dụng giới hạn giảm giá tối đa nếu có
-            if ($voucher->max_discount !== null) {
-                $discount = min($discount, $voucher->max_discount);
+            $discount = 0;
+            if ($voucher->discount_type === 'fixed') {
+                $discount = min($voucher->discount_value, $orderTotal); // Không giảm quá tổng tiền
+            } else { // percent
+                $discount = ($orderTotal * $voucher->discount_value) / 100;
             }
-
-            // Thêm kiểm tra: Số tiền giảm giá không được vượt quá tổng đơn hàng
-            $discount = min($discount, $orderTotal);
-
+    
+            // Áp dụng giới hạn giảm giá tối đa 
+            $discount = min($discount, $voucher->max_discount); // Giới hạn theo max_discount
+            $discount = min($discount, $orderTotal); // Đảm bảo không giảm quá tổng tiền
+    
             // Tăng số lần sử dụng
             $voucher->increment('used_count');
-
+    
             // Kiểm tra và vô hiệu hóa voucher nếu đã hết lượt dùng
             if ($voucher->used_count >= $voucher->usage_limit) {
                 $voucher->update(['voucher_active' => false]);
             }
-
+    
             DB::commit();
-
+    
             return response()->json([
                 'success' => true,
                 'discount_amount' => $discount,
+                'original_price' => $orderTotal,
+                'final_price' => $orderTotal - $discount,
                 'voucher_details' => $voucher->fresh(),
-                'order_total' => $orderTotal,
-                'max_discount_applied' => $voucher->max_discount !== null && $discount >= $voucher->max_discount,
+                'max_discount_applied' => $discount >= $voucher->max_discount,
                 'remaining_uses' => max(0, $voucher->usage_limit - $voucher->used_count)
             ]);
+    
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('Voucher application error', [
