@@ -4,8 +4,10 @@ namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
 use App\Models\BannerMkt;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
 
@@ -51,6 +53,10 @@ class BannerMktController extends Controller
      */
     public function index()
     {
+        if (!Auth::check()) {
+            return response()->json(['message' => 'Vui lòng đăng nhập'], 401);
+        }
+
     Log::info('Đang lấy danh sách banner.');
     $banners = BannerMkt::all();
     Log::info('Đã lấy danh sách banner.', ['count' => $banners->count()]);
@@ -95,6 +101,10 @@ class BannerMktController extends Controller
  */
 public function store(Request $request)
 {
+    if (!Auth::check()) {
+        return response()->json(['message' => 'Vui lòng đăng nhập'], 401);
+    }
+
     // Ghi log khi bắt đầu quá trình tạo banner
     Log::info('Bắt đầu quá trình tạo banner.', ['request' => $request->all()]);
 
@@ -115,8 +125,9 @@ public function store(Request $request)
     }
 
     $banner->link = $request->link;
-    
-    $banner->save();
+    $banner->start_date = now(); 
+    $banner->end_date = $request->input('end_date', now()->addDays(7));
+    $banner->save(); 
     Log::info('Banner đã được tạo thành công.', ['banner_id' => $banner->id]);
 
     return response()->json(['success' => true, 'data' => $banner], 201);
@@ -176,49 +187,76 @@ public function store(Request $request)
 
 
  public function update(Request $request, string $id)
- {
-     // Ghi log để kiểm tra `_method` và toàn bộ request
-     Log::info('Dữ liệu yêu cầu (bên trong phương thức update): ', [
-         'request_data' => $request->all(),
-         'files' => $request->file(), // Kiểm tra file được gửi
-     ]);
-     
-     $request->validate([
-         'name' => 'required|string|max:255',
-         'image' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
-         'link' => 'nullable|url',
-     ]);
- 
-     try {
-         $banner = BannerMkt::findOrFail($id); // Tìm banner theo ID
- 
-         // Cập nhật thông tin banner
-         $banner->name = $request->name;
- 
-         // Lưu hình ảnh mới nếu có
-         if ($request->hasFile('image')) {
-             // Xóa hình ảnh cũ nếu có
-             if ($banner->image) {
-                 Storage::delete($banner->image);
-             }
-             $banner->image = $request->file('image')->store('banners', 'public');
-             Log::info('Hình ảnh đã được cập nhật cho banner.', ['image_path' => $banner->image]);
-         }
- 
-         $banner->link = $request->link;
- 
-         $banner->save(); // Lưu thay đổi
- 
-         Log::info('Banner đã được cập nhật thành công.', ['banner_id' => $banner->id]);
- 
-         return response()->json(['success' => true, 'message' => 'Banner đã được cập nhật thành công.', 'data' => $banner]);
-     } catch (ModelNotFoundException $e) {
-         return response()->json(['success' => false, 'message' => 'Banner không tồn tại.'], 404);
-     } catch (\Exception $e) {
-         return response()->json(['success' => false, 'message' => 'Cập nhật banner không thành công.', 'error' => $e->getMessage()], 500);
-     }
- }
- 
+{
+    if (!Auth::check()) {
+        return response()->json(['message' => 'Vui lòng đăng nhập'], 401);
+    }
+
+    // Ghi log để kiểm tra toàn bộ request
+    Log::info('Dữ liệu yêu cầu (bên trong phương thức update): ', [
+        'request_data' => $request->all(),
+        'files' => $request->file(),
+    ]);
+
+    // Xác thực dữ liệu yêu cầu
+    $validator = Validator::make($request->all(), [
+        'name' => 'required|string|max:255',
+        'image' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
+        'link' => 'nullable|url',
+    ]);
+
+    // Nếu xác thực thất bại, trả về lỗi với mã 422 (Unprocessable Entity)
+    if ($validator->fails()) {
+        Log::error('Lỗi xác thực:', ['errors' => $validator->errors()]);
+        return response()->json(['success' => false, 'message' => 'Dữ liệu không hợp lệ', 'errors' => $validator->errors()], 422);
+    }
+
+    try {
+        // Tìm banner theo ID
+        $banner = BannerMkt::findOrFail($id);
+
+        // Cập nhật thông tin banner
+        $banner->name = $request->name;
+
+        // Lưu hình ảnh mới nếu có
+        if ($request->hasFile('image')) {
+            // Xóa hình ảnh cũ nếu có
+            if ($banner->image) {
+                Storage::delete($banner->image);
+            }
+            // Lưu hình ảnh mới vào thư mục 'banners' của storage
+            $banner->image = $request->file('image')->store('banners', 'public');
+            Log::info('Hình ảnh đã được cập nhật cho banner.', ['image_path' => $banner->image]);
+        }
+
+        // Cập nhật link của banner
+        $banner->link = $request->link;
+
+        // Lưu thay đổi vào cơ sở dữ liệu
+        $banner->save();
+
+        // Ghi log khi cập nhật thành công
+        Log::info('Banner đã được cập nhật thành công.', ['banner_id' => $banner->id]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Banner đã được cập nhật thành công.',
+            'data' => $banner
+        ]);
+    } catch (ModelNotFoundException $e) {
+        // Xử lý lỗi không tìm thấy banner
+        Log::error('Không tìm thấy banner:', ['banner_id' => $id]);
+        return response()->json(['success' => false, 'message' => 'Banner không tồn tại.'], 404);
+    } catch (\Exception $e) {
+        // Xử lý lỗi hệ thống hoặc cơ sở dữ liệu
+        Log::error('Lỗi cập nhật banner:', [
+            'error_message' => $e->getMessage(),
+            'stack_trace' => $e->getTraceAsString()
+        ]);
+        return response()->json(['success' => false, 'message' => 'Cập nhật banner không thành công.', 'error' => $e->getMessage()], 500);
+    }
+}
+
 
     /**
      * @OA\Get(
@@ -260,6 +298,10 @@ public function store(Request $request)
      */
     public function show(string $id)
     {
+        if (!Auth::check()) {
+            return response()->json(['message' => 'Vui lòng đăng nhập'], 401);
+        }
+
         $banner = BannerMkt::findOrFail($id);
         return response()->json(['success' => true, 'data' => $banner]);
     }
@@ -304,6 +346,10 @@ public function store(Request $request)
      */
     public function destroy(string $id)
     {
+        if (!Auth::check()) {
+            return response()->json(['message' => 'Vui lòng đăng nhập'], 401);
+        }
+
         try {
             $banner = BannerMkt::findOrFail($id);
             if ($banner->image) {
