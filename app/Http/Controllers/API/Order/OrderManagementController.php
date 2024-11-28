@@ -148,8 +148,7 @@ class OrderManagementController extends Controller
 
 
      $order = Order::with(['orderItems.product', 'address', 'user'])
-         ->where('user_id', Auth::id())
-         ->findOrFail($id);
+     ->findOrFail($id);
     $totalAllOrders = Order::sum('total_amount');
      return response()->json([
          'order_id' => $order->id,
