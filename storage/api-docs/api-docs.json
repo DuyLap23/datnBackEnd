@@ -2983,7 +2983,7 @@
                     "Category"
                 ],
                 "summary": "Lấy chi tiết danh mục hoặc lấy sản phẩm theo danh mục",
-                "operationId": "6a038665b20191638e1608ea8897bf64",
+                "operationId": "c6de4315df80a7f833eae03049624a49",
                 "parameters": [
                     {
                         "name": "id",
@@ -3543,7 +3543,7 @@
                 ],
                 "summary": "Lấy bình luận theo ID",
                 "description": "Lấy thông tin chi tiết của một bình luận dựa trên ID được cung cấp.",
-                "operationId": "11bb0539b32c9a718800f6ad89540b50",
+                "operationId": "82423a558e8e59fb7d702040169c0641",
                 "parameters": [
                     {
                         "name": "id",
@@ -7846,73 +7846,48 @@
         "/api/vouchers": {
             "get": {
                 "tags": [
-                    "Voucher"
+                    "Vouchers"
                 ],
-                "summary": "Danh sách voucher",
-                "description": "Lấy danh sách tất cả các voucher khả dụng trong hệ thống.",
+                "summary": "Lấy danh sách voucher có thể áp dụng cho giỏ hàng",
                 "operationId": "06df6cab7d218df61f91ccaa43f7bbbf",
                 "parameters": [
                     {
-                        "name": "page",
+                        "name": "status",
                         "in": "query",
-                        "description": "Trang hiện tại để phân trang",
+                        "description": "Lọc voucher theo trạng thái (active/inactive)",
                         "required": false,
                         "schema": {
-                            "type": "integer",
-                            "example": 1
+                            "type": "string",
+                            "enum": [
+                                "active",
+                                "inactive"
+                            ]
                         }
                     },
                     {
-                        "name": "limit",
+                        "name": "type",
                         "in": "query",
-                        "description": "Số lượng bản ghi trên mỗi trang",
+                        "description": "Lọc voucher theo loại giảm giá",
                         "required": false,
                         "schema": {
-                            "type": "integer",
-                            "example": 10
+                            "type": "string",
+                            "enum": [
+                                "fixed",
+                                "percentage"
+                            ]
                         }
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "Danh sách voucher",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "properties": {
-                                        "data": {
-                                            "type": "array",
-                                            "items": {
-                                                "$ref": "#/components/schemas/Voucher"
-                                            }
-                                        },
-                                        "pagination": {
-                                            "properties": {
-                                                "current_page": {
-                                                    "type": "integer",
-                                                    "example": 1
-                                                },
-                                                "total_pages": {
-                                                    "type": "integer",
-                                                    "example": 5
-                                                },
-                                                "total_items": {
-                                                    "type": "integer",
-                                                    "example": 50
-                                                }
-                                            },
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "Lỗi server"
+                        "description": "Thành công"
                     }
-                }
+                },
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ]
             },
             "post": {
                 "tags": [
@@ -8889,6 +8864,10 @@
         {
             "name": "User Comments",
             "description": "User Comments"
+        },
+        {
+            "name": "Vouchers",
+            "description": "Vouchers"
         },
         {
             "name": "Voucher",

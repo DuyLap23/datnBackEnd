@@ -141,9 +141,9 @@ Route::group(
 
         Route::get('banners', [BannerMktController::class, 'index']);
         Route::post('banners', [BannerMktController::class, 'store']);
-        Route::put('banners/{id}', [BannerMktController::class, 'update']);
+        Route::post('banners/update/{id}', [BannerMktController::class, 'update']);
         Route::get('banners/{id}', [BannerMktController::class, 'show']);
-        Route::delete('banners/{id}', [BannerMktController::class, 'destroy']);
+        Route::delete('banners/delete/{id}', [BannerMktController::class, 'destroy']);
 
         Route::get('/orders/order-status-tracking', [OrderTrackingController::class, 'index']);
         Route::get('/orders', [OrderManagementController::class, 'index']);
