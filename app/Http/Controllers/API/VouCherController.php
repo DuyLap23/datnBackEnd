@@ -704,6 +704,58 @@ class VouCherController extends Controller
 
 //     return round($discount, 2);
 // }
+public function getAllVouchers(Request $request)
+{
+    try {
+        $query = Voucher::query();
+        $now = Carbon::now();
 
+        // Lấy trạng thái voucher từ request (active/inactive/all)
+        $status = $request->get('status', 'all');
+        
+        switch($status) {
+            case 'active':
+                $query->where('voucher_active', true)
+                      ->where('start_date', '<=', $now)
+                      ->where('end_date', '>=', $now)
+                      ->where('used_count', '<', DB::raw('usage_limit'));
+                break;
+                
+            case 'inactive':
+                $query->where(function($q) use ($now) {
+                    $q->where('voucher_active', false)
+                      ->orWhere('start_date', '>', $now)
+                      ->orWhere('end_date', '<', $now)
+                      ->orWhere('used_count', '>=', DB::raw('usage_limit'));
+                });
+                break;
+                
+            case 'all':
+            default:
+                break;
+        }
 
+        $vouchers = $query->get();
+
+        // Tính toán summary trực tiếp từ collection
+        $summary = [
+            'total_vouchers' => $vouchers->count(),
+            'active_vouchers' => $vouchers->where('status', 'active')->count(),
+            'inactive_vouchers' => $vouchers->where('status', 'inactive')->count(),
+        ];
+
+        return response()->json([
+            'vouchers' => $vouchers,
+            'summary' => $summary,
+            'message' => 'Lấy danh sách voucher thành công'
+        ]);
+
+    } catch (Exception $e) {
+        return response()->json([
+            'message' => 'Lỗi khi lấy danh sách voucher',
+            'error' => $e->getMessage()
+        ], 500);
+    }
 }
+}
+

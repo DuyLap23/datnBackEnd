@@ -1,34 +1,36 @@
 <?php
 
+use App\Http\Controllers\API\ProductShowHomeController;
+use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\API\TagController;
+use App\Http\Controllers\API\CartController;
+use App\Http\Controllers\API\BrandController;
 use App\Http\Controllers\API\AddressController;
-use App\Http\Controllers\API\Auth\LoginController;
-use App\Http\Controllers\API\Auth\RegisterController;
+use App\Http\Controllers\API\CommentController;
+use App\Http\Controllers\API\ProductController;
+use App\Http\Controllers\API\VouCherController;
 use App\Http\Controllers\API\Auth\ResetPassword;
+use App\Http\Controllers\API\CategoryController;
 use App\Http\Controllers\API\Auth\UserController;
 use App\Http\Controllers\API\BannerMktController;
-use App\Http\Controllers\API\BrandController;
-use App\Http\Controllers\API\CartController;
-use App\Http\Controllers\API\CategoryController;
-use App\Http\Controllers\API\CommentController;
-use App\Http\Controllers\API\FavouriteListController;
-use App\Http\Controllers\API\Order\DeliveryController;
+use App\Http\Controllers\API\Auth\LoginController;
 use App\Http\Controllers\API\Order\OrderController;
-use App\Http\Controllers\API\Order\OrderManagementController;
-use App\Http\Controllers\API\Order\OrderTrackingController;
-use App\Http\Controllers\API\Order\OrderUserManagementController;
-use App\Http\Controllers\API\ProductColorController;
-use App\Http\Controllers\API\ProductController;
 use App\Http\Controllers\API\ProductSizeController;
-use App\Http\Controllers\API\ProductVariantController;
+use App\Http\Controllers\Api\UserCommentController;
+use App\Http\Controllers\API\ProductColorController;
+use App\Http\Controllers\API\Auth\RegisterController;
+use App\Http\Controllers\API\FavouriteListController;
 use App\Http\Controllers\API\Search\FilterController;
 use App\Http\Controllers\API\Search\SearchController;
+use App\Http\Controllers\API\Order\DeliveryController;
+use App\Http\Controllers\API\ProductVariantController;
+use App\Http\Controllers\API\Order\OrderTrackingController;
+use App\Http\Controllers\API\Order\OrderManagementController;
+use App\Http\Controllers\API\Order\OrderUserManagementController;
+use App\Http\Controllers\API\Statistical\UserStatisticalController;
 use App\Http\Controllers\API\Statistical\OrderStatisticalController;
 use App\Http\Controllers\API\Statistical\ProductStatisticalController;
 use App\Http\Controllers\API\Statistical\RevenueStatisticalController;
-use App\Http\Controllers\API\Statistical\UserStatisticalController;
-use App\Http\Controllers\API\TagController;
-use App\Http\Controllers\Api\UserCommentController;
-use App\Http\Controllers\API\VouCherController;
 
 
 /*
@@ -100,6 +102,10 @@ Route::get('vnpay/return',[OrderController::class, 'paymentReturn'])->name('vnpa
 Route::get('voucher/{id}', [VouCherController::class, 'show']);
 Route::post('voucher/apply', [VouCherController::class, 'apply']);
 
+Route::get('top-selling', [ProductShowHomeController::class, 'topSellingProducts'])->name('topSelling');
+Route::get('top-view', [ProductShowHomeController::class, 'getTopViewedProducts'])->name('topView');
+
+
 //ADMIN
 Route::group(
     [
@@ -157,6 +163,7 @@ Route::group(
        Route::post('voucher', [VouCherController::class, 'store']);
        Route::put('voucher/{id}', [VouCherController::class, 'update']);
        Route::delete('voucher/{id}', [VouCherController::class, 'destroy']);
+       Route::get('voucher', [VouCherController::class, 'getAllVouchers']);
 
 
        Route::get('statistical/revenue', [RevenueStatisticalController::class, 'revenue'])->name('statisticalRevenue');
