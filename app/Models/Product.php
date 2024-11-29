@@ -61,6 +61,10 @@ class Product extends Model
         return $this->belongsToMany(Tag::class, 'product_tags');
     }
 
+    public function comments() {
+        return $this->hasMany(Comment::class);
+    }
+    
     public function productImages()
     {
         return $this->hasMany(ProductImage::class);
