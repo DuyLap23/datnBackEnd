@@ -364,5 +364,47 @@ public function store(Request $request)
             return response()->json(['success' => false, 'message' => 'Xóa banner không thành công.', 'error' => $e->getMessage()], 500);
         }
     }
+   /**
+ * @OA\Get(
+ *     path="/api/home/banners",
+ *     tags={"Banners"},
+ *     summary="Lấy danh sách banner dành cho trang chủ",
+ *     description="Trả về danh sách các banner được hiển thị trên trang chủ.",
+ *     @OA\Response(
+ *         response=200,
+ *         description="Danh sách banner trang chủ",
+ *         @OA\JsonContent(
+ *             @OA\Property(property="success", type="boolean", example=true),
+ *             @OA\Property(property="data", type="array", @OA\Items(ref="#/components/schemas/Banner"))
+ *         )
+ *     ),
+ *     @OA\Response(
+ *         response=500,
+ *         description="Lỗi khi lấy danh sách banner trang chủ",
+ *         @OA\JsonContent(
+ *             @OA\Property(property="success", type="boolean", example=false),
+ *             @OA\Property(property="message", type="string", example="Lỗi không xác định.")
+ *         )
+ *     )
+ * )
+ */
+public function getHomeBanners()
+{
+    $banners = BannerMkt::where('status', 1)
+                        ->limit(5)
+                        ->get(['id', 'name', 'image', 'link', 'status', 'start_date', 'end_date', 'created_at', 'updated_at']);
     
+    if ($banners->isEmpty()) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Không có banner nào hoạt động',
+            'data' => [] 
+        ]);
+    }
+    return response()->json([
+        'success' => true,
+        'message' => 'Danh sách banner thành công',
+        'data' => $banners 
+    ]);
+}
 }

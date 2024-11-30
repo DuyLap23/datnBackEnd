@@ -1293,6 +1293,41 @@ paths:
       security:
         -
           Bearer: []
+  /api/home/banners:
+    get:
+      tags:
+        - Banners
+      summary: 'Lấy danh sách banner dành cho trang chủ'
+      description: 'Trả về danh sách các banner được hiển thị trên trang chủ.'
+      operationId: a882ee3c4c37f6f51c3c83fce2e024e1
+      responses:
+        200:
+          description: 'Danh sách banner trang chủ'
+          content:
+            application/json:
+              schema:
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Banner'
+                type: object
+        500:
+          description: 'Lỗi khi lấy danh sách banner trang chủ'
+          content:
+            application/json:
+              schema:
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: 'Lỗi không xác định.'
+                type: object
   /api/admin/brands/:
     post:
       tags:
