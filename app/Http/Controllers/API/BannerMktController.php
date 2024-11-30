@@ -401,6 +401,9 @@ public function getHomeBanners()
             'data' => [] 
         ]);
     }
+    foreach ($banners as $banner) {
+        $banner->image = asset('storage/' . $banner->image);
+    }
     return response()->json([
         'success' => true,
         'message' => 'Danh sách banner thành công',
