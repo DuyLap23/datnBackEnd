@@ -103,8 +103,11 @@ Route::get('voucher/{id}', [VouCherController::class, 'show']);
 Route::post('voucher/apply', [VouCherController::class, 'apply']);
 Route::get('home/banners', [BannerMktController::class, 'getHomeBanners'])->name('home.banners');
 
+
+
 Route::get('top-selling', [ProductShowHomeController::class, 'topSellingProducts'])->name('topSelling');
 Route::get('top-view', [ProductShowHomeController::class, 'getTopViewedProducts'])->name('topView');
+
 
 
 //ADMIN
@@ -137,6 +140,7 @@ Route::group(
         Route::apiResource('product/colors', ProductColorController::class);
         Route::apiResource('product/sizes', ProductSizeController::class);
         Route::apiResource('product/variants', ProductVariantController::class);
+        Route::post('products/search', [ProductController::class, 'searchProduct']);
 
         Route::get('users', [UserController::class, 'index']);
 

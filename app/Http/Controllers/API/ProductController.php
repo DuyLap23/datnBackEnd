@@ -468,6 +468,14 @@ class ProductController extends Controller
 
     public function store(ProductRequest $request)
     {
+        $currentUser = auth('api')->user();
+        if (!$currentUser || !$currentUser->isAdmin()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Bạn không phải admin.'
+            ], 403);
+        }
+    
         DB::beginTransaction();
         try {
             // Lấy dữ liệu sản phẩm và gán các giá trị mặc định
@@ -775,6 +783,14 @@ class ProductController extends Controller
 
     public function update(Request $request, $slug)
     {
+        $currentUser = auth('api')->user();
+        if (!$currentUser || !$currentUser->isAdmin()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Bạn không phải admin.'
+            ], 403);
+        }
+    
         $product = Product::where('slug', $slug)->firstOrFail();
 
         DB::beginTransaction();
@@ -881,6 +897,14 @@ class ProductController extends Controller
     public function destroy(string $id)
     {
         $currentUser = auth('api')->user();
+        if (!$currentUser || !$currentUser->isAdmin()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Bạn không phải admin.'
+            ], 403);
+        }
+    
+        $currentUser = auth('api')->user();
         if (!$currentUser) {
             return response()->json([
                 'success' => false,
@@ -956,4 +980,63 @@ class ProductController extends Controller
             'is_active' => $id->is_active,
         ]);
     }
+
+
+    public function searchProduct(Request $request)
+{
+    try {
+        $keyword = $request->input('keyword');
+        
+        if (empty($keyword)) {
+            return response()->json([
+                'message' => 'Từ khóa tìm kiếm không được để trống',
+                'data' => []
+            ], 400);
+        }
+
+        // Tìm trong cả sản phẩm đã xóa và chưa xóa
+        $products = Product::withTrashed()
+            ->where(function ($query) use ($keyword) {
+                $query->where('name', 'LIKE', "%{$keyword}%")
+                      ->orWhere('slug', 'LIKE', "%{$keyword}%");
+            })
+            ->with(['category', 'brand', 'productImages', 'productVariants.productColor', 'productVariants.productSize'])
+            ->get();
+
+        // Phân loại kết quả
+        $activeProducts = $products->whereNull('deleted_at');
+        $deletedProducts = $products->whereNotNull('deleted_at');
+
+        // Chuẩn bị response
+        $response = [
+            'message' => 'Tìm kiếm sản phẩm thành công',
+            'data' => $activeProducts,
+            'total_active' => $activeProducts->count()
+        ];
+
+        // Thêm thông tin về sản phẩm đã xóa nếu có
+        if ($deletedProducts->count() > 0) {
+            $response['deleted_products'] = [
+                'message' => 'Sản phẩm đã bị xóa trước đó',
+                'data' => $deletedProducts->map(function ($product) {
+                    return [
+                        'id' => $product->id,
+                        'name' => $product->name,
+                        'deleted_at' => $product->deleted_at->format('d/m/Y H:i:s')
+                    ];
+                }),
+                'total_deleted' => $deletedProducts->count()
+            ];
+        }
+
+        return response()->json($response, 200);
+
+    } catch (\Exception $e) {
+        Log::error($e->getMessage());
+        return response()->json([
+            'message' => 'Lỗi khi tìm kiếm sản phẩm',
+            'error' => $e->getMessage()
+        ], 500);
+    }
+}
 }
