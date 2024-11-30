@@ -191,28 +191,30 @@ class ProductController extends Controller
      */
 
 
-    public function index()
-    {
-        $products = Product::with(
-            [
-                'category',
-                'brand',
-                'tags',
-                'productImages',
-                'productVariants.productColor',
-                'productVariants.productSize'
-            ]
-        )->whereNull('deleted_at')->get(); // Chỉ lấy các sản phẩm chưa bị soft delete
-
-        return response()->json(
-            [
-                'success' => true,
-                'message' => 'Lấy thành công sản phẩm',
-                'products' => $products,
-            ],
-            200,
-        );
-    }
+     public function index()
+     {
+         $products = Product::with(
+             [
+                 'category',
+                 'brand',
+                 'tags',
+                 'productImages',
+                 'productVariants.productColor',
+                 'productVariants.productSize'
+             ]
+         )->whereNull('deleted_at') // Chỉ lấy các sản phẩm chưa bị soft delete
+           ->paginate(10); // Phân trang, mỗi trang 10 bản ghi
+     
+         return response()->json(
+             [
+                 'success' => true,
+                 'message' => 'Lấy thành công sản phẩm',
+                 'products' => $products,
+             ],
+             200
+         );
+     }
+     
 
     /**
      * @OA\Post(
