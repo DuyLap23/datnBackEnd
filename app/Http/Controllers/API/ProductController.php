@@ -2,17 +2,18 @@
 
 namespace App\Http\Controllers\API;
 
-use App\Http\Controllers\Controller;
-use App\Http\Requests\ProductRequest;
-use App\Models\Category;
+use Cache;
 use App\Models\Product;
-use App\Models\ProductVariant;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
+use App\Models\Category;
+use Illuminate\Support\Str;
 use Illuminate\Http\Request;
+use App\Models\ProductVariant;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use App\Http\Controllers\Controller;
+use App\Http\Requests\ProductRequest;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 class ProductController extends Controller
 {
@@ -483,10 +484,10 @@ class ProductController extends Controller
             // Lấy dữ liệu sản phẩm và gán các giá trị mặc định
             $dataProduct = $request->except(['product_variants', 'tags', 'product_images']);
             $dataProduct['is_active'] = $request->input('is_active', 0);
-            $dataProduct['is_new'] = $request->input('is_new', 0);
-            $dataProduct['is_show_home'] = $request->input('is_show_home', 0);
+            // $dataProduct['is_new'] = $request->input('is_new', 0);
+            // $dataProduct['is_show_home'] = $request->input('is_show_home', 0);
             $dataProduct['slug'] = Str::slug($dataProduct['name']) . '-' . Str::uuid();
-            $dataProduct['sku'] = Str::uuid();
+            // $dataProduct['sku'] = Str::uuid();
 
             // Xử lý hình ảnh thumbnail
             if ($request->hasFile('img_thumbnail')) {
@@ -626,7 +627,7 @@ class ProductController extends Controller
             $cacheKey = "product_view_{$product->id}_{$userIp}";
     
             // Kiểm tra xem IP này đã tăng view trong 10 phút chưa
-            if (!\Cache::has($cacheKey)) {
+            if (!Cache::has($cacheKey)) {
                 $product->increment('view'); // Tăng view
                 \Cache::put($cacheKey, true, now()->addMinutes(2)); // Lưu vào cache 2 phút
             }
@@ -665,8 +666,8 @@ class ProductController extends Controller
                 'brand_name' => $productData->brand_name,
                 'img_thumbnail' => $productData->img_thumbnail,
                 'is_active' => $productData->is_active,
-                'is_new' => $productData->is_new,
-                'is_show_home' => $productData->is_show_home,
+                // 'is_new' => $productData->is_new,
+                // 'is_show_home' => $productData->is_show_home,
                 'description' => $productData->description,
                 'content' => $productData->content,
                 'view' => $productData->view,
@@ -800,8 +801,8 @@ class ProductController extends Controller
             $dataProduct = $request->except(['product_variants', 'tags', 'product_images']);
             $dataProduct = array_merge($dataProduct, [
                 'is_active' => $request->input('is_active', 0),
-                'is_new' => $request->input('is_new', 0),
-                'is_show_home' => $request->input('is_show_home', 0),
+                // 'is_new' => $request->input('is_new', 0),
+                // 'is_show_home' => $request->input('is_show_home', 0),
                 'slug' => Str::slug($dataProduct['name']) . '-' . $product->sku,
             ]);
 
