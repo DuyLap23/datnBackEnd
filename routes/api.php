@@ -101,6 +101,7 @@ Route::get('vnpay/return',[OrderController::class, 'paymentReturn'])->name('vnpa
 
 Route::get('voucher/{id}', [VouCherController::class, 'show']);
 Route::post('voucher/apply', [VouCherController::class, 'apply']);
+Route::get('home/banners', [BannerMktController::class, 'getHomeBanners'])->name('home.banners');
 
 Route::get('top-selling', [ProductShowHomeController::class, 'topSellingProducts'])->name('topSelling');
 Route::get('top-view', [ProductShowHomeController::class, 'getTopViewedProducts'])->name('topView');
