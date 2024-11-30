@@ -209,7 +209,7 @@ class DeliveryController extends Controller
         $order->recipient_name = $request->input('recipient_name', null);
         $order->recipient_signature = $request->input('signature', null);
         $order->save();
-        event(new EventsOrderDelivered($order));
+        // event(new EventsOrderDelivered($order));
         return response()->json(['message' => 'Đơn hàng đã được xác nhận giao hàng thành công.']);
     }
 
