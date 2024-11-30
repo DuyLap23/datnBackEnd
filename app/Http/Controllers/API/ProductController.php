@@ -982,7 +982,215 @@ class ProductController extends Controller
             'is_active' => $id->is_active,
         ]);
     }
-
+/**
+ * @OA\Get(
+ *     path="/api/products/search",
+ *     summary="Tìm kiếm sản phẩm",
+ *     description="Tìm kiếm sản phẩm theo tên hoặc slug, bao gồm cả sản phẩm đã xóa.",
+ *     tags={"Product"},
+ *     @OA\Parameter(
+ *         name="keyword",
+ *         in="query",
+ *         description="Từ khóa tìm kiếm (tên hoặc slug của sản phẩm)",
+ *         required=true,
+ *         @OA\Schema(type="string")
+ *     ),
+ *     @OA\Response(
+ *         response=200,
+ *         description="Thành công",
+ *         @OA\JsonContent(
+ *             @OA\Property(
+ *                 property="message",
+ *                 type="string",
+ *                 example="Tìm kiếm sản phẩm thành công",
+ *             ),
+ *             @OA\Property(
+ *                 property="data",
+ *                 type="array",
+ *                 @OA\Items(
+ *                     @OA\Property(
+ *                         property="id",
+ *                         type="integer",
+ *                         example=1,
+ *                     ),
+ *                     @OA\Property(
+ *                         property="name",
+ *                         type="string",
+ *                         example="Product Name",
+ *                     ),
+ *                     @OA\Property(
+ *                         property="description",
+ *                         type="string",
+ *                         example="Mô tả sản phẩm.",
+ *                     ),
+ *                     @OA\Property(
+ *                         property="price",
+ *                         type="number",
+ *                         format="float",
+ *                         example=99.99,
+ *                     ),
+ *                     @OA\Property(
+ *                         property="category",
+ *                         type="object",
+ *                         @OA\Property(
+ *                             property="id",
+ *                             type="integer",
+ *                             example=2,
+ *                         ),
+ *                         @OA\Property(
+ *                             property="name",
+ *                             type="string",
+ *                             example="Category Name",
+ *                         ),
+ *                     ),
+ *                     @OA\Property(
+ *                         property="brand",
+ *                         type="object",
+ *                         @OA\Property(
+ *                             property="id",
+ *                             type="integer",
+ *                             example=1,
+ *                         ),
+ *                         @OA\Property(
+ *                             property="name",
+ *                             type="string",
+ *                             example="Brand Name",
+ *                         ),
+ *                     ),
+ *                     @OA\Property(
+ *                         property="productImages",
+ *                         type="array",
+ *                         @OA\Items(
+ *                             @OA\Property(
+ *                                 property="url",
+ *                                 type="string",
+ *                                 example="https://picsum.photos/200/300?random=1",
+ *                             ),
+ *                         )
+ *                     ),
+ *                     @OA\Property(
+ *                         property="productVariants",
+ *                         type="array",
+ *                         @OA\Items(
+ *                             @OA\Property(
+ *                                 property="id",
+ *                                 type="integer",
+ *                                 example=1,
+ *                             ),
+ *                             @OA\Property(
+ *                                 property="price",
+ *                                 type="number",
+ *                                 format="float",
+ *                                 example=99.99,
+ *                             ),
+ *                             @OA\Property(
+ *                                 property="productColor",
+ *                                 type="object",
+ *                                 @OA\Property(
+ *                                     property="id",
+ *                                     type="integer",
+ *                                     example=1,
+ *                                 ),
+ *                                 @OA\Property(
+ *                                     property="name",
+ *                                     type="string",
+ *                                     example="Red",
+ *                                 ),
+ *                             ),
+ *                             @OA\Property(
+ *                                 property="productSize",
+ *                                 type="object",
+ *                                 @OA\Property(
+ *                                     property="id",
+ *                                     type="integer",
+ *                                     example=1,
+ *                                 ),
+ *                                 @OA\Property(
+ *                                     property="name",
+ *                                     type="string",
+ *                                     example="L",
+ *                                 ),
+ *                             ),
+ *                         ),
+ *                     ),
+ *                 )
+ *             ),
+ *             @OA\Property(
+ *                 property="total_active",
+ *                 type="integer",
+ *                 example=5,
+ *             ),
+ *             @OA\Property(
+ *                 property="deleted_products",
+ *                 type="object",
+ *                 @OA\Property(
+ *                     property="message",
+ *                     type="string",
+ *                     example="Một số sản phẩm đã bị xóa",
+ *                 ),
+ *                 @OA\Property(
+ *                     property="data",
+ *                     type="array",
+ *                     @OA\Items(
+ *                         @OA\Property(
+ *                             property="id",
+ *                             type="integer",
+ *                             example=1,
+ *                         ),
+ *                         @OA\Property(
+ *                             property="name",
+ *                             type="string",
+ *                             example="Deleted Product Name",
+ *                         ),
+ *                         @OA\Property(
+ *                             property="deleted_at",
+ *                             type="string",
+ *                             example="30/11/2024 15:30:00",
+ *                         ),
+ *                     ),
+ *                 ),
+ *                 @OA\Property(
+ *                     property="total_deleted",
+ *                     type="integer",
+ *                     example=1,
+ *                 ),
+ *             ),
+ *         )
+ *     ),
+ *     @OA\Response(
+ *         response=400,
+ *         description="Lỗi validation",
+ *         @OA\JsonContent(
+ *             @OA\Property(
+ *                 property="message",
+ *                 type="string",
+ *                 example="Từ khóa tìm kiếm không được để trống",
+ *             ),
+ *             @OA\Property(
+ *                 property="data",
+ *                 type="array",
+ *                 example={},
+ *             ),
+ *         )
+ *     ),
+ *     @OA\Response(
+ *         response=500,
+ *         description="Lỗi server",
+ *         @OA\JsonContent(
+ *             @OA\Property(
+ *                 property="message",
+ *                 type="string",
+ *                 example="Lỗi khi tìm kiếm sản phẩm",
+ *             ),
+ *             @OA\Property(
+ *                 property="error",
+ *                 type="string",
+ *                 example="Server Error Message",
+ *             ),
+ *         )
+ *     )
+ * )
+ */
 
     public function searchProduct(Request $request)
 {
