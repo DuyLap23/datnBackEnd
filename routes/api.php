@@ -100,6 +100,7 @@ Route::get('vnpay/return',[OrderController::class, 'paymentReturn'])->name('vnpa
 
 Route::get('voucher/{id}', [VouCherController::class, 'show']);
 Route::post('voucher/apply', [VouCherController::class, 'apply']);
+Route::get('home/banners', [BannerMktController::class, 'getHomeBanners'])->name('home.banners');
 
 //ADMIN
 Route::group(
