@@ -191,44 +191,52 @@ class ProductController extends Controller
      */
 
 
-     public function index()
-     {
-         $products = Product::with(
-             [
-                 'category',
-                 'brand',
-                 'tags',
-                 'productVariants.productColor',
-                 'productVariants.productSize',
-                 'comments' // Đảm bảo lấy các bình luận
-             ]
-         )
-         ->where('is_active', 1)
-         ->whereNull('deleted_at') // Chỉ lấy các sản phẩm chưa bị soft delete
-         ->get();
-     
-         // Tính trung bình số sao và số lượng đánh giá cho mỗi sản phẩm
-         $products->each(function ($product) {
-             // Tính tổng số sao và số lượng đánh giá
-             $totalRatings = $product->comments->count();
-             $averageRating = $totalRatings > 0
-                 ? $product->comments->avg('rating') 
-                 : 0;
-     
-             // Thêm vào thuộc tính trung bình sao và số đánh giá cho mỗi sản phẩm
-             $product->average_rating = $averageRating;
-             $product->total_ratings = $totalRatings;
-         });
-         return response()->json(
-             [
-                 'success' => true,
-                 'message' => 'Lấy thành công sản phẩm',
-                 'products' => $products,
-             ],
-             200,
-         );
-     }
-     
+    public function index()
+    {
+        $result = [];
+        $startTime = microtime(true);
+        Product::with(
+            [
+                'category',
+                // 'brand',
+                // 'tags',
+                // 'productVariants.productColor',
+                // 'productVariants.productSize',
+                'comments' 
+            ]
+        )
+            ->where('is_active', 1)
+            ->whereNull('deleted_at') 
+            ->chunk(10, function ($products) use (&$result) {
+
+                $products->each(function ($product) {
+
+                    $totalRatings = $product->comments->count();
+                    $averageRating = $totalRatings > 0
+                        ? $product->comments->avg('rating')
+                        : 0;
+
+                    $product->average_rating = $averageRating;
+                    $product->total_ratings = $totalRatings;
+                });
+
+                // Lưu các sản phẩm đã được xử lý vào mảng kết quả
+                $result = array_merge($result, $products->toArray());
+            });
+            $endTime = microtime(true);
+            $executionTime = $endTime - $startTime;
+        // Trả về kết quả dưới dạng JSON
+        return response()->json(
+            [
+                'success' => true,
+                'message' => 'Lấy thành công sản phẩm',
+                'products' => $result,
+                   'execution_time' => number_format($executionTime, 5)
+            ],
+            200
+        );
+    }
+
 
     /**
      * @OA\Post(
@@ -614,7 +622,7 @@ class ProductController extends Controller
             // Xử lí tăng view
             $userIp = request()->ip();
             $cacheKey = "product_view_{$product->id}_{$userIp}";
-    
+
             // Kiểm tra xem IP này đã tăng view trong 10 phút chưa
             if (!\Cache::has($cacheKey)) {
                 $product->increment('view'); // Tăng view
@@ -641,6 +649,7 @@ class ProductController extends Controller
                     return [
                         'id' => $relatedProduct->id,
                         'name' => $relatedProduct->name,
+                        'slug' => $relatedProduct->slug,
                         'img_thumbnail' => $relatedProduct->img_thumbnail,
                         'price_regular' => $relatedProduct->price_regular,
                         'price_sale' => $relatedProduct->price_sale,
