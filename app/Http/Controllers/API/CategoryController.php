@@ -573,7 +573,7 @@ class CategoryController extends Controller
             // Lấy sản phẩm thuộc danh mục
             $products = Product::where('category_id', $id)
                 ->where('is_active', 1)
-                ->select(['id', 'name', 'img_thumbnail', 'price_sale', 'price_regular', 'brand_id']) // Chỉ chọn các cột cần thiết
+                ->select(['id', 'name', 'slug','img_thumbnail', 'price_sale', 'price_regular', 'brand_id']) // Chỉ chọn các cột cần thiết
                 ->get();
 
 
