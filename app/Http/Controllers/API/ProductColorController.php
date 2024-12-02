@@ -268,12 +268,19 @@ class ProductColorController extends Controller
     public function destroy($id)
     {
         try {
-            $color = ProductColor::findOrFail($id);
+            $color = ProductColor::findOrFail($id);$cartItems = Cart::whereHas('products', function ($query) use ($color) {
+                $query->where('color_id', $color->id);
+            })->get();
+            foreach ($cartItems as $cartItem) {
+                $cartItem->products->each(function ($product) use ($color) {
+                    $product->update(['status' => 1]);
+                });
+            }
             $color->delete();
 
             return response()->json([
                 'success' => true,
-                'message' => 'Màu sắc đã được xóa thành công.'
+                'message' => 'Màu sắc đã được xóa thành công và sản phẩm trong giỏ hàng đã được cập nhật.'
             ]);
         } catch (ModelNotFoundException $e) {
             return response()->json([

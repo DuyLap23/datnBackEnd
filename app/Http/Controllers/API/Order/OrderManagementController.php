@@ -74,8 +74,12 @@ class OrderManagementController extends Controller
                break;
        }
 
-       // Lấy danh sách đơn hàng
-       $orders = $query->with(['orderItems.product', 'user'])->get();
+       $orders = $query->with([
+        'orderItems.product' => function ($query) {
+            $query->withTrashed(); 
+        },
+        'user'
+    ])->paginate(10);
 
        if ($orders->isEmpty()) {
            return response()->json(['message' => 'Không có đơn hàng nào', 'orders' => []], 404);

@@ -245,12 +245,33 @@ class ProductSizeController extends Controller
     {
         try {
             $size = ProductSize::findOrFail($id);
+            $cartItems = Cart::whereHas('products', function ($query) use ($size) {
+                $query->where('size_id', $size->id);
+            })->get();
+            foreach ($cartItems as $cartItem) {
+                $cartItem->products->each(function ($product) use ($size) {
+                    $product->update(['status' => 1]); 
+                });
+            }
+    
             $size->delete();
-            return response()->json(null, 204);
+            return response()->json([
+                'success' => true,
+                'message' => 'Kích thước đã được xóa thành công và sản phẩm trong giỏ hàng đã được cập nhật.'
+            ]);
         } catch (ModelNotFoundException $e) {
-            return response()->json(['message' => 'Size not found'], 404);
+            return response()->json([
+                'success' => false,
+                'message' => 'Không tìm thấy kích thước.',
+            ], 404);
         } catch (\Exception $e) {
-            return response()->json(['message' => 'Error deleting size', 'error' => $e->getMessage()], 500);
+            Log::error('Error deleting size: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Không thể xóa kích thước.',
+                'error' => $e->getMessage()
+            ], 500);
         }
     }
+    
 }
