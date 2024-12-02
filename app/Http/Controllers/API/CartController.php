@@ -10,6 +10,7 @@ use App\Models\ProductSize;
 use App\Models\ProductVariant;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 
 /**
  * @OA\Schema(
@@ -250,7 +251,7 @@ class CartController extends Controller
             $cartItem->status = $cartItem->product && $cartItem->product->deleted_at ? 1 : 0;
             $cartItem->save();
         });
-        \Log::info('delete_at' ,[$cartItems]);
+        Log::info('delete_at' ,[$cartItems]);
         $totalPrice = $cartItems->sum(function ($cartItem) {
             if (!$cartItem->product) {
                 return 0;

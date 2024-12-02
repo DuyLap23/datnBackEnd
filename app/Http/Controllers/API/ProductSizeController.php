@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
+use App\Models\Cart;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 
@@ -245,6 +246,14 @@ class ProductSizeController extends Controller
     {
         try {
             $size = ProductSize::findOrFail($id);
+            $cartItems = Cart::whereHas('products', function ($query) use ($size) {
+                $query->where('size_id', $size->id);
+            })->get();
+            foreach ($cartItems as $cartItem) {
+                $cartItem->products->each(function ($product) use ($size) {
+                    $product->update(['status' => 1]); 
+                });
+            }
             $size->delete();
             return response()->json(null, 204);
         } catch (ModelNotFoundException $e) {

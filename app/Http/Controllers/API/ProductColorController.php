@@ -8,6 +8,7 @@ use App\Models\ProductColor;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
+use App\Models\Cart;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 
@@ -269,6 +270,14 @@ class ProductColorController extends Controller
     {
         try {
             $color = ProductColor::findOrFail($id);
+            $cartItems = Cart::whereHas('products', function ($query) use ($color) {
+                $query->where('color_id', $color->id); 
+            })->get();
+            foreach ($cartItems as $cartItem) {
+                $cartItem->products->each(function ($product) use ($color) {
+                    $product->update(['status' => 1]); 
+                });
+            }
             $color->delete();
 
             return response()->json([
