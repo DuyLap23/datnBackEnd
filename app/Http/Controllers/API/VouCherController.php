@@ -859,7 +859,125 @@ class VouCherController extends Controller
             ], 500);
         }
     }
-
+/**
+ * @OA\Get(
+ *     path="/api/vouchers/search",
+ *     summary="Tìm kiếm voucher",
+ *     description="Tìm kiếm voucher theo tên hoặc mã, với khả năng lọc theo trạng thái",
+ *     tags={"Voucher"},
+ *     @OA\Parameter(
+ *         name="keyword",
+ *         in="query",
+ *         description="Từ khóa tìm kiếm (tên hoặc mã voucher)",
+ *         required=false,
+ *         @OA\Schema(type="string")
+ *     ),
+ *     @OA\Parameter(
+ *         name="status",
+ *         in="query",
+ *         description="Trạng thái voucher (0: không hoạt động, 1: hoạt động)",
+ *         required=false,
+ *         @OA\Schema(type="integer", enum={0, 1})
+ *     ),
+ *     @OA\Response(
+ *         response=200,
+ *         description="Thành công",
+ *         @OA\JsonContent(
+ *             @OA\Property(
+ *                 property="success",
+ *                 type="boolean",
+ *                 example=true
+ *             ),
+ *             @OA\Property(
+ *                 property="message",
+ *                 type="string",
+ *                 example="Tìm kiếm voucher thành công"
+ *             ),
+ *             @OA\Property(
+ *                 property="data",
+ *                 type="object",
+ *                 @OA\Property(
+ *                     property="active_vouchers",
+ *                     type="array",
+ *                     @OA\Items(
+ *                         @OA\Property(property="id", type="integer", example=1),
+ *                         @OA\Property(property="name", type="string", example="Giảm giá mùa hè"),
+ *                         @OA\Property(property="code", type="string", example="SUMMER2024"),
+ *                         @OA\Property(property="discount_type", type="string", example="percentage"),
+ *                         @OA\Property(property="discount_value", type="number", example=20),
+ *                         @OA\Property(property="start_date", type="string", format="date", example="2024-06-01"),
+ *                         @OA\Property(property="end_date", type="string", format="date", example="2024-08-31"),
+ *                         @OA\Property(property="usage_limit", type="integer", example=100),
+ *                         @OA\Property(property="used_count", type="integer", example=50)
+ *                     )
+ *                 ),
+ *                 @OA\Property(
+ *                     property="inactive_vouchers",
+ *                     type="array",
+ *                     @OA\Items(
+ *                         @OA\Property(property="id", type="integer", example=2),
+ *                         @OA\Property(property="name", type="string", example="Voucher cũ"),
+ *                         @OA\Property(property="code", type="string", example="OLD2023"),
+ *                         @OA\Property(property="end_date", type="string", format="date", example="2023-12-31")
+ *                     )
+ *                 ),
+ *                 @OA\Property(
+ *                     property="total_active",
+ *                     type="integer",
+ *                     example=5
+ *                 ),
+ *                 @OA\Property(
+ *                     property="total_inactive",
+ *                     type="integer",
+ *                     example=2
+ *                 )
+ *             )
+ *         )
+ *     ),
+ *     @OA\Response(
+ *         response=400,
+ *         description="Lỗi validation",
+ *         @OA\JsonContent(
+ *             @OA\Property(property="success", type="boolean", example=false),
+ *             @OA\Property(
+ *                 property="message",
+ *                 type="string",
+ *                 example="Từ khóa tìm kiếm không hợp lệ"
+ *             )
+ *         )
+ *     ),
+ *     @OA\Response(
+ *         response=403,
+ *         description="Lỗi phân quyền",
+ *         @OA\JsonContent(
+ *             @OA\Property(property="success", type="boolean", example=false),
+ *             @OA\Property(
+ *                 property="message",
+ *                 type="string",
+ *                 example="Bạn không phải admin"
+ *             )
+ *         )
+ *     ),
+ *     @OA\Response(
+ *         response=500,
+ *         description="Lỗi server",
+ *         @OA\JsonContent(
+ *             @OA\Property(property="success", type="boolean", example=false),
+ *             @OA\Property(
+ *                 property="message",
+ *                 type="string",
+ *                 example="Tìm kiếm voucher thất bại"
+ *             ),
+ *             @OA\Property(
+ *                 property="error",
+ *                 type="object",
+ *                 @OA\Property(property="code", type="integer"),
+ *                 @OA\Property(property="message", type="string")
+ *             )
+ *         )
+ *     )
+ * )
+ */
     public function searchVouchers(Request $request)
     {
        $currentUser = auth('api')->user();
