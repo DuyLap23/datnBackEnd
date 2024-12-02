@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Api;
+namespace App\Http\Controllers\API;
 
 
 use Exception;
@@ -483,24 +483,69 @@ class VouCherController extends Controller
              ], 404);
          }
      
-         // Validation rules đơn giản hóa
+         // Validation rules cơ bản
          $rules = [
              'name' => 'required|string|max:255',
              'minimum_order_value' => 'required|numeric|min:0',
              'discount_type' => 'required|in:fixed,percent',
-             'start_date' => 'required|date|after_or_equal:today',
-             'end_date' => 'required|date|after:start_date',
-             'usage_limit' => 'required|integer|min:1',
+             'start_date' => [
+                 'required',
+                 'date',
+                 'after_or_equal:today',
+                 function ($attribute, $value, $fail) use ($voucher) {
+                     // Nếu voucher đã được sử dụng, không cho phép thay đổi ngày bắt đầu
+                     if ($voucher->used_count > 0 && $value != $voucher->start_date) {
+                         $fail('Không thể thay đổi ngày bắt đầu của voucher đã được sử dụng.');
+                     }
+                 }
+             ],
+             'end_date' => [
+                 'required',
+                 'date',
+                 'after:start_date',
+                 function ($attribute, $value, $fail) use ($request) {
+                     $start = Carbon::parse($request->start_date);
+                     $end = Carbon::parse($value);
+                     if ($end->diffInDays($start) > 365) {
+                         $fail('Thời hạn voucher không được vượt quá 1 năm.');
+                     }
+                 }
+             ],
+             'usage_limit' => [
+                 'required',
+                 'integer',
+                 'min:1',
+                 function ($attribute, $value, $fail) use ($voucher) {
+                     if ($value < $voucher->used_count) {
+                         $fail('Giới hạn sử dụng không thể nhỏ hơn số lần đã sử dụng ('.$voucher->used_count.').');
+                     }
+                 }
+             ],
              'voucher_active' => 'required|boolean'
          ];
      
-         // Thêm rules cho discount_value dựa trên discount_type
+         // Thêm rules cho discount_value và max_discount dựa trên discount_type
          if ($request->discount_type === 'percent') {
-             $rules['discount_value'] = 'required|numeric|min:0|max:100';
-             $rules['max_discount'] = 'required|numeric|min:0';
+             $rules['discount_value'] = 'required|numeric|between:0,100';
+             $rules['max_discount'] = [
+                 'required',
+                 'numeric',
+                 'min:0',
+                 'lte:minimum_order_value'
+             ];
          } else {
-             $rules['discount_value'] = 'required|numeric|min:1000';
-             $rules['max_discount'] = 'nullable|numeric|min:0';
+             $rules['discount_value'] = [
+                 'required',
+                 'numeric',
+                 'min:1000',
+                 'lte:minimum_order_value'
+             ];
+             $rules['max_discount'] = [
+                 'nullable',
+                 'numeric',
+                 'min:0',
+                 'lte:minimum_order_value'
+             ];
          }
      
          $validator = Validator::make($request->all(), $rules);
@@ -512,21 +557,23 @@ class VouCherController extends Controller
              ], 422);
          }
      
-         // Kiểm tra logic bổ sung cho giá trị giảm giá
-         if ($request->discount_type === 'fixed' && $request->discount_value > $request->minimum_order_value) {
-             return response()->json([
-                 'message' => 'Dữ liệu không hợp lệ',
-                 'errors' => [
-                     'discount_value' => ['Giá trị giảm giá không được lớn hơn giá trị đơn hàng tối thiểu']
-                 ]
-             ], 422);
+         // Kiểm tra logic bổ sung
+         if ($request->discount_type === 'fixed') {
+             if ($request->discount_value > $request->minimum_order_value) {
+                 return response()->json([
+                     'message' => 'Dữ liệu không hợp lệ',
+                     'errors' => [
+                         'discount_value' => ['Giá trị giảm không được lớn hơn giá trị đơn hàng tối thiểu']
+                     ]
+                 ], 422);
+             }
          }
      
          DB::beginTransaction();
          try {
              // Cập nhật voucher
              $voucher->update([
-                 'name' => $request->name,
+                 'name' => trim($request->name),
                  'minimum_order_value' => $request->minimum_order_value,
                  'discount_type' => $request->discount_type,
                  'discount_value' => $request->discount_value,
@@ -539,12 +586,15 @@ class VouCherController extends Controller
      
              DB::commit();
              return response()->json([
+                 'success' => true,
                  'message' => 'Cập nhật voucher thành công',
                  'data' => $voucher
              ]);
          } catch (Exception $e) {
              DB::rollBack();
+             Log::error('Lỗi cập nhật voucher: ' . $e->getMessage());
              return response()->json([
+                 'success' => false,
                  'message' => 'Đã xảy ra lỗi khi cập nhật voucher',
                  'error' => $e->getMessage()
              ], 500);
