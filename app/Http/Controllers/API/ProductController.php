@@ -1223,16 +1223,20 @@ class ProductController extends Controller
 
         // Tìm trong cả sản phẩm đã xóa và chưa xóa
         $products = Product::withTrashed()
-            ->where(function ($query) use ($keyword) {
-                $query->where('name', 'LIKE', "%{$keyword}%")
-                      ->orWhere('slug', 'LIKE', "%{$keyword}%");
-            })
-            ->with(['category', 'brand', 'productImages', 'productVariants.productColor', 'productVariants.productSize'])
-            ->get();
-
-        // Phân loại kết quả
-        $activeProducts = $products->whereNull('deleted_at');
-        $deletedProducts = $products->whereNotNull('deleted_at');
+        ->where(function ($query) use ($keyword) {
+            $query->where('name', 'LIKE', "%{$keyword}%")
+                  ->orWhere('slug', 'LIKE', "%{$keyword}%");
+        })
+        ->with(['category', 'brand', 'productImages', 'productVariants.productColor', 'productVariants.productSize'])
+        ->paginate(9); // Phân trang với 9 sản phẩm mỗi trang
+    
+    // Chuyển `items` (danh sách sản phẩm trên trang hiện tại) về Collection
+    $productsCollection = collect($products->items());
+    
+    // Phân loại sản phẩm
+    $activeProducts = $productsCollection->whereNull('deleted_at');
+    $deletedProducts = $productsCollection->whereNotNull('deleted_at');
+    
 
         // Chuẩn bị response
         $response = [
