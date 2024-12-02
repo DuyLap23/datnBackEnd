@@ -856,4 +856,65 @@ class VouCherController extends Controller
             ], 500);
         }
     }
+
+    public function searchVouchers(Request $request)
+{
+   $currentUser = auth('api')->user();
+   if (!$currentUser || !$currentUser->isAdmin()) {
+       return response()->json([
+           'success' => false,
+           'message' => 'Bạn không phải admin.' 
+       ], 403);
+   }
+
+   try {
+       $keyword = $request->input('keyword');
+       $status = $request->input('status');
+
+       $query = Voucher::query();
+
+       if ($keyword) {
+           $query->where(function($q) use ($keyword) {
+               $q->where('name', 'LIKE', "%{$keyword}%")
+                 ->orWhere('code', 'LIKE', "%{$keyword}%");
+           });
+       }
+
+       if ($status !== null) {
+           $query->where('voucher_active', $status);
+       }
+
+       $vouchers = $query->orderBy('created_at', 'desc')->get();
+
+       $activeVouchers = $vouchers->filter(function($voucher) {
+           return $voucher->voucher_active && 
+                  $voucher->end_date >= now() &&
+                  $voucher->used_count < $voucher->usage_limit;
+       });
+
+       $inactiveVouchers = $vouchers->filter(function($voucher) {
+           return !$voucher->voucher_active || 
+                  $voucher->end_date < now() ||
+                  $voucher->used_count >= $voucher->usage_limit;
+       });
+
+       return response()->json([
+           'success' => true,
+           'message' => 'Tìm kiếm voucher thành công',
+           'data' => [
+               'active_vouchers' => $activeVouchers->values(),
+               'inactive_vouchers' => $inactiveVouchers->values(),
+               'total_active' => $activeVouchers->count(),
+               'total_inactive' => $inactiveVouchers->count()
+           ]
+       ], 200);
+
+   } catch (Exception $e) {
+       return response()->json([
+           'success' => false,
+           'message' => 'Tìm kiếm voucher thất bại',
+           'error' => $e->getMessage()
+       ], 500);
+   }
+}
 }

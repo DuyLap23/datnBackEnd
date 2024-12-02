@@ -124,6 +124,8 @@ Route::group(
         Route::put('categories/{id}', [CategoryController::class, 'update']);
         Route::get('categories/{id}', [CategoryController::class, 'show']);
         Route::delete('categories/{id}', [CategoryController::class, 'destroy']);
+        Route::post('categories/search', [CategoryController::class, 'searchCategory']);
+
 
         Route::apiResource('brands', BrandController::class);
         Route::apiResource('tags', TagController::class);
@@ -169,6 +171,9 @@ Route::group(
        Route::put('voucher/{id}', [VouCherController::class, 'update']);
        Route::delete('voucher/{id}', [VouCherController::class, 'destroy']);
        Route::get('getAllVouchers', [VouCherController::class, 'getAllVouchers']);
+       Route::post('vouchers/search', [VouCherController::class, 'searchVouchers']);
+       
+
 
 
        Route::get('statistical/revenue', [RevenueStatisticalController::class, 'revenue'])->name('statisticalRevenue');

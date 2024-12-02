@@ -573,7 +573,7 @@ class CategoryController extends Controller
             // Lấy sản phẩm thuộc danh mục
             $products = Product::where('category_id', $id)
                 ->where('is_active', 1)
-                ->select(['id', 'name', 'slug','img_thumbnail', 'price_sale', 'price_regular', 'brand_id']) // Chỉ chọn các cột cần thiết
+                ->select(['id', 'name', 'slug', 'img_thumbnail', 'price_sale', 'price_regular', 'brand_id']) // Chỉ chọn các cột cần thiết
                 ->get();
 
 
@@ -582,7 +582,6 @@ class CategoryController extends Controller
                 'message' => 'Lấy thành công dữ liệu của danh mục: ' . $category->name,
                 'products' => $products,
             ], 200);
-
         } catch (\Exception $exception) {
             return response()->json([
                 'success' => false,
@@ -619,7 +618,6 @@ class CategoryController extends Controller
                 'message' => 'Lấy thành công dữ liệu của danh mục: ',
                 'categories' => $category,
             ], 200);
-
         } catch (\Exception $exception) {
             return response()->json([
                 'success' => false,
@@ -765,7 +763,6 @@ class CategoryController extends Controller
                 'message' => 'Cập nhật danh mục thành công.',
                 'data' => $model,
             ], 200);
-
         } catch (\Exception $exception) {
             return response()->json([
                 'success' => false,
@@ -857,7 +854,6 @@ class CategoryController extends Controller
                 ],
                 204
             );
-
         } catch (QueryException $e) {
             if ($e->errorInfo[1] == 1451) {
                 return response()->json(
@@ -889,6 +885,80 @@ class CategoryController extends Controller
             );
         }
     }
-
-
+    public function searchCategory(Request $request)
+    {
+        $currentUser = auth('api')->user();
+        if (!$currentUser || !$currentUser->isAdmin()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Bạn không phải admin.'
+            ], 403);
+        }
+    
+        try {
+            $keyword = $request->input('keyword');
+    
+            if (empty($keyword)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Từ khóa tìm kiếm không được để trống',
+                    'data' => []
+                ], 400);
+            }
+    
+            // Tìm kiếm cả danh mục đã xóa và chưa xóa
+            $categories = Category::withTrashed()
+                ->where(function ($query) use ($keyword) {
+                    $query->where('name', 'LIKE', "%{$keyword}%")
+                        ->orWhere('slug', 'LIKE', "%{$keyword}%");
+                })
+                ->with('parent') // Eager load parent to avoid N+1 query
+                ->get();
+    
+            // Phân loại kết quả
+            $activeCategories = $categories->whereNull('deleted_at');
+            $deletedCategories = $categories->whereNotNull('deleted_at');
+    
+            // Xử lý dữ liệu trả về
+            $response = [
+                'success' => true,
+                'message' => 'Tìm kiếm danh mục thành công',
+                'categories' => $activeCategories->map(function ($category) {
+                    return [
+                        'id' => $category->id,
+                        'name' => $category->name,
+                        'slug' => $category->slug,
+                        'image' => $category->image,
+                        'parent_id' => $category->parent_id,
+                        'parent_name' => $category->parent ? $category->parent->name : null,
+                        'created_at' => $category->created_at
+                    ];
+                })->values(), // Ensure it's a flat array
+                'total_active' => $activeCategories->count()
+            ];
+    
+            // Thêm thông tin về danh mục đã xóa nếu có
+            if ($deletedCategories->count() > 0) {
+                $response['deleted_categories'] = [
+                    'message' => 'Một số danh mục đã bị xóa',
+                    'categories' => $deletedCategories->map(function ($category) {
+                        return [
+                            'id' => $category->id,
+                            'name' => $category->name,
+                            'deleted_at' => $category->deleted_at->format('d/m/Y H:i:s')
+                        ];
+                    })->values(), // Ensure it's a flat array
+                    'total_deleted' => $deletedCategories->count()
+                ];
+            }
+    
+            return response()->json($response, 200);
+        } catch (\Exception $exception) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Tìm kiếm danh mục thất bại',
+                'error' => $exception->getMessage(),
+            ], 500);
+        }
+    }
 }
