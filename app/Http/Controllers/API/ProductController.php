@@ -1204,6 +1204,13 @@ class ProductController extends Controller
 
     public function searchProduct(Request $request)
 {
+    $currentUser = auth('api')->user();
+    if (!$currentUser || !$currentUser->isAdmin()) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Bạn không phải admin.'
+        ], 403);
+    }
     try {
         $keyword = $request->input('keyword');
         
