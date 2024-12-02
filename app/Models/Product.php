@@ -13,7 +13,6 @@ class Product extends Model
     protected $fillable = [
         'name',
         'slug',
-        // 'sku',
         'img_thumbnail',
         'price_regular',
         'price_sale',
@@ -22,8 +21,6 @@ class Product extends Model
         'user_manual',
         'view',
         'is_active',
-        // 'is_new',
-        // 'is_show_home',
         'category_id',
         'brand_id',
         'tags',
@@ -33,8 +30,6 @@ class Product extends Model
     ];
     protected $casts = [
         'is_active' => 'boolean',
-        'is_new' => 'boolean',
-        'is_show_home' => 'boolean',
         'price_regular' => 'float',
         'price_sale' => 'float',
     ];
