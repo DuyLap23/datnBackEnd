@@ -64,9 +64,11 @@ class OrderUserManagementController extends Controller
                 break;
         }
 
-        $orders = $query->with(['orderItems.product'])
-            ->orderBy('created_at', 'desc')
-            ->get();
+        $orders = $query->with([
+            'orderItems.product' => function ($query) {
+                $query->withTrashed(); 
+            }
+        ])->orderBy('created_at', 'desc')->get();
         if ($orders->isEmpty()) {
             return response()->json(['message' => 'Không có đơn hàng nào'], 404);
         }
