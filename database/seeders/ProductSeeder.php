@@ -64,7 +64,6 @@ class ProductSeeder extends Seeder
             Product::query()->create([
                 'name' => $name,
                 'slug' => Str::slug($name) . '-' . Str::random(8),
-                'sku' => Str::random(7) . $i,
                 'img_thumbnail' => 'https://canifa.com/img/1000/1500/resize/8/b/8bj24s003-sj859-31-1-u.webp',
                 'price_regular' => $priceRegular,
                 'price_sale' => round($priceSale),
@@ -73,8 +72,6 @@ class ProductSeeder extends Seeder
                 'user_manual' => fake()->text(255),
                 'view' => 0,
                 'is_active' => 1,
-                'is_new' => 1,
-                'is_show_home' => 1,
                 'category_id' => rand(1, 10),
                 'brand_id' => rand(1, 10),
 

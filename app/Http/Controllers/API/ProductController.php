@@ -203,11 +203,11 @@ class ProductController extends Controller
                 // 'tags',
                 // 'productVariants.productColor',
                 // 'productVariants.productSize',
-                'comments' 
+                'comments'
             ]
         )
             ->where('is_active', 1)
-            ->whereNull('deleted_at') 
+            ->whereNull('deleted_at')
             ->chunk(10, function ($products) use (&$result) {
 
                 $products->each(function ($product) {
@@ -239,7 +239,7 @@ class ProductController extends Controller
     }
 
 
-     
+
 
     /**
      * @OA\Post(
@@ -486,7 +486,7 @@ class ProductController extends Controller
                 'message' => 'Bạn không phải admin.'
             ], 403);
         }
-    
+
         DB::beginTransaction();
         try {
             // Lấy dữ liệu sản phẩm và gán các giá trị mặc định
@@ -802,7 +802,7 @@ class ProductController extends Controller
                 'message' => 'Bạn không phải admin.'
             ], 403);
         }
-    
+
         $product = Product::where('slug', $slug)->firstOrFail();
 
         DB::beginTransaction();
@@ -915,7 +915,7 @@ class ProductController extends Controller
                 'message' => 'Bạn không phải admin.'
             ], 403);
         }
-    
+
         $currentUser = auth('api')->user();
         if (!$currentUser) {
             return response()->json([
@@ -949,13 +949,6 @@ class ProductController extends Controller
                     Log::info('Xoá biến thể thành công.');
                 });
             }
-            $productImagePath = str_replace(url('/storage') . '/', '', $product->img_thumbnail);
-            if ($product->img_thumbnail && Storage::exists($productImagePath)) {
-                Storage::delete($productImagePath);
-                Log::info('Xoá ảnh sản phẩm thành công.');
-            }
-
-
             $product->delete();
             Log::info('Xoá sản phẩm thành công.');
 
@@ -1213,7 +1206,7 @@ class ProductController extends Controller
     }
     try {
         $keyword = $request->input('keyword');
-        
+
         if (empty($keyword)) {
             return response()->json([
                 'message' => 'Từ khóa tìm kiếm không được để trống',
@@ -1229,14 +1222,14 @@ class ProductController extends Controller
         })
         ->with(['category', 'brand', 'productImages', 'productVariants.productColor', 'productVariants.productSize'])
         ->paginate(9); // Phân trang với 9 sản phẩm mỗi trang
-    
+
     // Chuyển `items` (danh sách sản phẩm trên trang hiện tại) về Collection
     $productsCollection = collect($products->items());
-    
+
     // Phân loại sản phẩm
     $activeProducts = $productsCollection->whereNull('deleted_at');
     $deletedProducts = $productsCollection->whereNotNull('deleted_at');
-    
+
 
         // Chuẩn bị response
         $response = [

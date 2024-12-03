@@ -18,7 +18,7 @@ class ProductShowHomeController extends Controller
                 'products.img_thumbnail as product_image', // Assuming you have an `image` column
                 'products.price_regular as product_price_regular',
                 'products.price_sale as product_price_sale',
-                DB::raw('SUM(order_items.quantity) as tota l_quantity')
+                DB::raw('SUM(order_items.quantity) as total_quantity')
             )
             ->join('orders', 'order_items.order_id', '=', 'orders.id') // Join orders table
             ->join('products', 'order_items.product_id', '=', 'products.id') // Join products table
