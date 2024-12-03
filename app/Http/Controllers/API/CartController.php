@@ -10,6 +10,7 @@ use App\Models\ProductSize;
 use App\Models\ProductVariant;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 
 /**
  * @OA\Schema(
@@ -156,6 +157,7 @@ class CartController extends Controller
                 $cartItem = Cart::create(array_merge($validatedData, [
                     'user_id' => $request->user()->id,
                     'price' => $price,
+                    'product_variant_id' => $productVariant->id,
                 ]));
 
                 return response()->json([
@@ -236,55 +238,108 @@ class CartController extends Controller
         if (!$user) {
             return response()->json(['message' => 'Vui lòng đăng nhập'], 401);
         }
-
-        // Lấy danh sách sản phẩm trong giỏ hàng của người dùng cùng với thông tin sản phẩm
+    
+        // Lấy danh sách sản phẩm trong giỏ hàng của người dùng cùng với thông tin sản phẩm và biến thể
         $cartItems = Cart::where('user_id', $request->user()->id)
             ->with(['product' => function ($query) {
                 $query->withTrashed() // Lấy cả sản phẩm bị xoá mềm
-                ->select('id', 'name', 'slug', 'sku', 'img_thumbnail', 'price_regular', 'price_sale', 'description', 'deleted_at');
+                    ->select('id', 'name', 'slug', 'img_thumbnail', 'price_regular', 'price_sale', 'description', 'deleted_at');
+            }, 'variant' => function ($query) {
+                $query->withTrashed() // Lấy cả biến thể bị xoá mềm
+                    ->select('id', 'product_id', 'product_size_id', 'product_color_id', 'quantity', 'deleted_at');
             }])
             ->get();
-
-        // Cập nhật `status` trong bảng `carts` dựa trên trạng thái của sản phẩm
+    
+        // Cập nhật `status` trong bảng `carts` và số lượng nếu sản phẩm hoặc biến thể bị xóa
         $cartItems->each(function ($cartItem) {
-            $cartItem->status = $cartItem->product && $cartItem->product->deleted_at ? 1 : 0;
+            $product = $cartItem->product;
+            $variant = $cartItem->variant;
+    
+            // Kiểm tra trạng thái sản phẩm (bị xóa mềm)
+            if ($product && $product->deleted_at) {
+                $cartItem->status = 1;  // Sản phẩm đã bị xóa mềm
+                $cartItem->quantity = 0; // Giảm số lượng về 0 nếu sản phẩm bị xóa
+            } elseif ($variant && $variant->deleted_at) {
+                // Kiểm tra trạng thái biến thể (màu, kích thước) bị xóa mềm
+                $cartItem->status = 2;  // Biến thể đã bị xóa
+                $cartItem->quantity = 0; // Giảm số lượng về 0 nếu biến thể bị xóa
+            } else {
+                $cartItem->status = 0;  // Sản phẩm và biến thể còn tồn tại
+            }
+    
+            // Kiểm tra số lượng biến thể có đủ hay không
+            if ($variant && $variant->quantity < $cartItem->quantity) {
+                $cartItem->quantity = $variant->quantity; // Giảm số lượng về mức tối đa có sẵn trong kho
+            }
+    
             $cartItem->save();
         });
-        \Log::info('delete_at' ,[$cartItems]);
+    
+        // Tính toán tổng tiền
         $totalPrice = $cartItems->sum(function ($cartItem) {
-            if (!$cartItem->product) {
-                return 0;
+            // Kiểm tra xem sản phẩm có bị xóa không (status = 0)
+            if ($cartItem->status != 0 || !$cartItem->product) {
+                return 0;  // Không tính tiền nếu sản phẩm bị xóa hoặc không có sản phẩm
             }
             $price = $cartItem->product->price_sale > 0 ? $cartItem->product->price_sale : $cartItem->product->price_regular;
             return $price * $cartItem->quantity;
         });
-
+    
         // Trả về danh sách sản phẩm trong giỏ hàng và tổng tiền
         return response()->json([
             'cart_items' => $cartItems->map(function ($cartItem) {
                 $product = $cartItem->product;
+                $variant = $cartItem->variant;
+    
+                // Nếu sản phẩm hoặc biến thể bị xóa, ẩn màu sắc và kích thước
+                if ($cartItem->status != 0) {
+                    $colorName = null;
+                    $sizeName = null;
+                } else {
+                    // Lấy tên màu sắc và kích thước từ các bảng liên quan
+                    $colorName = $variant && $variant->product_color_id 
+                        ? ProductColor::find($variant->product_color_id)->name 
+                        : null;
+                    $sizeName = $variant && $variant->product_size_id 
+                        ? ProductSize::find($variant->product_size_id)->name 
+                        : null;
+                }
+    
+                // Thêm thông báo về trạng thái sản phẩm
+                $statusMessage = '';
+                $quantityDisabled = false;
+    
+                if ($cartItem->status == 1) {
+                    $statusMessage = 'Sản phẩm đã bị xóa khỏi kho';
+                    $quantityDisabled = true; // Không cho phép thay đổi số lượng nếu sản phẩm bị xóa
+                } elseif ($cartItem->status == 2) {
+                    $statusMessage = 'Biến thể sản phẩm đã bị xóa khỏi kho';
+                    $quantityDisabled = true; // Không cho phép thay đổi số lượng nếu biến thể bị xóa
+                }
+    
                 return [
                     'id' => $cartItem->id,
                     'product_id' => $product->id ?? null,
                     'name' => $product->name ?? null,
                     'slug' => $product->slug ?? null,
-                    'sku' => $product->sku ?? null,
                     'img_thumbnail' => $product->img_thumbnail ?? null,
                     'quantity' => $cartItem->quantity,
-                    'color' => $cartItem->color,
-                    'size' => $cartItem->size,
+                    'color' => $colorName, // Màu sắc từ tên bảng product_colors, ẩn nếu bị xóa
+                    'size' => $sizeName,   // Kích thước từ tên bảng product_sizes, ẩn nếu bị xóa
                     'price_regular' => $product->price_regular ?? 0,
                     'price_sale' => $product->price_sale ?? 0,
                     'price' => $product ? ($product->price_sale > 0 ? $product->price_sale : $product->price_regular) : 0,
                     'total' => $product ? (($product->price_sale > 0 ? $product->price_sale : $product->price_regular) * $cartItem->quantity) : 0,
                     'description' => $product->description ?? null,
                     'status' => $cartItem->status, // Trả về status từ bảng carts
+                    'status_message' => $statusMessage, // Thêm thông báo về trạng thái
+                    'quantity_disabled' => $quantityDisabled, // Thêm thông tin disable quantity
                 ];
             }),
             'total_price' => $totalPrice,
         ], 200);
     }
-
+    
 
 
     /**
@@ -337,40 +392,54 @@ class CartController extends Controller
         if (!Auth::check()) {
             return response()->json(['message' => 'Vui lòng đăng nhập'], 401);
         }
-
+    
         // Xác thực dữ liệu đầu vào
         $validatedData = $request->validate([
             'quantity' => 'required|integer|min:1|max:100', // Số lượng hợp lệ từ 1 đến 100
         ]);
-
+    
         // Tìm kiếm sản phẩm trong giỏ hàng
         $cartItem = Cart::where('user_id', $request->user()->id)
             ->where('id', $cartItemId)
+            ->with('product') // Đảm bảo tải sản phẩm liên kết
             ->first();
-
+    
         if (!$cartItem) {
-            return response()->json(['message' => 'Giỏ hàng không tồn tại trong .'], 404);
+            return response()->json(['message' => 'Giỏ hàng không tồn tại.'], 404);
         }
-
+    
+        // Kiểm tra xem sản phẩm có tồn tại và không bị xóa mềm
+        if (!$cartItem->product || $cartItem->product->deleted_at) {
+            return response()->json(['message' => 'Sản phẩm đã bị xóa'], 400);
+        }
+    
         // Kiểm tra tồn kho của sản phẩm
         $productVariant = ProductVariant::where('product_id', $cartItem->product_id)->first();
-
+    
         if (!$productVariant || $productVariant->quantity < $validatedData['quantity']) {
             return response()->json(['message' => 'Số lượng sản phẩm không đủ.'], 400);
         }
-
-
+    
+        // Kiểm tra xem biến thể có bị xóa không
+        if ($productVariant->deleted_at) {
+            return response()->json(['message' => 'Biến thể sản phẩm đã bị xóa'], 400);
+        }
+    
         // Cập nhật số lượng
         $cartItem->quantity = $validatedData['quantity'];
         $cartItem->save();
-
+    
         // Tính lại tổng tiền
         $cartItems = Cart::where('user_id', $request->user()->id)->get();
         $totalPrice = $cartItems->sum(function ($item) {
+            if (!$item->product) {
+                return 0;  // Đảm bảo không có lỗi khi sản phẩm bị thiếu
+            }
+    
             $price = $item->product->price_sale > 0 ? $item->product->price_sale : $item->product->price_regular;
             return $price * $item->quantity;
         });
-
+    
         // Trả về thông tin đã cập nhật
         return response()->json([
             'message' => 'Cập nhật số lượng thành công.',
@@ -378,6 +447,6 @@ class CartController extends Controller
             'total_price' => $totalPrice
         ], 200);
     }
-
+    
 
 }
