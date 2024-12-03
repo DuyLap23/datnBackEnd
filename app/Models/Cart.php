@@ -10,7 +10,7 @@ class Cart extends Model
     use HasFactory;
 
     protected $fillable = [
-        'user_id', 'product_id', 'quantity','color','size','price'
+        'user_id', 'product_id', 'quantity','color','size','price','product_variant_id'
     ];
 
     protected $casts = [
@@ -20,7 +20,10 @@ class Cart extends Model
     {
         return $this->belongsTo(User::class);
     }
-
+    public function variant()
+    {
+        return $this->belongsTo(ProductVariant::class, 'product_variant_id'); 
+    }
     public function product()
     {
         return $this->belongsTo(Product::class);
