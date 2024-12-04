@@ -83,11 +83,26 @@ class FavouriteListController extends Controller
      */
     public function index()
     {
-        if (!Auth::check()) {
+        $currentUser = auth('api')->user();
+        if (!$currentUser) {
             return response()->json(['message' => 'Vui lòng đăng nhập'], 401);
         }
-        
-        $favorites = FavouriteList::where('user_id', Auth::id())->with('product')->get();
+
+        // Debug user
+        \Log::info('Current User', [$currentUser]);
+
+        // Lấy danh sách yêu thích
+        $favorites = FavouriteList::where('user_id', $currentUser->id)
+            ->whereHas('product', function ($query) {
+                $query->whereNull('deleted_at'); // Lọc sản phẩm chưa bị xóa
+            })
+            ->with(['product' => function ($query) {
+                $query->whereNull('deleted_at'); // Lấy chi tiết sản phẩm chưa bị xóa
+            }])
+            ->get();
+
+        // Debug favourites
+        \Log::info('Favourites List', [$favorites]);
 
         if ($favorites->isEmpty()) {
             return response()->json(['message' => 'Không có sản phẩm yêu thích nào'], 404);
@@ -98,6 +113,8 @@ class FavouriteListController extends Controller
             'data' => $favorites
         ], 200);
     }
+
+
 
 
     /**
@@ -120,7 +137,7 @@ class FavouriteListController extends Controller
         if (!Auth::check()) {
             return response()->json(['message' => 'Vui lòng đăng nhập'], 401);
         }
-        
+
         $request->validate([
             'product_id' => 'required|exists:products,id',
         ]);
@@ -155,9 +172,9 @@ class FavouriteListController extends Controller
         if (!Auth::check()) {
             return response()->json(['message' => 'Vui lòng đăng nhập'], 401);
         }
-        
+
         $favorite = FavouriteList::where('user_id', Auth::id())->where('product_id', $id);
-        
+
         if (!$favorite->exists()) {
             return response()->json(['message' => 'Sản phẩm không nằm trong danh sách yêu thích.'], 404);
         }
