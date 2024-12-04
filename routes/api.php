@@ -165,7 +165,6 @@ Route::group(
         Route::post('/orders/{id}/refund', [OrderManagementController::class, 'refund']);
         Route::delete('/orders/{id}', [OrderManagementController::class, 'destroy']);
 
-
         // VouCher
        Route::post('voucher', [VouCherController::class, 'store']);
        Route::put('voucher/{id}', [VouCherController::class, 'update']);
@@ -173,9 +172,6 @@ Route::group(
        Route::get('getAllVouchers', [VouCherController::class, 'getAllVouchers']);
        Route::post('vouchers/search', [VouCherController::class, 'searchVouchers']);
        
-
-
-
        Route::get('statistical/revenue', [RevenueStatisticalController::class, 'revenue'])->name('statisticalRevenue');
        Route::get('statistical/monthly-revenue', [RevenueStatisticalController::class, 'monthlyRevenue'])->name('statisticalMonthlyRevenue');
        Route::get('statistical/order', [OrderStatisticalController::class, 'order'])->name('statisticalOrder');
