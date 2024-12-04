@@ -796,8 +796,6 @@ class VouCherController extends Controller
             // Lấy trạng thái voucher từ request (active/inactive/all)
             $status = $request->get('status', 'all');
     
-         
-    
             switch ($status) {
                 case 'active':
                     $query->where('voucher_active', true)
@@ -824,7 +822,9 @@ class VouCherController extends Controller
                     break;
             }
     
-         
+            // Thêm sắp xếp theo thời gian tạo mới nhất
+            $query->orderBy('created_at', 'desc');
+            
             $vouchers = $query->get();
     
             return response()->json([
