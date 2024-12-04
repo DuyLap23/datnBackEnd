@@ -224,15 +224,15 @@ class ProductController extends Controller
                 // Lưu các sản phẩm đã được xử lý vào mảng kết quả
                 $result = array_merge($result, $products->toArray());
             });
-            $endTime = microtime(true);
-            $executionTime = $endTime - $startTime;
+        $endTime = microtime(true);
+        $executionTime = $endTime - $startTime;
         // Trả về kết quả dưới dạng JSON
         return response()->json(
             [
                 'success' => true,
                 'message' => 'Lấy thành công sản phẩm',
                 'products' => $result,
-                   'execution_time' => number_format($executionTime, 5)
+                'execution_time' => number_format($executionTime, 5)
             ],
             200
         );
@@ -510,6 +510,19 @@ class ProductController extends Controller
             }
             // Tạo sản phẩm
             $product = Product::create($dataProduct);
+            // Validate khi xử lý product_variants
+            if ($request->has('product_variants')) {
+                $variants = collect($request->product_variants);
+                $duplicates = $variants->duplicates(function ($variant) {
+                    return $variant['product_size_id'] . '-' . $variant['product_color_id'];
+                });
+
+                if ($duplicates->isNotEmpty()) {
+                    return response()->json([
+                        'error' => 'Không được phép có biến thể trùng lặp (size và color giống nhau)'
+                    ], 400);
+                }
+            }
 
             // Xử lý biến thể sản phẩm
             if ($request->has('product_variants')) {
@@ -691,7 +704,6 @@ class ProductController extends Controller
             ];
 
             return response()->json($result, 200);
-
         } catch (ModelNotFoundException $e) {
             Log::error('Sản phẩm không tìm thấy: ' . $e->getMessage());
             return response()->json([
@@ -965,7 +977,6 @@ class ProductController extends Controller
                 'success' => false,
                 'message' => 'Sản phẩm không tồn tại hoặc đã bị xoá.'
             ], 404);
-
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('Lỗi xoá sản phẩm: ' . $e->getMessage());
@@ -985,282 +996,281 @@ class ProductController extends Controller
             'is_active' => $id->is_active,
         ]);
     }
-/**
- * @OA\Get(
- *     path="/api/products/search",
- *     summary="Tìm kiếm sản phẩm",
- *     description="Tìm kiếm sản phẩm theo tên hoặc slug, bao gồm cả sản phẩm đã xóa.",
- *     tags={"Product"},
- *     @OA\Parameter(
- *         name="keyword",
- *         in="query",
- *         description="Từ khóa tìm kiếm (tên hoặc slug của sản phẩm)",
- *         required=true,
- *         @OA\Schema(type="string")
- *     ),
- *     @OA\Response(
- *         response=200,
- *         description="Thành công",
- *         @OA\JsonContent(
- *             @OA\Property(
- *                 property="message",
- *                 type="string",
- *                 example="Tìm kiếm sản phẩm thành công",
- *             ),
- *             @OA\Property(
- *                 property="data",
- *                 type="array",
- *                 @OA\Items(
- *                     @OA\Property(
- *                         property="id",
- *                         type="integer",
- *                         example=1,
- *                     ),
- *                     @OA\Property(
- *                         property="name",
- *                         type="string",
- *                         example="Product Name",
- *                     ),
- *                     @OA\Property(
- *                         property="description",
- *                         type="string",
- *                         example="Mô tả sản phẩm.",
- *                     ),
- *                     @OA\Property(
- *                         property="price",
- *                         type="number",
- *                         format="float",
- *                         example=99.99,
- *                     ),
- *                     @OA\Property(
- *                         property="category",
- *                         type="object",
- *                         @OA\Property(
- *                             property="id",
- *                             type="integer",
- *                             example=2,
- *                         ),
- *                         @OA\Property(
- *                             property="name",
- *                             type="string",
- *                             example="Category Name",
- *                         ),
- *                     ),
- *                     @OA\Property(
- *                         property="brand",
- *                         type="object",
- *                         @OA\Property(
- *                             property="id",
- *                             type="integer",
- *                             example=1,
- *                         ),
- *                         @OA\Property(
- *                             property="name",
- *                             type="string",
- *                             example="Brand Name",
- *                         ),
- *                     ),
- *                     @OA\Property(
- *                         property="productImages",
- *                         type="array",
- *                         @OA\Items(
- *                             @OA\Property(
- *                                 property="url",
- *                                 type="string",
- *                                 example="https://picsum.photos/200/300?random=1",
- *                             ),
- *                         )
- *                     ),
- *                     @OA\Property(
- *                         property="productVariants",
- *                         type="array",
- *                         @OA\Items(
- *                             @OA\Property(
- *                                 property="id",
- *                                 type="integer",
- *                                 example=1,
- *                             ),
- *                             @OA\Property(
- *                                 property="price",
- *                                 type="number",
- *                                 format="float",
- *                                 example=99.99,
- *                             ),
- *                             @OA\Property(
- *                                 property="productColor",
- *                                 type="object",
- *                                 @OA\Property(
- *                                     property="id",
- *                                     type="integer",
- *                                     example=1,
- *                                 ),
- *                                 @OA\Property(
- *                                     property="name",
- *                                     type="string",
- *                                     example="Red",
- *                                 ),
- *                             ),
- *                             @OA\Property(
- *                                 property="productSize",
- *                                 type="object",
- *                                 @OA\Property(
- *                                     property="id",
- *                                     type="integer",
- *                                     example=1,
- *                                 ),
- *                                 @OA\Property(
- *                                     property="name",
- *                                     type="string",
- *                                     example="L",
- *                                 ),
- *                             ),
- *                         ),
- *                     ),
- *                 )
- *             ),
- *             @OA\Property(
- *                 property="total_active",
- *                 type="integer",
- *                 example=5,
- *             ),
- *             @OA\Property(
- *                 property="deleted_products",
- *                 type="object",
- *                 @OA\Property(
- *                     property="message",
- *                     type="string",
- *                     example="Một số sản phẩm đã bị xóa",
- *                 ),
- *                 @OA\Property(
- *                     property="data",
- *                     type="array",
- *                     @OA\Items(
- *                         @OA\Property(
- *                             property="id",
- *                             type="integer",
- *                             example=1,
- *                         ),
- *                         @OA\Property(
- *                             property="name",
- *                             type="string",
- *                             example="Deleted Product Name",
- *                         ),
- *                         @OA\Property(
- *                             property="deleted_at",
- *                             type="string",
- *                             example="30/11/2024 15:30:00",
- *                         ),
- *                     ),
- *                 ),
- *                 @OA\Property(
- *                     property="total_deleted",
- *                     type="integer",
- *                     example=1,
- *                 ),
- *             ),
- *         )
- *     ),
- *     @OA\Response(
- *         response=400,
- *         description="Lỗi validation",
- *         @OA\JsonContent(
- *             @OA\Property(
- *                 property="message",
- *                 type="string",
- *                 example="Từ khóa tìm kiếm không được để trống",
- *             ),
- *             @OA\Property(
- *                 property="data",
- *                 type="array",
- *                 example={},
- *             ),
- *         )
- *     ),
- *     @OA\Response(
- *         response=500,
- *         description="Lỗi server",
- *         @OA\JsonContent(
- *             @OA\Property(
- *                 property="message",
- *                 type="string",
- *                 example="Lỗi khi tìm kiếm sản phẩm",
- *             ),
- *             @OA\Property(
- *                 property="error",
- *                 type="string",
- *                 example="Server Error Message",
- *             ),
- *         )
- *     )
- * )
- */
+    /**
+     * @OA\Get(
+     *     path="/api/products/search",
+     *     summary="Tìm kiếm sản phẩm",
+     *     description="Tìm kiếm sản phẩm theo tên hoặc slug, bao gồm cả sản phẩm đã xóa.",
+     *     tags={"Product"},
+     *     @OA\Parameter(
+     *         name="keyword",
+     *         in="query",
+     *         description="Từ khóa tìm kiếm (tên hoặc slug của sản phẩm)",
+     *         required=true,
+     *         @OA\Schema(type="string")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Thành công",
+     *         @OA\JsonContent(
+     *             @OA\Property(
+     *                 property="message",
+     *                 type="string",
+     *                 example="Tìm kiếm sản phẩm thành công",
+     *             ),
+     *             @OA\Property(
+     *                 property="data",
+     *                 type="array",
+     *                 @OA\Items(
+     *                     @OA\Property(
+     *                         property="id",
+     *                         type="integer",
+     *                         example=1,
+     *                     ),
+     *                     @OA\Property(
+     *                         property="name",
+     *                         type="string",
+     *                         example="Product Name",
+     *                     ),
+     *                     @OA\Property(
+     *                         property="description",
+     *                         type="string",
+     *                         example="Mô tả sản phẩm.",
+     *                     ),
+     *                     @OA\Property(
+     *                         property="price",
+     *                         type="number",
+     *                         format="float",
+     *                         example=99.99,
+     *                     ),
+     *                     @OA\Property(
+     *                         property="category",
+     *                         type="object",
+     *                         @OA\Property(
+     *                             property="id",
+     *                             type="integer",
+     *                             example=2,
+     *                         ),
+     *                         @OA\Property(
+     *                             property="name",
+     *                             type="string",
+     *                             example="Category Name",
+     *                         ),
+     *                     ),
+     *                     @OA\Property(
+     *                         property="brand",
+     *                         type="object",
+     *                         @OA\Property(
+     *                             property="id",
+     *                             type="integer",
+     *                             example=1,
+     *                         ),
+     *                         @OA\Property(
+     *                             property="name",
+     *                             type="string",
+     *                             example="Brand Name",
+     *                         ),
+     *                     ),
+     *                     @OA\Property(
+     *                         property="productImages",
+     *                         type="array",
+     *                         @OA\Items(
+     *                             @OA\Property(
+     *                                 property="url",
+     *                                 type="string",
+     *                                 example="https://picsum.photos/200/300?random=1",
+     *                             ),
+     *                         )
+     *                     ),
+     *                     @OA\Property(
+     *                         property="productVariants",
+     *                         type="array",
+     *                         @OA\Items(
+     *                             @OA\Property(
+     *                                 property="id",
+     *                                 type="integer",
+     *                                 example=1,
+     *                             ),
+     *                             @OA\Property(
+     *                                 property="price",
+     *                                 type="number",
+     *                                 format="float",
+     *                                 example=99.99,
+     *                             ),
+     *                             @OA\Property(
+     *                                 property="productColor",
+     *                                 type="object",
+     *                                 @OA\Property(
+     *                                     property="id",
+     *                                     type="integer",
+     *                                     example=1,
+     *                                 ),
+     *                                 @OA\Property(
+     *                                     property="name",
+     *                                     type="string",
+     *                                     example="Red",
+     *                                 ),
+     *                             ),
+     *                             @OA\Property(
+     *                                 property="productSize",
+     *                                 type="object",
+     *                                 @OA\Property(
+     *                                     property="id",
+     *                                     type="integer",
+     *                                     example=1,
+     *                                 ),
+     *                                 @OA\Property(
+     *                                     property="name",
+     *                                     type="string",
+     *                                     example="L",
+     *                                 ),
+     *                             ),
+     *                         ),
+     *                     ),
+     *                 )
+     *             ),
+     *             @OA\Property(
+     *                 property="total_active",
+     *                 type="integer",
+     *                 example=5,
+     *             ),
+     *             @OA\Property(
+     *                 property="deleted_products",
+     *                 type="object",
+     *                 @OA\Property(
+     *                     property="message",
+     *                     type="string",
+     *                     example="Một số sản phẩm đã bị xóa",
+     *                 ),
+     *                 @OA\Property(
+     *                     property="data",
+     *                     type="array",
+     *                     @OA\Items(
+     *                         @OA\Property(
+     *                             property="id",
+     *                             type="integer",
+     *                             example=1,
+     *                         ),
+     *                         @OA\Property(
+     *                             property="name",
+     *                             type="string",
+     *                             example="Deleted Product Name",
+     *                         ),
+     *                         @OA\Property(
+     *                             property="deleted_at",
+     *                             type="string",
+     *                             example="30/11/2024 15:30:00",
+     *                         ),
+     *                     ),
+     *                 ),
+     *                 @OA\Property(
+     *                     property="total_deleted",
+     *                     type="integer",
+     *                     example=1,
+     *                 ),
+     *             ),
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=400,
+     *         description="Lỗi validation",
+     *         @OA\JsonContent(
+     *             @OA\Property(
+     *                 property="message",
+     *                 type="string",
+     *                 example="Từ khóa tìm kiếm không được để trống",
+     *             ),
+     *             @OA\Property(
+     *                 property="data",
+     *                 type="array",
+     *                 example={},
+     *             ),
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=500,
+     *         description="Lỗi server",
+     *         @OA\JsonContent(
+     *             @OA\Property(
+     *                 property="message",
+     *                 type="string",
+     *                 example="Lỗi khi tìm kiếm sản phẩm",
+     *             ),
+     *             @OA\Property(
+     *                 property="error",
+     *                 type="string",
+     *                 example="Server Error Message",
+     *             ),
+     *         )
+     *     )
+     * )
+     */
 
     public function searchProduct(Request $request)
-{
-    $currentUser = auth('api')->user();
-    if (!$currentUser || !$currentUser->isAdmin()) {
-        return response()->json([
-            'success' => false,
-            'message' => 'Bạn không phải admin.'
-        ], 403);
-    }
-    try {
-        $keyword = $request->input('keyword');
-
-        if (empty($keyword)) {
+    {
+        $currentUser = auth('api')->user();
+        if (!$currentUser || !$currentUser->isAdmin()) {
             return response()->json([
-                'message' => 'Từ khóa tìm kiếm không được để trống',
-                'data' => []
-            ], 400);
+                'success' => false,
+                'message' => 'Bạn không phải admin.'
+            ], 403);
         }
+        try {
+            $keyword = $request->input('keyword');
 
-        // Tìm trong cả sản phẩm đã xóa và chưa xóa
-        $products = Product::withTrashed()
-        ->where(function ($query) use ($keyword) {
-            $query->where('name', 'LIKE', "%{$keyword}%")
-                  ->orWhere('slug', 'LIKE', "%{$keyword}%");
-        })
-        ->with(['category', 'brand', 'productImages', 'productVariants.productColor', 'productVariants.productSize'])
-        ->paginate(9); // Phân trang với 9 sản phẩm mỗi trang
+            if (empty($keyword)) {
+                return response()->json([
+                    'message' => 'Từ khóa tìm kiếm không được để trống',
+                    'data' => []
+                ], 400);
+            }
 
-    // Chuyển `items` (danh sách sản phẩm trên trang hiện tại) về Collection
-    $productsCollection = collect($products->items());
+            // Tìm trong cả sản phẩm đã xóa và chưa xóa
+            $products = Product::withTrashed()
+                ->where(function ($query) use ($keyword) {
+                    $query->where('name', 'LIKE', "%{$keyword}%")
+                        ->orWhere('slug', 'LIKE', "%{$keyword}%");
+                })
+                ->with(['category', 'brand', 'productImages', 'productVariants.productColor', 'productVariants.productSize'])
+                ->paginate(9); // Phân trang với 9 sản phẩm mỗi trang
 
-    // Phân loại sản phẩm
-    $activeProducts = $productsCollection->whereNull('deleted_at');
-    $deletedProducts = $productsCollection->whereNotNull('deleted_at');
+            // Chuyển `items` (danh sách sản phẩm trên trang hiện tại) về Collection
+            $productsCollection = collect($products->items());
+
+            // Phân loại sản phẩm
+            $activeProducts = $productsCollection->whereNull('deleted_at');
+            $deletedProducts = $productsCollection->whereNotNull('deleted_at');
 
 
-        // Chuẩn bị response
-        $response = [
-            'message' => 'Tìm kiếm sản phẩm thành công',
-            'data' => $activeProducts,
-            'total_active' => $activeProducts->count()
-        ];
-
-        // Thêm thông tin về sản phẩm đã xóa nếu có
-        if ($deletedProducts->count() > 0) {
-            $response['deleted_products'] = [
-                'message' => 'Sản phẩm đã bị xóa trước đó',
-                'data' => $deletedProducts->map(function ($product) {
-                    return [
-                        'id' => $product->id,
-                        'name' => $product->name,
-                        'deleted_at' => $product->deleted_at->format('d/m/Y H:i:s')
-                    ];
-                }),
-                'total_deleted' => $deletedProducts->count()
+            // Chuẩn bị response
+            $response = [
+                'message' => 'Tìm kiếm sản phẩm thành công',
+                'data' => $activeProducts,
+                'total_active' => $activeProducts->count()
             ];
+
+            // Thêm thông tin về sản phẩm đã xóa nếu có
+            if ($deletedProducts->count() > 0) {
+                $response['deleted_products'] = [
+                    'message' => 'Sản phẩm đã bị xóa trước đó',
+                    'data' => $deletedProducts->map(function ($product) {
+                        return [
+                            'id' => $product->id,
+                            'name' => $product->name,
+                            'deleted_at' => $product->deleted_at->format('d/m/Y H:i:s')
+                        ];
+                    }),
+                    'total_deleted' => $deletedProducts->count()
+                ];
+            }
+
+            return response()->json($response, 200);
+        } catch (\Exception $e) {
+            Log::error($e->getMessage());
+            return response()->json([
+                'message' => 'Lỗi khi tìm kiếm sản phẩm',
+                'error' => $e->getMessage()
+            ], 500);
         }
-
-        return response()->json($response, 200);
-
-    } catch (\Exception $e) {
-        Log::error($e->getMessage());
-        return response()->json([
-            'message' => 'Lỗi khi tìm kiếm sản phẩm',
-            'error' => $e->getMessage()
-        ], 500);
     }
-}
 }
