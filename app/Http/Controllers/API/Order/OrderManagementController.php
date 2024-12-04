@@ -79,7 +79,7 @@ class OrderManagementController extends Controller
        // Lấy các đơn hàng đã phân trang
        $orders = $query->with([
            'orderItems.product' => function ($query) {
-               $query->withTrashed(); 
+               $query->withTrashed();
            },
            'user'
        ])->paginate(15);
@@ -89,8 +89,8 @@ class OrderManagementController extends Controller
        }
        return response()->json([
            'message' => "Có {$totalOrders} đơn hàng.",
-           'order_count' => $totalOrders,  
-           'orders' => $orders,  
+           'order_count' => $totalOrders,
+           'orders' => $orders,
        ], 200);
    }
 
@@ -146,61 +146,68 @@ class OrderManagementController extends Controller
 
 
 
- public function detall($id)
- {
-     if (!Auth::check() || Auth::user()->role !== 'admin') {
-         return response()->json(['message' => 'Bạn không có quyền truy cập chi tiết đơn hàng.'], 403);
-     }
+    public function detall($id)
+    {
+        if (!Auth::check() || Auth::user()->role !== 'admin') {
+            return response()->json(['message' => 'Bạn không có quyền truy cập chi tiết đơn hàng.'], 403);
+        }
 
+        // Lấy đơn hàng với thông tin cần thiết (bao gồm sản phẩm bị xóa)
+        $order = Order::with(['orderItems.product' => function ($query) {
+            $query->withTrashed(); // Bao gồm sản phẩm đã bị xóa mềm
+        }, 'address', 'user'])->findOrFail($id);
 
-     $order = Order::with(['orderItems.product', 'address', 'user'])
-     ->findOrFail($id);
-    $totalAllOrders = Order::sum('total_amount');
-     return response()->json([
-         'order_id' => $order->id,
-         'name' => $order->user ? $order->user->name : 'N/A',
-         'email' => $order->user ? $order->user->email : 'N/A',
-         'total_amount' => $order->total_amount,
-         'total_all_orders' => $totalAllOrders,
-         'address' => $order->address ? [
-             'id' => $order->address->id,
-             'address_name' => $order->address->address_name,
-             'phone_number' => $order->address->phone_number,
-             'city' => $order->address->city,
-             'district' => $order->address->district,
-             'ward' => $order->address->ward,
-             'detail_address' => $order->address->detail_address,
-         ] : 'N/A',
-         'payment_method' => $order->payment_method,
-         'payment_status' => $order->payment_status,
-         'order_status' => $order->order_status,
-         'note' => $order->note,
-         'created_at' => $order->created_at,
-         'updated_at' => $order->updated_at,
-         'order_items' => $order->orderItems->map(function ($item) {
-             return [
-                 'order_id' => $item->order_id,
-                 'product_id' => $item->product_id,
-                 'quantity' => $item->quantity,
-                 'price' => $item->price,
-                 'size' => $item->size,
-                 'color' => $item->color,
-                 'created_at' => $item->created_at,
-                 'updated_at' => $item->updated_at,
-                 'product' => $item->product ? [
-                     'id' => $item->product->id,
-                     'name' => $item->product->name,
-                     'description' => $item->product->description,
-                     'price_regular' => $item->product->price_regular,
-                     'price_sale' => $item->product->price_sale,
-                     'category' => $item->product->category ? $item->product->category->name : 'N/A',
-                     'img_thumbnail' => $item->product->img_thumbnail,
-                 ] : 'N/A',
-             ];
-         }),
-     ]);
- }
-/**
+        // Tổng số tiền của tất cả các đơn hàng
+        $totalAllOrders = Order::sum('total_amount');
+
+        // Trả về thông tin đơn hàng dưới dạng JSON
+        return response()->json([
+            'order_id' => $order->id,
+            'name' => $order->user ? $order->user->name : 'N/A',
+            'email' => $order->user ? $order->user->email : 'N/A',
+            'total_amount' => $order->total_amount,
+            'total_all_orders' => $totalAllOrders,
+            'address' => $order->address ? [
+                'id' => $order->address->id,
+                'address_name' => $order->address->address_name,
+                'phone_number' => $order->address->phone_number,
+                'city' => $order->address->city,
+                'district' => $order->address->district,
+                'ward' => $order->address->ward,
+                'detail_address' => $order->address->detail_address,
+            ] : 'N/A',
+            'payment_method' => $order->payment_method,
+            'payment_status' => $order->payment_status,
+            'order_status' => $order->order_status,
+            'note' => $order->note,
+            'created_at' => $order->created_at,
+            'updated_at' => $order->updated_at,
+            'order_items' => $order->orderItems->map(function ($item) {
+                return [
+                    'order_id' => $item->order_id,
+                    'product_id' => $item->product_id,
+                    'quantity' => $item->quantity,
+                    'price' => $item->price,
+                    'size' => $item->size,
+                    'color' => $item->color,
+                    'created_at' => $item->created_at,
+                    'updated_at' => $item->updated_at,
+                    'status_deleted' => $item->product && $item->product->trashed() ? 1 : 0,
+                    'product' => $item->product ? [
+                        'id' => $item->product->id,
+                        'name' => $item->product->name,
+                        'description' => $item->product->description,
+                        'price_regular' => $item->product->price_regular,
+                        'price_sale' => $item->product->price_sale,
+                        'category' => $item->product->category ? $item->product->category->name : 'N/A',
+                        'img_thumbnail' => $item->product->img_thumbnail,
+                    ] : 'N/A',
+                ];
+            }),
+        ]);
+    }
+
+    /**
  * @OA\Put(
  *     tags={"Orders Admin Management"},
  *     path="/api/admin/orders/status/{id}",

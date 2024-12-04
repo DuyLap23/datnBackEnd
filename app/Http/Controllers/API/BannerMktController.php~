@@ -119,12 +119,10 @@ public function store(Request $request)
     $banner->name = $request->name;
 
     // Lưu hình ảnh
-    if ($request->hasFile('image')) {
-       $path = $request->file('image')->store('banners', 'public');
-        $banner->image =  asset('storage/' . $path);
-        Log::info('Hình ảnh đã được lưu cho banner.', ['image_path' => $banner->image]);
+    if ($request->hasFile('img_thumbnail')) {
+        $path = $request->file('image')->store('banners', 'public');
+        $banner->image = asset('storage/' . $path);
     }
-
     $banner->link = $request->link;
     $banner->start_date = now();
     $banner->end_date = $request->input('end_date', now()->addDays(7));
