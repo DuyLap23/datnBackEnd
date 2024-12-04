@@ -82,7 +82,7 @@ class OrderManagementController extends Controller
                $query->withTrashed(); 
            },
            'user'
-       ])->paginate(15);
+       ])->get();
 
        if ($orders->isEmpty()) {
            return response()->json(['message' => 'Không có đơn hàng nào', 'orders' => []], 404);
