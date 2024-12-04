@@ -227,7 +227,8 @@ public function store(Request $request)
             }
             // Lưu hình ảnh mới vào thư mục 'banners' của storage
 
-            $banner->image = $request->file('image')->store('banners', 'public');
+            $imagePath = $request->file('image')->store('banners', 'public');
+            $banner->image = asset('storage/' . $imagePath);
             Log::info('Hình ảnh đã được cập nhật cho banner.', ['image_path' => $banner->image]);
         }
 
