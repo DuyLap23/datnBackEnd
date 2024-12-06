@@ -21,7 +21,6 @@ class OrderItem extends Model
         'price',
         'size',
         'color',
-
     ];
 
     protected $casts = [

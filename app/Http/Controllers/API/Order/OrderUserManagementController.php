@@ -43,6 +43,7 @@ class OrderUserManagementController extends Controller
         $status = $request->query('status', 'all');
         $query = Order::where('user_id', Auth::id());
 
+        // Lọc theo trạng thái đơn hàng
         switch ($status) {
             case 'pending':
                 $query->where('order_status', 'pending'); // chờ thanh toán
@@ -64,25 +65,38 @@ class OrderUserManagementController extends Controller
                 break;
         }
 
+        // Lấy đơn hàng cùng sản phẩm (bao gồm cả sản phẩm đã bị xóa mềm)
         $orders = $query->with([
             'orderItems.product' => function ($query) {
-                $query->withTrashed(); 
+                $query->withTrashed();
             }
         ])->orderBy('created_at', 'desc')->get();
+
         if ($orders->isEmpty()) {
             return response()->json(['message' => 'Không có đơn hàng nào'], 404);
         }
-        foreach ($orders as $order) {
+
+        // Gắn thêm thuộc tính `image_url` và `status_deleted` cho từng order
+        $orders->map(function ($order) {
+            // Lấy ảnh đầu tiên của sản phẩm từ danh sách orderItems
             $order->image_url = $order->orderItems->first()->product->img_thumbnail ?? null;
 
-            foreach ($order->orderItems as $item) {
-            }
-        }
+            // Duyệt qua các orderItems để gán status_deleted
+            $order->orderItems->map(function ($item) {
+                $item->status_deleted = $item->product && $item->product->trashed() ? 1 : 0;
+                return $item;
+            });
+
+            return $order;
+        });
+
+        // Trả về JSON
         return response()->json([
             'message' => 'Số lượng đơn hàng: ' . $orders->count(),
             'orders' => $orders
         ]);
     }
+
 
     /**
      * @OA\Patch(
@@ -324,11 +338,18 @@ class OrderUserManagementController extends Controller
             return response()->json(['message' => 'Vui lòng đăng nhập'], 401);
         }
 
-        $order = Order::with(['user', 'address', 'orderItems.product'])->find($id);
+        $order = Order::with([
+            'user',
+            'address',
+            'orderItems.product' => function ($query) {
+                $query->withTrashed(); // Bao gồm cả sản phẩm đã xóa mềm
+            }
+        ])->find($id);
 
         if (!$order || $order->user_id !== Auth::id()) {
             return response()->json(['message' => 'Không tìm thấy đơn hàng.'], 404);
         }
+
         return response()->json([
             'order_id' => $order->id,
             'name' => $order->user ? $order->user->name : 'N/A',
@@ -353,6 +374,7 @@ class OrderUserManagementController extends Controller
                 return [
                     'order_id' => $item->order_id,
                     'product_id' => $item->product_id,
+                    'slug' => $item->product->slug,
                     'quantity' => $item->quantity,
                     'price' => $item->price,
                     'size' => $item->size,
@@ -361,12 +383,14 @@ class OrderUserManagementController extends Controller
                     'img_thumbnail' => $item->product ? $item->product->img_thumbnail : 'N/A',
                     'price_regular' => $item->product ? $item->product->price_regular : 'N/A',
                     'price_sale' => $item->product ? $item->product->price_sale : 'N/A',
+                    'status_deleted' => $item->product && $item->product->trashed() ? 1 : 0, // Sử dụng `trashed()`
                     'created_at' => $item->created_at,
                     'updated_at' => $item->updated_at,
                 ];
             }),
         ]);
     }
+
 
     /**
      * @OA\Patch(
