@@ -142,7 +142,7 @@ Route::group(
         Route::apiResource('product/colors', ProductColorController::class);
         Route::apiResource('product/sizes', ProductSizeController::class);
         Route::apiResource('product/variants', ProductVariantController::class);
-        Route::post('products/search', [ProductController::class, 'searchProduct']);
+        Route::get('products/search', [ProductController::class, 'searchProduct']);
 
         Route::get('users', [UserController::class, 'index']);
 

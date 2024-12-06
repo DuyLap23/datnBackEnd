@@ -1158,45 +1158,35 @@ class ProductController extends Controller
  *     )
  * )
  */
-    public function searchProduct(Request $request)
-    {
-        $currentUser = auth('api')->user();
-    $keyword = $request->input('keyword');
+public function searchProduct(Request $request)
+{
+    $currentUser = auth('api')->user();
+    $search = $request->input('search'); 
     $result = [];
     $startTime = microtime(true);
 
     try {
-        $query = Product::with([
-            'category',
-            'comments'
-        ]);
+        $query = Product::with('category'); // Chỉ tải category
 
         // Nếu có từ khóa tìm kiếm và người dùng là admin
-        if ($keyword && $currentUser && $currentUser->isAdmin()) {
+        if ($search && $currentUser && $currentUser->isAdmin()) {
             $query->withTrashed()
-                ->where(function ($q) use ($keyword) {
-                    $q->where('name', 'LIKE', "%{$keyword}%")
-                        ->orWhere('slug', 'LIKE', "%{$keyword}%");
+                ->when($search, function ($q) use ($search) {
+                    $q->where('name', 'LIKE', "%{$search}%")
+                        ->orWhere('slug', 'LIKE', "%{$search}%");
                 });
         } else {
-            // Nếu không có tìm kiếm hoặc không phải admin, chỉ lấy sản phẩm active và chưa xóa
-            // Sắp xếp theo thời gian tạo mới nhất
+            // Nếu không có tìm kiếm hoặc không phải admin
             $query->where('is_active', 1)
                 ->whereNull('deleted_at')
+                ->when($search, function ($q) use ($search) {
+                    $q->where('name', 'LIKE', "%{$search}%")
+                        ->orWhere('slug', 'LIKE', "%{$search}%");
+                })
                 ->orderBy('created_at', 'desc');
         }
 
         $query->chunk(10, function ($products) use (&$result) {
-            $products->each(function ($product) {
-                $totalRatings = $product->comments->count();
-                $averageRating = $totalRatings > 0
-                    ? $product->comments->avg('rating')
-                    : 0;
-
-                $product->average_rating = $averageRating;
-                $product->total_ratings = $totalRatings;
-            });
-
             $result = array_merge($result, $products->toArray());
         });
 
@@ -1204,7 +1194,7 @@ class ProductController extends Controller
         $executionTime = $endTime - $startTime;
 
         // Nếu đang tìm kiếm và là admin, phân loại kết quả
-        if ($keyword && $currentUser && $currentUser->isAdmin()) {
+        if ($search && $currentUser && $currentUser->isAdmin()) {
             $productsCollection = collect($result);
             $activeProducts = $productsCollection->whereNull('deleted_at');
             $deletedProducts = $productsCollection->whereNotNull('deleted_at');
@@ -1234,7 +1224,6 @@ class ProductController extends Controller
             return response()->json($response, 200);
         }
 
-        // Trả về response mặc định cho trường hợp không tìm kiếm
         return response()->json([
             'success' => true,
             'message' => 'Lấy thành công sản phẩm',
