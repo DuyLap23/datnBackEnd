@@ -8,6 +8,7 @@ use App\Models\Category;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use App\Models\ProductVariant;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
@@ -1209,68 +1210,94 @@ class ProductController extends Controller
     public function searchProduct(Request $request)
     {
         $currentUser = auth('api')->user();
-        if (!$currentUser || !$currentUser->isAdmin()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Bạn không phải admin.'
-            ], 403);
-        }
-        try {
-            $keyword = $request->input('keyword');
+    $keyword = $request->input('keyword');
+    $result = [];
+    $startTime = microtime(true);
 
-            if (empty($keyword)) {
-                return response()->json([
-                    'message' => 'Từ khóa tìm kiếm không được để trống',
-                    'data' => []
-                ], 400);
-            }
+    try {
+        $query = Product::with([
+            'category',
+            'comments'
+        ]);
 
-            // Tìm trong cả sản phẩm đã xóa và chưa xóa
-            $products = Product::withTrashed()
-                ->where(function ($query) use ($keyword) {
-                    $query->where('name', 'LIKE', "%{$keyword}%")
+        // Nếu có từ khóa tìm kiếm và người dùng là admin
+        if ($keyword && $currentUser && $currentUser->isAdmin()) {
+            $query->withTrashed()
+                ->where(function ($q) use ($keyword) {
+                    $q->where('name', 'LIKE', "%{$keyword}%")
                         ->orWhere('slug', 'LIKE', "%{$keyword}%");
-                })
-                ->with(['category', 'brand', 'productImages', 'productVariants.productColor', 'productVariants.productSize'])
-                ->paginate(9); // Phân trang với 9 sản phẩm mỗi trang
+                });
+        } else {
+            // Nếu không có tìm kiếm hoặc không phải admin, chỉ lấy sản phẩm active và chưa xóa
+            // Sắp xếp theo thời gian tạo mới nhất
+            $query->where('is_active', 1)
+                ->whereNull('deleted_at')
+                ->orderBy('created_at', 'desc');
+        }
 
-            // Chuyển `items` (danh sách sản phẩm trên trang hiện tại) về Collection
-            $productsCollection = collect($products->items());
+        $query->chunk(10, function ($products) use (&$result) {
+            $products->each(function ($product) {
+                $totalRatings = $product->comments->count();
+                $averageRating = $totalRatings > 0
+                    ? $product->comments->avg('rating')
+                    : 0;
 
-            // Phân loại sản phẩm
+                $product->average_rating = $averageRating;
+                $product->total_ratings = $totalRatings;
+            });
+
+            $result = array_merge($result, $products->toArray());
+        });
+
+        $endTime = microtime(true);
+        $executionTime = $endTime - $startTime;
+
+        // Nếu đang tìm kiếm và là admin, phân loại kết quả
+        if ($keyword && $currentUser && $currentUser->isAdmin()) {
+            $productsCollection = collect($result);
             $activeProducts = $productsCollection->whereNull('deleted_at');
             $deletedProducts = $productsCollection->whereNotNull('deleted_at');
 
-
-            // Chuẩn bị response
             $response = [
+                'success' => true,
                 'message' => 'Tìm kiếm sản phẩm thành công',
-                'data' => $activeProducts,
-                'total_active' => $activeProducts->count()
+                'products' => $activeProducts->values()->all(),
+                'total_active' => $activeProducts->count(),
+                'execution_time' => number_format($executionTime, 5)
             ];
 
-            // Thêm thông tin về sản phẩm đã xóa nếu có
             if ($deletedProducts->count() > 0) {
                 $response['deleted_products'] = [
                     'message' => 'Sản phẩm đã bị xóa trước đó',
                     'data' => $deletedProducts->map(function ($product) {
                         return [
-                            'id' => $product->id,
-                            'name' => $product->name,
-                            'deleted_at' => $product->deleted_at->format('d/m/Y H:i:s')
+                            'id' => $product['id'],
+                            'name' => $product['name'],
+                            'deleted_at' => Carbon::parse($product['deleted_at'])->format('d/m/Y H:i:s')
                         ];
-                    }),
+                    })->values()->all(),
                     'total_deleted' => $deletedProducts->count()
                 ];
             }
 
             return response()->json($response, 200);
-        } catch (\Exception $e) {
-            Log::error($e->getMessage());
-            return response()->json([
-                'message' => 'Lỗi khi tìm kiếm sản phẩm',
-                'error' => $e->getMessage()
-            ], 500);
         }
+
+        // Trả về response mặc định cho trường hợp không tìm kiếm
+        return response()->json([
+            'success' => true,
+            'message' => 'Lấy thành công sản phẩm',
+            'products' => $result,
+            'execution_time' => number_format($executionTime, 5)
+        ], 200);
+
+    } catch (\Exception $e) {
+        Log::error($e->getMessage());
+        return response()->json([
+            'success' => false,
+            'message' => 'Lỗi khi xử lý sản phẩm',
+            'error' => $e->getMessage()
+        ], 500);
     }
+}
 }
