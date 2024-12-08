@@ -165,33 +165,68 @@ class CategoryController extends Controller
      */
 
 
-    public function index()
+    public function index(Request $request)
     {
-        $categories = Category::query()
-            ->with(['children'])
-            ->where(function ($query) {
-                $query->where('parent_id', 0)
-                    ->orWhereNull('parent_id');
-            })
+        // Lấy giá trị tìm kiếm
+        $search = $request->input('search');
+
+        // Nếu có tìm kiếm
+        if ($search) {
+            // Chỉ tìm theo tên, không lấy quan hệ
+            $categories = Category::where('name', 'LIKE', "%{$search}%")
+                ->orWhere('slug', 'LIKE', "%{$search}%")
+                ->latest('id')
+                ->get();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Lấy danh sách danh mục thành công',
+                'data' => [
+                    'categories' => $categories->map(function ($category) {
+                        return [
+                            'id' => $category->id,
+                            'name' => $category->name,
+                            'slug' => $category->slug,
+                            'image' => $category->image,
+                            'created_at' => $category->created_at
+                        ];
+                    }),
+                ]
+            ], 200);
+        }
+
+        // Nếu không có tìm kiếm, lấy toàn bộ danh mục cha và con
+        $categories = Category::with('children')
+            ->whereNull('parent_id')
+            ->orWhere('parent_id', 0)
             ->latest('id')
             ->get();
 
-        if (!$categories) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Không tìm thấy danh mục',
-            ]);
-        }
-        return response()->json(
-            [
-                'success' => true,
-                'message' => 'Lấy thành công danh mục',
-                'categories' => $categories,
-            ],
-            200,
-        );
+        return response()->json([
+            'success' => true,
+            'message' => 'Lấy thành công danh mục',
+            'data' => [
+                'categories' => $categories->map(function ($category) {
+                    return [
+                        'id' => $category->id,
+                        'name' => $category->name,
+                        'slug' => $category->slug,
+                        'image' => $category->image,
+                        'created_at' => $category->created_at,
+                        'children' => $category->children->map(function ($child) {
+                            return [
+                                'id' => $child->id,
+                                'name' => $child->name,
+                                'slug' => $child->slug,
+                                'image' => $child->image,
+                                'created_at' => $child->created_at
+                            ];
+                        })
+                    ];
+                }),
+            ]
+        ], 200);
     }
-
     public function getCategoryChild()
     {
         $categories = Category::with('children')
@@ -211,6 +246,7 @@ class CategoryController extends Controller
             'categories' => $categories,
         ], 200);
     }
+
     public function fillerCategory()
     {
         $categories = Category::query()
@@ -229,8 +265,6 @@ class CategoryController extends Controller
             'categories' => $categories,
         ], 200);
     }
-
-
 
 
     /**
@@ -885,179 +919,4 @@ class CategoryController extends Controller
             );
         }
     }
-    /**
-* @OA\Get(
-*     path="/api/categories/search",
-*     summary="Tìm kiếm danh mục",
-*     description="Tìm kiếm danh mục theo tên hoặc slug, bao gồm cả danh mục đã xóa",
-*     tags={"Category"},
-*     @OA\Parameter(
-*         name="keyword",
-*         in="query",
-*         description="Từ khóa tìm kiếm (tên hoặc slug của danh mục)",
-*         required=true,
-*         @OA\Schema(type="string")
-*     ),
-*     @OA\Response(
-*         response=200,
-*         description="Thành công",
-*         @OA\JsonContent(
-*             @OA\Property(property="success", type="boolean", example=true),
-*             @OA\Property(
-*                 property="message",
-*                 type="string",
-*                 example="Tìm kiếm danh mục thành công"
-*             ),
-*             @OA\Property(
-*                 property="categories",
-*                 type="array",
-*                 @OA\Items(
-*                     @OA\Property(property="id", type="integer", example=1),
-*                     @OA\Property(property="name", type="string", example="Điện thoại"),
-*                     @OA\Property(property="slug", type="string", example="dien-thoai"),
-*                     @OA\Property(property="image", type="string", example="https://example.com/image.jpg"),
-*                     @OA\Property(property="parent_id", type="integer", example=0),
-*                     @OA\Property(property="parent_name", type="string", example="Điện tử"),
-*                     @OA\Property(property="created_at", type="string", format="date-time")
-*                 )
-*             ),
-*             @OA\Property(
-*                 property="total_active",
-*                 type="integer",
-*                 example=5
-*             ),
-*             @OA\Property(
-*                 property="deleted_categories",
-*                 type="object",
-*                 @OA\Property(
-*                     property="message",
-*                     type="string",
-*                     example="Một số danh mục đã bị xóa"
-*                 ),
-*                 @OA\Property(
-*                     property="categories",
-*                     type="array",
-*                     @OA\Items(
-*                         @OA\Property(property="id", type="integer", example=1),
-*                         @OA\Property(property="name", type="string", example="Máy tính cũ"),
-*                         @OA\Property(property="deleted_at", type="string", example="30/11/2024 15:30:00")
-*                     )
-*                 ),
-*                 @OA\Property(
-*                     property="total_deleted",
-*                     type="integer",
-*                     example=1
-*                 )
-*             )
-*         )
-*     ),
-*     @OA\Response(
-*         response=400,
-*         description="Lỗi validation",
-*         @OA\JsonContent(
-*             @OA\Property(property="success", type="boolean", example=false),
-*             @OA\Property(
-*                 property="message",
-*                 type="string",
-*                 example="Từ khóa tìm kiếm không được để trống"
-*             )
-*         )
-*     ),
-*     @OA\Response(
-*         response=403,
-*         description="Lỗi phân quyền",
-*         @OA\JsonContent(
-*             @OA\Property(property="success", type="boolean", example=false),
-*             @OA\Property(
-*                 property="message",
-*                 type="string",
-*                 example="Bạn không phải admin"
-*             )
-*         )
-*     ),
-*     @OA\Response(
-*         response=500,
-*         description="Lỗi server",
-*         @OA\JsonContent(
-*             @OA\Property(property="success", type="boolean", example=false),
-*             @OA\Property(
-*                 property="message",
-*                 type="string",
-*                 example="Tìm kiếm danh mục thất bại"
-*             ),
-*             @OA\Property(
-*                 property="error",
-*                 type="string"
-*             )
-*         )
-*     )
-* )
-*/
-public function searchCategory(Request $request)
-{
-    $currentUser = auth('api')->user();
-    $search = $request->input('search');
-    
-    if (!$currentUser) {
-        return response()->json([
-            'success' => false,
-            'message' => 'Bạn chưa đăng nhập.',
-        ], 401);
-    }
-
-    if (!$currentUser->isAdmin()) {
-        return response()->json([
-            'success' => false,
-            'message' => 'Bạn không phải admin.',
-        ], 403);
-    }
-
-    try {
-        $query = Category::query();
-        
-        // 1. Tìm kiếm theo từ khóa
-        if ($request->has('search')) {
-            $query->when($search, function($q) use ($search) {
-                $q->where('name', 'LIKE', "%{$search}%")
-                  ->orWhere('slug', 'LIKE', "%{$search}%");
-            });
-        }
-        
-        // 2. Sắp xếp
-        $sortBy = $request->get('sort_by', 'id');
-        $sortOrder = $request->get('sort_order', 'desc');
-        $query->orderBy($sortBy, $sortOrder);
-        
-        // 3. Lấy kết quả
-        $categories = $query->get();
-        
-        return response()->json([
-            'success' => true,
-            'message' => 'Lấy danh sách danh mục thành công',
-            'data' => [
-                'categories' => $categories->map(function ($category) {
-                    return [
-                        'id' => $category->id,
-                        'name' => $category->name,
-                        'slug' => $category->slug,
-                        'image' => $category->image,
-                        'created_at' => $category->created_at
-                    ];
-                }),
-                'summary' => [
-                    'total' => $categories->count()
-                ]
-            ]
-        ], 200);
-
-    } catch (\Exception $e) {
-        return response()->json([
-            'success' => false,
-            'message' => 'Lỗi khi lấy danh sách danh mục',
-            'error' => $e->getMessage()
-        ], 500);
-    }
-}
-
-
 }
