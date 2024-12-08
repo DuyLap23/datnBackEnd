@@ -993,80 +993,71 @@ class CategoryController extends Controller
 *     )
 * )
 */
-    public function searchCategory(Request $request)
-    {
-        $currentUser = auth('api')->user();
-        if (!$currentUser || !$currentUser->isAdmin()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Bạn không phải admin.'
-            ], 403);
+public function searchCategory(Request $request)
+{
+    $currentUser = auth('api')->user();
+    $search = $request->input('search');
+    
+    if (!$currentUser) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Bạn chưa đăng nhập.',
+        ], 401);
+    }
+
+    if (!$currentUser->isAdmin()) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Bạn không phải admin.',
+        ], 403);
+    }
+
+    try {
+        $query = Category::query();
+        
+        // 1. Tìm kiếm theo từ khóa
+        if ($request->has('search')) {
+            $query->when($search, function($q) use ($search) {
+                $q->where('name', 'LIKE', "%{$search}%")
+                  ->orWhere('slug', 'LIKE', "%{$search}%");
+            });
         }
-    
-        try {
-            $keyword = $request->input('keyword');
-    
-            if (empty($keyword)) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Từ khóa tìm kiếm không được để trống',
-                    'data' => []
-                ], 400);
-            }
-    
-            // Tìm kiếm cả danh mục đã xóa và chưa xóa
-            $categories = Category::withTrashed()
-                ->where(function ($query) use ($keyword) {
-                    $query->where('name', 'LIKE', "%{$keyword}%")
-                        ->orWhere('slug', 'LIKE', "%{$keyword}%");
-                })
-                ->with('parent') // Eager load parent to avoid N+1 query
-                ->get();
-    
-            // Phân loại kết quả
-            $activeCategories = $categories->whereNull('deleted_at');
-            $deletedCategories = $categories->whereNotNull('deleted_at');
-    
-            // Xử lý dữ liệu trả về
-            $response = [
-                'success' => true,
-                'message' => 'Tìm kiếm danh mục thành công',
-                'categories' => $activeCategories->map(function ($category) {
+        
+        // 2. Sắp xếp
+        $sortBy = $request->get('sort_by', 'id');
+        $sortOrder = $request->get('sort_order', 'desc');
+        $query->orderBy($sortBy, $sortOrder);
+        
+        // 3. Lấy kết quả
+        $categories = $query->get();
+        
+        return response()->json([
+            'success' => true,
+            'message' => 'Lấy danh sách danh mục thành công',
+            'data' => [
+                'categories' => $categories->map(function ($category) {
                     return [
                         'id' => $category->id,
                         'name' => $category->name,
                         'slug' => $category->slug,
                         'image' => $category->image,
-                        'parent_id' => $category->parent_id,
-                        'parent_name' => $category->parent ? $category->parent->name : null,
                         'created_at' => $category->created_at
                     ];
-                })->values(), // Ensure it's a flat array
-                'total_active' => $activeCategories->count()
-            ];
-    
-            // Thêm thông tin về danh mục đã xóa nếu có
-            if ($deletedCategories->count() > 0) {
-                $response['deleted_categories'] = [
-                    'message' => 'Một số danh mục đã bị xóa',
-                    'categories' => $deletedCategories->map(function ($category) {
-                        return [
-                            'id' => $category->id,
-                            'name' => $category->name,
-                            'deleted_at' => $category->deleted_at->format('d/m/Y H:i:s')
-                        ];
-                    })->values(), // Ensure it's a flat array
-                    'total_deleted' => $deletedCategories->count()
-                ];
-            }
-    
-            return response()->json($response, 200);
-        } catch (\Exception $exception) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Tìm kiếm danh mục thất bại',
-                'error' => $exception->getMessage(),
-            ], 500);
-        }
+                }),
+                'summary' => [
+                    'total' => $categories->count()
+                ]
+            ]
+        ], 200);
+
+    } catch (\Exception $e) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Lỗi khi lấy danh sách danh mục',
+            'error' => $e->getMessage()
+        ], 500);
     }
+}
+
+
 }
