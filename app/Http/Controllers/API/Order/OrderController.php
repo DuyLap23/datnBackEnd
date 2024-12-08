@@ -162,37 +162,14 @@ class OrderController extends Controller
                 ], 401);
             }
 
-
-            // Lấy các ID sản phẩm được chọn từ request
-            $selectedCartItemIds = request('cart_item_ids', []);
-            Log::info('cart_item_ids', ['selectedCartItemIds' => $selectedCartItemIds]);
-
-            if (is_string($selectedCartItemIds)) {
-                $selectedCartItemIds = json_decode($selectedCartItemIds, true);
-            }
-            // Kiểm tra nếu không có sản phẩm nào được chọn
-            if (!is_array($selectedCartItemIds) || empty($selectedCartItemIds)) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Vui lòng chọn sản phẩm để đặt hàng.'
-                ], 400);
-            }
-
-            // Lấy các sản phẩm được chọn trong giỏ hàng
             $cart = Cart::where('user_id', $user->id)
-                ->whereIn('id', $selectedCartItemIds)
-                ->where('status', 0)
-                ->get();
-            Log::info('cart', ['cart' => $cart]);
-
-
+                ->where('status', 0)->get();
             if ($cart->isEmpty()) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Không tìm thấy sản phẩm trong giỏ hàng.'
+                    'message' => 'Giỏ hàng không có sản phẩm nào.'
                 ], 404);
             }
-
 
             $defaultAddress = $user->addresses->where('is_default', true)->first();
             if (!$defaultAddress) {
@@ -279,9 +256,9 @@ class OrderController extends Controller
                 }
             }
 
-            if ($paymentMethod == PAYMENT_METHOD_VNPAY) {
+            if ($paymentMethod == 1) {
 
-                $order = DB::transaction(function () use ($user, $defaultAddress, $paymentMethod, $totalAmount, $dataItem, $voucherCode, $selectedCartItemIds) {
+                $order = DB::transaction(function () use ($user, $defaultAddress, $paymentMethod, $totalAmount, $dataItem, $voucherCode) {
                     $order = Order::create([
                         'user_id' => $user->id,
                         'order_code' => $this->generateOrderCode(),
@@ -317,18 +294,18 @@ class OrderController extends Controller
 
                 return response()->json([
                     'success' => true,
-//                    'message' => 'Đặt hàng thành công, chờ thanh toán.',
+                    'message' => 'Đặt hàng thành công, chờ thanh toán.',
                     'payment_url' => $vnpayResponse['url'],
-//                    'data' => [
-//                        'order_id' => $order->id,
-//                        'total_amount' => $totalAmount + $this->voucherDiscount, // Giá gốc
-//                        'voucher_discount' => $this->voucherDiscount,
-//                        'final_amount' => $totalAmount // Giá sau khi trừ voucher
-//                    ]
+                    'data' => [
+                        'order_id' => $order->id,
+                        'total_amount' => $totalAmount + $this->voucherDiscount, // Giá gốc
+                        'voucher_discount' => $this->voucherDiscount,
+                        'final_amount' => $totalAmount // Giá sau khi trừ voucher
+                    ]
                 ], 201);
-            } elseif ($paymentMethod == PAYMENT_METHOD_CASH) {
+            } elseif ($paymentMethod == 0) {
                 // Thanh toán tiền mặt
-                $order = DB::transaction(function () use ($user, $defaultAddress, $paymentMethod, $totalAmount, $dataItem, $voucherCode, $selectedCartItemIds) {
+                $order = DB::transaction(function () use ($user, $defaultAddress, $paymentMethod, $totalAmount, $dataItem, $voucherCode) {
                     $order = Order::create([
                         'user_id' => $user->id,
                         'order_code' => $this->generateOrderCode(),
@@ -368,10 +345,7 @@ class OrderController extends Controller
                         }
                     }
                     // OrderSuccess::dispatch($order, $user);
-                   $cartDelete = Cart::where('user_id', $user->id)
-                        ->whereIn('id', $selectedCartItemIds)
-                        ->delete();
-                    Log::info('Xoá giỏ hàng ', [$cartDelete]);
+                    Cart::where('user_id', $user->id)->delete();
                     return $order;
                 });
                 return response()->json([
@@ -536,6 +510,7 @@ class OrderController extends Controller
 
             $order = Order::find($vnpayTransaction->order_id);
             $user = User::find($order->user_id);
+
             if ($request->vnp_ResponseCode == '00') {
 
                 // Cập nhật trạng thái đơn hàng
@@ -564,21 +539,9 @@ class OrderController extends Controller
                         }
                     }
                 }
-                $cartItemsToDelete = Cart::where('user_id', $user->id)
-                    ->whereIn('product_id', $order->orderItems->pluck('product_id'))
-                    ->get();
+                Cart::where('user_id', $order->user_id)->delete(); // Xóa giỏ hàng
 
-                foreach ($cartItemsToDelete as $cartItem) {
-                    $cartItem->delete();
-                }
-
-                Log::info('Giỏ hàng đã được xóa sau khi thanh toán thành công', [
-                    'user_id' => $user->id,
-                    'order_id' => $order->id,
-                    'cart_items_deleted' => $cartItemsToDelete,
-                ]);
-
-                 OrderSuccess::dispatch($order,$user);
+                // OrderSuccess::dispatch($order,$user);
 
                 return redirect()->to(env('FRONTEND_URL') . '/payment/success?' . http_build_query([
                         'order_id' => $order->id,
