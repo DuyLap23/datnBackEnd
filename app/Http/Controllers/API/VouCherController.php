@@ -978,97 +978,105 @@ class VouCherController extends Controller
  *     )
  * )
  */
-    public function searchVouchers(Request $request)
-    {
-       $currentUser = auth('api')->user();
-       if (!$currentUser || !$currentUser->isAdmin()) {
-           return response()->json([
-               'success' => false,
-               'message' => 'Bạn không phải admin.' 
-           ], 403);
-       }
-    
-       try {
-           $keyword = $request->input('keyword');
-           $status = $request->input('status');
-    
-           $query = Voucher::query();
-    
-           if ($keyword) {
-               $query->where(function($q) use ($keyword) {
-                   $q->where('name', 'LIKE', "%{$keyword}%")
-                     ->orWhere('code', 'LIKE', "%{$keyword}%");
-               });
-           }
-    
-           if ($status !== null) {
-               $query->where('voucher_active', $status);
-           }
-    
-           $vouchers = $query->orderBy('created_at', 'desc')->get();
-    
-           $activeVouchers = $vouchers->filter(function($voucher) {
-               return $voucher->voucher_active && 
-                      $voucher->end_date >= now() &&
-                      $voucher->used_count < $voucher->usage_limit;
-           });
-    
-           $inactiveVouchers = $vouchers->filter(function($voucher) {
-               return !$voucher->voucher_active || 
-                      $voucher->end_date < now() ||
-                      $voucher->used_count >= $voucher->usage_limit;
-           });
-    
-           return response()->json([
-               'success' => true,
-               'message' => 'Tìm kiếm voucher thành công',
-               'data' => [
-                   'active_vouchers' => $activeVouchers->values(),
-                   'inactive_vouchers' => $inactiveVouchers->values(),
-                   'total_active' => $activeVouchers->count(),
-                   'total_inactive' => $inactiveVouchers->count()
-               ]
-           ], 200);
-    
-       } catch (QueryException $e) {
-        
-           return response()->json([
-               'success' => false,
-               'message' => 'Lỗi truy vấn cơ sở dữ liệu',
-               'error' => [
-                   'code' => $e->getCode(),
-                   'message' => $e->getMessage(),
-                   'sql_state' => $e->getSqlState()
-               ]
-           ], 500);
-       } catch (ModelNotFoundException $e) {
-         
-           return response()->json([
-               'success' => false,
-               'message' => 'Không tìm thấy mẫu dữ liệu',
-               'error' => [
-                   'code' => $e->getCode(),
-                   'message' => $e->getMessage()
-               ]
-           ], 404);
-       } catch (ValidationException $e) {
-         
-           return response()->json([
-               'success' => false,
-               'message' => 'Lỗi xác thực dữ liệu',
-               'errors' => $e->errors()
-           ], 422);
-       } catch (Exception $e) {
-          
-           return response()->json([
-               'success' => false,
-               'message' => 'Tìm kiếm voucher thất bại',
-               'error' => [
-                   'code' => $e->getCode(),
-                   'message' => $e->getMessage(),
-                   'trace' => config('app.debug') ? $e->getTraceAsString() : null
-               ]
-           ], 500);
-       }
+public function searchVoucher(Request $request)
+{
+    $currentUser = auth('api')->user();
+    $search = $request->input('search'); 
+    $status = $request->get('status', 'all');
+    $now = Carbon::now();
+
+    if (!$currentUser) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Bạn chưa đăng nhập.',
+        ], 401);
     }
+
+    if (!$currentUser->isAdmin()) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Bạn không phải admin.',
+        ], 403);
+    }
+
+    try {
+        $query = Voucher::query();
+
+        // Xử lý tìm kiếm theo name hoặc code
+        if ($search) {
+            $query->where(function($q) use ($search) {
+                $q->where('name', 'LIKE', "%{$search}%")
+                  ->orWhere('code', 'LIKE', "%{$search}%");
+            });
+        }
+
+        // Xử lý lọc theo trạng thái
+        switch ($status) {
+            case 'active':
+                $query->where('voucher_active', true)
+                    ->where('start_date', '<=', $now)
+                    ->where('end_date', '>=', $now)
+                    ->where(function($q) {
+                        $q->where('usage_limit', '>', DB::raw('used_count'))
+                          ->orWhereNull('usage_limit');
+                    });
+                break;
+
+            case 'inactive':
+                $query->where(function ($q) use ($now) {
+                    $q->where('voucher_active', false)
+                        ->orWhere('start_date', '>', $now)
+                        ->orWhere('end_date', '<', $now)
+                        ->orWhere('used_count', '>=', DB::raw('usage_limit'));
+                });
+                break;
+        }
+
+        // Sắp xếp theo thời gian tạo mới nhất
+        $query->orderBy('created_at', 'desc');
+        $vouchers = $query->get();
+
+        // Phân loại vouchers
+        $activeVouchers = $vouchers->filter(function($voucher) use ($now) {
+            return $voucher->voucher_active && 
+                   $voucher->end_date >= $now &&
+                   $voucher->start_date <= $now &&
+                   ($voucher->used_count < $voucher->usage_limit || is_null($voucher->usage_limit));
+        });
+
+        $inactiveVouchers = $vouchers->filter(function($voucher) use ($now) {
+            return !$voucher->voucher_active || 
+                   $voucher->end_date < $now ||
+                   $voucher->start_date > $now ||
+                   (!is_null($voucher->usage_limit) && $voucher->used_count >= $voucher->usage_limit);
+        });
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Tìm kiếm voucher thành công',
+            'data' => [
+                'vouchers' => $vouchers,
+                'summary' => [
+                    'total_vouchers' => $vouchers->count(),
+                    'active_vouchers' => $activeVouchers->values(),
+                    'inactive_vouchers' => $inactiveVouchers->values(),
+                    'total_active' => $activeVouchers->count(),
+                    'total_inactive' => $inactiveVouchers->count()
+                ]
+            ]
+        ], 200);
+
+    } catch (Exception $e) {
+        Log::error('Lỗi khi tìm kiếm voucher:', [
+            'error' => $e->getMessage(),
+            'trace' => $e->getTraceAsString()
+        ]);
+        
+        return response()->json([
+            'success' => false,
+            'message' => 'Lỗi khi tìm kiếm voucher',
+            'error' => $e->getMessage()
+        ], 500);
+    }
+}
 }
