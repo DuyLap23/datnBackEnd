@@ -869,97 +869,111 @@ class CategoryController extends Controller
  */
 
 
-     public function destroy(string $id)
-     {
-         $currentUser = auth('api')->user();
-         if (!$currentUser) {
-             return response()->json([
-                 'success' => false,
-                 'message' => 'Bạn chưa đăng nhập.',
-             ], 401);
-         }
-         if (!$currentUser || !$currentUser->isAdmin()) {
-             return response()->json([
-                 'success' => false,
-                 'message' => 'Bạn không phải admin.'
-             ], 403);
-         }
-     
-         try {
-             // Bắt đầu transaction
-             DB::beginTransaction();
-     
-             $model = Category::findOrFail($id);
-             
-             // Tạo danh mục lưu trữ dựa trên danh mục bị xóa
-             $archivedCategory = Category::create([
-                 'name' => $model->name . ' (Lưu trữ)',
-                 'slug' => $model->slug . '-luu-tru-' . time(),
-                 'image' => null, // Có thể copy ảnh từ danh mục cũ nếu cần
-                 'parent_id' => 0 // Đặt là danh mục gốc hoặc có thể tạo một parent_id riêng cho danh mục lưu trữ
-             ]);
-     
-             // Cập nhật category_id của tất cả sản phẩm trong danh mục bị xóa
-             Product::where('category_id', $id)
-                 ->update(['category_id' => $archivedCategory->id]);
-     
-             // Cập nhật parent_id cho các danh mục con (nếu có)
-             Category::where('parent_id', $id)
-                 ->update(['parent_id' => $archivedCategory->id]);
-     
-             // Xóa ảnh của danh mục cũ nếu có
-             if ($model->image && Storage::exists($model->image)) {
-                 Storage::delete($model->image);
-             }
-     
-             // Soft delete danh mục cũ
-             $model->delete(); // Sẽ tự động set deleted_at
-     
-             // Commit transaction
-             DB::commit();
-     
-             // Ghi log thành công
-             Log::info("Danh mục '{$model->name}' với ID {$id} đã được xóa và sản phẩm đã được chuyển sang danh mục lưu trữ '{$archivedCategory->name}'");
-     
-             return response()->json(
-                 [
-                     'success' => true,
-                     'message' => "Xóa danh mục thành công. Các sản phẩm đã được chuyển sang danh mục '{$archivedCategory->name}'",
-                     'archived_category_id' => $archivedCategory->id
-                 ],
-                 200
-             );
-         } catch (QueryException $e) {
-             // Rollback transaction nếu có lỗi
-             DB::rollBack();
-     
-             if ($e->errorInfo[1] == 1451) {
-                 return response()->json(
-                     [
-                         'success' => false,
-                         'message' => 'Không thể xóa danh mục này vì nó có liên quan đến các bản ghi khác.',
-                     ],
-                     400
-                 );
-             }
-     
-             Log::error("Lỗi khi xóa danh mục ID {$id}: " . $e->getMessage());
-     
-             return response()->json(
-                 [
-                     'success' => false,
-                     'message' => 'Có lỗi xảy ra khi xóa danh mục.',
-                 ],
-                 400
-             );
-         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
-             return response()->json(
-                 [
-                     'success' => false,
-                     'message' => 'Danh mục không tồn tại.',
-                 ],
-                 404
-             );
-         }
-     }
+ public function destroy(string $id)
+{
+    $currentUser = auth('api')->user();
+    if (!$currentUser) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Bạn chưa đăng nhập.',
+        ], 401);
+    }
+    if (!$currentUser || !$currentUser->isAdmin()) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Bạn không phải admin.'
+        ], 403);
+    }
+
+    try {
+        // Bắt đầu transaction
+        DB::beginTransaction();
+
+        $model = Category::findOrFail($id);
+        
+        // Lấy hoặc tạo danh mục lưu trữ chung
+        $archiveParentCategory = Category::firstOrCreate(
+            ['slug' => 'danh-muc-luu-tru'],
+            [
+                'name' => 'Danh mục lưu trữ',
+                'parent_id' => 0,
+                'image' => null
+            ]
+        );
+
+        // Lấy hoặc tạo danh mục con lưu trữ
+        $archiveChildCategory = Category::firstOrCreate(
+            ['slug' => 'san-pham-da-xoa'],
+            [
+                'name' => 'Sản phẩm đã xóa',
+                'parent_id' => $archiveParentCategory->id,
+                'image' => null
+            ]
+        );
+
+        // Cập nhật category_id của tất cả sản phẩm trong danh mục bị xóa
+        Product::where('category_id', $id)
+            ->update(['category_id' => $archiveChildCategory->id]);
+
+        // Cập nhật parent_id cho các danh mục con (nếu có)
+       
+        Category::where('parent_id', $id)
+            ->update(['parent_id' => $archiveChildCategory->id]);
+
+        // Xóa ảnh của danh mục cũ nếu có
+        if ($model->image && Storage::exists($model->image)) {
+            Storage::delete($model->image);
+        }
+
+        // Soft delete danh mục cũ
+        $model->delete();
+
+        // Commit transaction
+        DB::commit();
+
+        // Ghi log thành công
+        Log::info("Danh mục '{$model->name}' với ID {$id} đã được xóa và sản phẩm đã được chuyển sang danh mục lưu trữ.");
+
+        return response()->json(
+            [
+                'success' => true,
+                'message' => "Xóa danh mục thành công. Các sản phẩm đã được chuyển sang danh mục lưu trữ",
+                'archive_parent_id' => $archiveParentCategory->id,
+                'archive_child_id' => $archiveChildCategory->id
+            ],
+            200
+        );
+    } catch (QueryException $e) {
+        // Rollback transaction nếu có lỗi
+        DB::rollBack();
+
+        if ($e->errorInfo[1] == 1451) {
+            return response()->json(
+                [
+                    'success' => false,
+                    'message' => 'Không thể xóa danh mục này vì nó có liên quan đến các bản ghi khác.',
+                ],
+                400
+            );
+        }
+
+        Log::error("Lỗi khi xóa danh mục ID {$id}: " . $e->getMessage());
+
+        return response()->json(
+            [
+                'success' => false,
+                'message' => 'Có lỗi xảy ra khi xóa danh mục.',
+            ],
+            400
+        );
+    } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+        return response()->json(
+            [
+                'success' => false,
+                'message' => 'Danh mục không tồn tại.',
+            ],
+            404
+        );
+    }
+}
 }
