@@ -744,13 +744,17 @@ class CategoryController extends Controller
             ]);
 
             $model = Category::query()->findOrFail($id);
+            $existingCategory = Category::where('name', $request->name)
+            ->where('id', '!=', $id)
+            ->where('parent_id', $request->parent_id ?? 0)  // Thêm điều kiện kiểm tra parent_id
+            ->first();
 
-            if (Category::where('name', $request->name)->exists()) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Tên danh mục đã tồn tại, vui lòng chọn tên khác.'
-                ], 400);
-            }
+        if ($existingCategory) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Tên danh mục đã tồn tại trong cùng cấp, vui lòng chọn tên khác.'
+            ], 400);
+        }
 
             // Kiểm tra nếu parent_id không tồn tại hoặc null, gán giá trị mặc định là 0
             if (!isset($data['parent_id'])) {
@@ -811,112 +815,169 @@ class CategoryController extends Controller
      * Remove the specified resource from storage.
      */
 
-    /**
-     * @OA\Delete(
-     *     path="/api/admin/categories/{id}",
-     *     summary="Xóa danh mục",
-     *     tags={"Category"},
-     *     security={{"Bearer": {}}},
-     *     @OA\Parameter(
-     *         name="id",
-     *         in="path",
-     *         required=true,
-     *         description="ID của danh mục cần xóa",
-     *         @OA\Schema(type="string")
-     *     ),
-     *     @OA\Response(
-     *         response=204,
-     *         description="Xóa danh mục thành công",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="success", type="boolean", example=true),
-     *             @OA\Property(property="message", type="string", example="Xóa danh mục thành công.")
-     *         )
-     *     ),
-     *     @OA\Response(
-     *         response=400,
-     *         description="Không thể xóa danh mục do liên quan đến các bản ghi khác",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="success", type="boolean", example=false),
-     *             @OA\Property(property="message", type="string", example="Không thể xóa danh mục này vì nó có liên quan đến các bản ghi khác.")
-     *         )
-     *     ),
-     *     @OA\Response(
-     *         response=500,
-     *         description="Lỗi không xác định",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="success", type="boolean", example=false),
-     *             @OA\Property(property="message", type="string", example="Xóa danh mục không thành công do lỗi không xác định."),
-     *             @OA\Property(property="error", type="string", example="Lý do lỗi")
-     *         )
-     *     )
-     * )
-     */
+/**
+ * @OA\Delete(
+ *     path="/api/admin/categories/{id}",
+ *     summary="Xóa danh mục và chuyển sản phẩm sang danh mục lưu trữ",
+ *     tags={"Category"},
+ *     security={{"Bearer": {}}},
+ *     @OA\Parameter(
+ *         name="id",
+ *         in="path",
+ *         required=true,
+ *         description="ID của danh mục cần xóa",
+ *         @OA\Schema(type="string")
+ *     ),
+ *     @OA\Response(
+ *         response=200,
+ *         description="Xóa danh mục thành công",
+ *         @OA\JsonContent(
+ *             @OA\Property(property="success", type="boolean", example=true),
+ *             @OA\Property(property="message", type="string", example="Xóa danh mục thành công. Các sản phẩm đã được chuyển sang danh mục 'Category 1 (Lưu trữ)'"),
+ *             @OA\Property(property="archived_category_id", type="integer", example=15)
+ *         )
+ *     ),
+ *     @OA\Response(
+ *         response=401,
+ *         description="Chưa đăng nhập",
+ *         @OA\JsonContent(
+ *             @OA\Property(property="success", type="boolean", example=false),
+ *             @OA\Property(property="message", type="string", example="Bạn chưa đăng nhập.")
+ *         )
+ *     ),
+ *     @OA\Response(
+ *         response=403,
+ *         description="Không có quyền",
+ *         @OA\JsonContent(
+ *             @OA\Property(property="success", type="boolean", example=false),
+ *             @OA\Property(property="message", type="string", example="Bạn không phải admin.")
+ *         )
+ *     ),
+ *     @OA\Response(
+ *         response=404,
+ *         description="Không tìm thấy danh mục",
+ *         @OA\JsonContent(
+ *             @OA\Property(property="success", type="boolean", example=false),
+ *             @OA\Property(property="message", type="string", example="Danh mục không tồn tại.")
+ *         )
+ *     ),
+ *     @OA\Response(
+ *         response=400,
+ *         description="Không thể xóa danh mục",
+ *         @OA\JsonContent(
+ *             @OA\Property(property="success", type="boolean", example=false),
+ *             @OA\Property(property="message", type="string", example="Có lỗi xảy ra khi xóa danh mục.")
+ *         )
+ *     )
+ * )
+ */
 
 
-    public function destroy(string $id)
-    {
-        $currentUser = auth('api')->user();
-        if (!$currentUser) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Bạn chưa đăng nhập.',
-            ], 401);
+ public function destroy(string $id)
+{
+    $currentUser = auth('api')->user();
+    if (!$currentUser) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Bạn chưa đăng nhập.',
+        ], 401);
+    }
+    if (!$currentUser || !$currentUser->isAdmin()) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Bạn không phải admin.'
+        ], 403);
+    }
+
+    try {
+        // Bắt đầu transaction
+        DB::beginTransaction();
+
+        $model = Category::findOrFail($id);
+        
+        // Lấy hoặc tạo danh mục lưu trữ chung
+        $archiveParentCategory = Category::firstOrCreate(
+            ['slug' => 'danh-muc-luu-tru'],
+            [
+                'name' => 'Danh mục lưu trữ',
+                'parent_id' => 0,
+                'image' => null
+            ]
+        );
+
+        // Lấy hoặc tạo danh mục con lưu trữ
+        $archiveChildCategory = Category::firstOrCreate(
+            ['slug' => 'san-pham-da-xoa'],
+            [
+                'name' => 'Sản phẩm đã xóa',
+                'parent_id' => $archiveParentCategory->id,
+                'image' => null
+            ]
+        );
+
+        // Cập nhật category_id của tất cả sản phẩm trong danh mục bị xóa
+        Product::where('category_id', $id)
+            ->update(['category_id' => $archiveChildCategory->id]);
+
+        // Cập nhật parent_id cho các danh mục con (nếu có)
+       
+        Category::where('parent_id', $id)
+            ->update(['parent_id' => $archiveChildCategory->id]);
+
+        // Xóa ảnh của danh mục cũ nếu có
+        if ($model->image && Storage::exists($model->image)) {
+            Storage::delete($model->image);
         }
-        if (!$currentUser || !$currentUser->isAdmin()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Bạn không phải admin.'
-            ], 403); // 403 Forbidden
-        }
 
-        try {
-            $model = Category::findOrFail($id);
+        // Soft delete danh mục cũ
+        $model->delete();
 
-            if ($model->image && Storage::exists($model->image)) {
-                Storage::delete($model->image);
-            }
+        // Commit transaction
+        DB::commit();
 
-            $model->delete();
+        // Ghi log thành công
+        Log::info("Danh mục '{$model->name}' với ID {$id} đã được xóa và sản phẩm đã được chuyển sang danh mục lưu trữ.");
 
-            // Ghi log thành công
-            Log::info("Danh mục với ID {$id} đã được xóa.");
+        return response()->json(
+            [
+                'success' => true,
+                'message' => "Xóa danh mục thành công. Các sản phẩm đã được chuyển sang danh mục lưu trữ",
+                'archive_parent_id' => $archiveParentCategory->id,
+                'archive_child_id' => $archiveChildCategory->id
+            ],
+            200
+        );
+    } catch (QueryException $e) {
+        // Rollback transaction nếu có lỗi
+        DB::rollBack();
 
-            return response()->json(
-                [
-                    'success' => true,
-                    'message' => 'Xóa danh mục thành công.',
-                ],
-                204
-            );
-        } catch (QueryException $e) {
-            if ($e->errorInfo[1] == 1451) {
-                return response()->json(
-                    [
-                        'success' => false,
-                        'message' => 'Không thể xóa danh mục này vì nó có liên quan đến các bản ghi khác.',
-                    ],
-                    400
-                );
-            }
-
-
-            Log::error("Lỗi khi xóa danh mục ID {$id}: " . $e->getMessage());
-
+        if ($e->errorInfo[1] == 1451) {
             return response()->json(
                 [
                     'success' => false,
-                    'message' => 'Có lỗi xảy ra khi xóa danh mục.',
+                    'message' => 'Không thể xóa danh mục này vì nó có liên quan đến các bản ghi khác.',
                 ],
                 400
             );
-        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
-            return response()->json(
-                [
-                    'success' => false,
-                    'message' => 'Danh mục không tồn tại.',
-                ],
-                404
-            );
         }
+
+        Log::error("Lỗi khi xóa danh mục ID {$id}: " . $e->getMessage());
+
+        return response()->json(
+            [
+                'success' => false,
+                'message' => 'Có lỗi xảy ra khi xóa danh mục.',
+            ],
+            400
+        );
+    } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+        return response()->json(
+            [
+                'success' => false,
+                'message' => 'Danh mục không tồn tại.',
+            ],
+            404
+        );
     }
+}
 }
