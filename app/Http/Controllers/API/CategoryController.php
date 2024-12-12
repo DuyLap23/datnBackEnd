@@ -744,13 +744,17 @@ class CategoryController extends Controller
             ]);
 
             $model = Category::query()->findOrFail($id);
+            $existingCategory = Category::where('name', $request->name)
+            ->where('id', '!=', $id)
+            ->where('parent_id', $request->parent_id ?? 0)  // Thêm điều kiện kiểm tra parent_id
+            ->first();
 
-            if (Category::where('name', $request->name)->exists()) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Tên danh mục đã tồn tại, vui lòng chọn tên khác.'
-                ], 400);
-            }
+        if ($existingCategory) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Tên danh mục đã tồn tại trong cùng cấp, vui lòng chọn tên khác.'
+            ], 400);
+        }
 
             // Kiểm tra nếu parent_id không tồn tại hoặc null, gán giá trị mặc định là 0
             if (!isset($data['parent_id'])) {
