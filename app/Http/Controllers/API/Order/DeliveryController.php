@@ -95,6 +95,8 @@ class DeliveryController extends Controller
                         $order->address->district,
                         $order->address->city,
                     ]) : 'N/A',
+                    'payment_method' => $order->payment_method ?? 'Cash on Delivery',
+                    'payment_status' => $order->payment_status,
                     'products' => $order->orderItems->map(function ($item) {
                         return [
                             'product_name' => $item->product->name ?? 'N/A',
