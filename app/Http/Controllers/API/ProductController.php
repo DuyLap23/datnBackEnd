@@ -689,8 +689,6 @@ class ProductController extends Controller
                 'brand_name' => $productData->brand_name,
                 'img_thumbnail' => $productData->img_thumbnail,
                 'is_active' => $productData->is_active,
-                // 'is_new' => $productData->is_new,
-                // 'is_show_home' => $productData->is_show_home,
                 'description' => $productData->description,
                 'content' => $productData->content,
                 'view' => $productData->view,
@@ -816,6 +814,26 @@ class ProductController extends Controller
             ], 403);
         }
 
+        //validte biến thể
+        if ($request->has('product_variants')) {
+            $variants = $request->product_variants;
+            
+            // Kiểm tra trùng lặp biến thể
+            $variantKeys = [];
+            foreach ($variants as $index => $variant) {
+                $key = $variant['product_size_id'] . '-' . $variant['product_color_id'];
+                
+                if (in_array($key, $variantKeys)) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Không thể tạo biến thể trùng lặp (Size và Color giống nhau).'
+                    ], status: 422);
+                }
+                
+                $variantKeys[] = $key;
+            }
+        }
+
         $product = Product::where('slug', $slug)->firstOrFail();
 
         DB::beginTransaction();
@@ -823,8 +841,6 @@ class ProductController extends Controller
             $dataProduct = $request->except(['product_variants', 'tags', 'product_images']);
             $dataProduct = array_merge($dataProduct, [
                 'is_active' => $request->input('is_active', 0),
-                // 'is_new' => $request->input('is_new', 0),
-                // 'is_show_home' => $request->input('is_show_home', 0),
                 'slug' => Str::slug($dataProduct['name']) . '-' . $product->sku,
             ]);
 
@@ -841,26 +857,48 @@ class ProductController extends Controller
 
             // Product Variants Handling
             if ($request->has('product_variants')) {
-                // Delete existing variants
-                $product->productVariants()->delete();
-
-                // Create new variants
                 foreach ($request->product_variants as $variant) {
+                    $existingVariant = ProductVariant::where([
+                        'product_id' => $product->id,
+                        'product_size_id' => $variant['product_size_id'],
+                        'product_color_id' => $variant['product_color_id'],
+                    ])->first();
+
                     $dataProductVariant = [
                         'product_id' => $product->id,
                         'product_size_id' => $variant['product_size_id'],
                         'product_color_id' => $variant['product_color_id'],
                         'quantity' => $variant['quantity'],
-                        'image' => null,
                     ];
 
-                    // Image handling for variant
+                    // Xử lý ảnh
                     if (isset($variant['image']) && $variant['image'] instanceof \Illuminate\Http\UploadedFile) {
+                        // Nếu có ảnh mới upload
                         $path = $variant['image']->store('products', 'public');
                         $dataProductVariant['image'] = asset('storage/' . $path);
+
+                        // Xóa ảnh cũ nếu tồn tại
+                        if ($existingVariant && $existingVariant->image) {
+                            Storage::delete(str_replace(asset('storage/'), '', $existingVariant->image));
+                        }
+                    } else {
+                        // Nếu không có ảnh được gửi lên, set image là null và xóa ảnh cũ
+                        $dataProductVariant['image'] = null;
+
+                        // Xóa file ảnh cũ nếu tồn tại
+                        if ($existingVariant && $existingVariant->image) {
+                            Storage::delete(str_replace(asset('storage/'), '', $existingVariant->image));
+                        }
                     }
 
-                    ProductVariant::updateOrCreate($dataProductVariant);
+                    ProductVariant::updateOrCreate(
+                        [
+                            'product_id' => $product->id,
+                            'product_size_id' => $variant['product_size_id'],
+                            'product_color_id' => $variant['product_color_id'],
+                        ],
+                        $dataProductVariant
+                    );
                 }
             }
 
@@ -998,246 +1036,245 @@ class ProductController extends Controller
         ]);
     }
     /**
- * @OA\Get(
- *     path="/api/admin/products/search",
- *     summary="Lấy danh sách hoặc tìm kiếm sản phẩm",
- *     description="Lấy tất cả sản phẩm theo thứ tự mới nhất hoặc tìm kiếm sản phẩm theo từ khóa (nếu có). Admin có thể xem cả sản phẩm đã xóa khi tìm kiếm.",
- *     tags={"Product"},
- *     @OA\Parameter(
- *         name="keyword",
- *         in="query",
- *         description="Từ khóa tìm kiếm (tên hoặc slug của sản phẩm). Không bắt buộc, nếu không có sẽ trả về tất cả sản phẩm.",
- *         required=false,
- *         @OA\Schema(type="string")
- *     ),
- *     @OA\Response(
- *         response=200,
- *         description="Thành công",
- *         @OA\JsonContent(
- *             @OA\Property(
- *                 property="success",
- *                 type="boolean",
- *                 example=true
- *             ),
- *             @OA\Property(
- *                 property="message",
- *                 type="string",
- *                 example="Lấy thành công sản phẩm",
- *             ),
- *             @OA\Property(
- *                 property="products",
- *                 type="array",
- *                 @OA\Items(
- *                     @OA\Property(
- *                         property="id",
- *                         type="integer",
- *                         example=1,
- *                     ),
- *                     @OA\Property(
- *                         property="name",
- *                         type="string",
- *                         example="Product Name",
- *                     ),
- *                     @OA\Property(
- *                         property="description",
- *                         type="string",
- *                         example="Mô tả sản phẩm.",
- *                     ),
- *                     @OA\Property(
- *                         property="price",
- *                         type="number",
- *                         format="float",
- *                         example=99.99,
- *                     ),
- *                     @OA\Property(
- *                         property="category",
- *                         type="object",
- *                         @OA\Property(
- *                             property="id",
- *                             type="integer",
- *                             example=2,
- *                         ),
- *                         @OA\Property(
- *                             property="name",
- *                             type="string",
- *                             example="Category Name",
- *                         ),
- *                     ),
- *                     @OA\Property(
- *                         property="average_rating",
- *                         type="number",
- *                         format="float",
- *                         example=4.5,
- *                     ),
- *                     @OA\Property(
- *                         property="total_ratings",
- *                         type="integer",
- *                         example=10,
- *                     ),
- *                 )
- *             ),
- *             @OA\Property(
- *                 property="deleted_products",
- *                 type="object",
- *                 description="Chỉ hiển thị khi tìm kiếm với quyền admin",
- *                 @OA\Property(
- *                     property="message",
- *                     type="string",
- *                     example="Sản phẩm đã bị xóa trước đó",
- *                 ),
- *                 @OA\Property(
- *                     property="data",
- *                     type="array",
- *                     @OA\Items(
- *                         @OA\Property(
- *                             property="id",
- *                             type="integer",
- *                             example=1,
- *                         ),
- *                         @OA\Property(
- *                             property="name",
- *                             type="string",
- *                             example="Deleted Product Name",
- *                         ),
- *                         @OA\Property(
- *                             property="deleted_at",
- *                             type="string",
- *                             example="30/11/2024 15:30:00",
- *                         ),
- *                     ),
- *                 ),
- *                 @OA\Property(
- *                     property="total_deleted",
- *                     type="integer",
- *                     example=1,
- *                 ),
- *             ),
- *             @OA\Property(
- *                 property="execution_time",
- *                 type="string",
- *                 example="0.12345"
- *             ),
- *         )
- *     ),
- *     @OA\Response(
- *         response=403,
- *         description="Không có quyền truy cập",
- *         @OA\JsonContent(
- *             @OA\Property(
- *                 property="success",
- *                 type="boolean",
- *                 example=false
- *             ),
- *             @OA\Property(
- *                 property="message",
- *                 type="string",
- *                 example="Bạn không phải admin.",
- *             ),
- *         )
- *     ),
- *     @OA\Response(
- *         response=500,
- *         description="Lỗi server",
- *         @OA\JsonContent(
- *             @OA\Property(
- *                 property="success",
- *                 type="boolean",
- *                 example=false
- *             ),
- *             @OA\Property(
- *                 property="message",
- *                 type="string",
- *                 example="Lỗi khi xử lý sản phẩm",
- *             ),
- *             @OA\Property(
- *                 property="error",
- *                 type="string",
- *                 example="Server Error Message",
- *             ),
- *         )
- *     )
- * )
- */
-public function searchProduct(Request $request)
-{
-    $currentUser = auth('api')->user();
-    $search = $request->input('search'); 
-    $result = [];
-    $startTime = microtime(true);
+     * @OA\Get(
+     *     path="/api/admin/products/search",
+     *     summary="Lấy danh sách hoặc tìm kiếm sản phẩm",
+     *     description="Lấy tất cả sản phẩm theo thứ tự mới nhất hoặc tìm kiếm sản phẩm theo từ khóa (nếu có). Admin có thể xem cả sản phẩm đã xóa khi tìm kiếm.",
+     *     tags={"Product"},
+     *     @OA\Parameter(
+     *         name="keyword",
+     *         in="query",
+     *         description="Từ khóa tìm kiếm (tên hoặc slug của sản phẩm). Không bắt buộc, nếu không có sẽ trả về tất cả sản phẩm.",
+     *         required=false,
+     *         @OA\Schema(type="string")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Thành công",
+     *         @OA\JsonContent(
+     *             @OA\Property(
+     *                 property="success",
+     *                 type="boolean",
+     *                 example=true
+     *             ),
+     *             @OA\Property(
+     *                 property="message",
+     *                 type="string",
+     *                 example="Lấy thành công sản phẩm",
+     *             ),
+     *             @OA\Property(
+     *                 property="products",
+     *                 type="array",
+     *                 @OA\Items(
+     *                     @OA\Property(
+     *                         property="id",
+     *                         type="integer",
+     *                         example=1,
+     *                     ),
+     *                     @OA\Property(
+     *                         property="name",
+     *                         type="string",
+     *                         example="Product Name",
+     *                     ),
+     *                     @OA\Property(
+     *                         property="description",
+     *                         type="string",
+     *                         example="Mô tả sản phẩm.",
+     *                     ),
+     *                     @OA\Property(
+     *                         property="price",
+     *                         type="number",
+     *                         format="float",
+     *                         example=99.99,
+     *                     ),
+     *                     @OA\Property(
+     *                         property="category",
+     *                         type="object",
+     *                         @OA\Property(
+     *                             property="id",
+     *                             type="integer",
+     *                             example=2,
+     *                         ),
+     *                         @OA\Property(
+     *                             property="name",
+     *                             type="string",
+     *                             example="Category Name",
+     *                         ),
+     *                     ),
+     *                     @OA\Property(
+     *                         property="average_rating",
+     *                         type="number",
+     *                         format="float",
+     *                         example=4.5,
+     *                     ),
+     *                     @OA\Property(
+     *                         property="total_ratings",
+     *                         type="integer",
+     *                         example=10,
+     *                     ),
+     *                 )
+     *             ),
+     *             @OA\Property(
+     *                 property="deleted_products",
+     *                 type="object",
+     *                 description="Chỉ hiển thị khi tìm kiếm với quyền admin",
+     *                 @OA\Property(
+     *                     property="message",
+     *                     type="string",
+     *                     example="Sản phẩm đã bị xóa trước đó",
+     *                 ),
+     *                 @OA\Property(
+     *                     property="data",
+     *                     type="array",
+     *                     @OA\Items(
+     *                         @OA\Property(
+     *                             property="id",
+     *                             type="integer",
+     *                             example=1,
+     *                         ),
+     *                         @OA\Property(
+     *                             property="name",
+     *                             type="string",
+     *                             example="Deleted Product Name",
+     *                         ),
+     *                         @OA\Property(
+     *                             property="deleted_at",
+     *                             type="string",
+     *                             example="30/11/2024 15:30:00",
+     *                         ),
+     *                     ),
+     *                 ),
+     *                 @OA\Property(
+     *                     property="total_deleted",
+     *                     type="integer",
+     *                     example=1,
+     *                 ),
+     *             ),
+     *             @OA\Property(
+     *                 property="execution_time",
+     *                 type="string",
+     *                 example="0.12345"
+     *             ),
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=403,
+     *         description="Không có quyền truy cập",
+     *         @OA\JsonContent(
+     *             @OA\Property(
+     *                 property="success",
+     *                 type="boolean",
+     *                 example=false
+     *             ),
+     *             @OA\Property(
+     *                 property="message",
+     *                 type="string",
+     *                 example="Bạn không phải admin.",
+     *             ),
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=500,
+     *         description="Lỗi server",
+     *         @OA\JsonContent(
+     *             @OA\Property(
+     *                 property="success",
+     *                 type="boolean",
+     *                 example=false
+     *             ),
+     *             @OA\Property(
+     *                 property="message",
+     *                 type="string",
+     *                 example="Lỗi khi xử lý sản phẩm",
+     *             ),
+     *             @OA\Property(
+     *                 property="error",
+     *                 type="string",
+     *                 example="Server Error Message",
+     *             ),
+     *         )
+     *     )
+     * )
+     */
+    public function searchProduct(Request $request)
+    {
+        $currentUser = auth('api')->user();
+        $search = $request->input('search');
+        $result = [];
+        $startTime = microtime(true);
 
-    try {
-        $query = Product::with('category'); // Chỉ tải category
+        try {
+            $query = Product::with('category'); // Chỉ tải category
 
-        // Nếu có từ khóa tìm kiếm và người dùng là admin
-        if ($search && $currentUser && $currentUser->isAdmin()) {
-            $query->withTrashed()
-                ->when($search, function ($q) use ($search) {
-                    $q->where('name', 'LIKE', "%{$search}%")
-                        ->orWhere('slug', 'LIKE', "%{$search}%");
-                });
-        } else {
-            // Nếu không có tìm kiếm hoặc không phải admin
-            $query->where('is_active', 1)
-                ->whereNull('deleted_at')
-                ->when($search, function ($q) use ($search) {
-                    $q->where('name', 'LIKE', "%{$search}%")
-                        ->orWhere('slug', 'LIKE', "%{$search}%");
-                })
-                ->orderBy('created_at', 'desc');
-        }
-
-        $query->chunk(10, function ($products) use (&$result) {
-            $result = array_merge($result, $products->toArray());
-        });
-
-        $endTime = microtime(true);
-        $executionTime = $endTime - $startTime;
-
-        // Nếu đang tìm kiếm và là admin, phân loại kết quả
-        if ($search && $currentUser && $currentUser->isAdmin()) {
-            $productsCollection = collect($result);
-            $activeProducts = $productsCollection->whereNull('deleted_at');
-            $deletedProducts = $productsCollection->whereNotNull('deleted_at');
-
-            $response = [
-                'success' => true,
-                'message' => 'Tìm kiếm sản phẩm thành công',
-                'products' => $activeProducts->values()->all(),
-                'total_active' => $activeProducts->count(),
-                'execution_time' => number_format($executionTime, 5)
-            ];
-
-            if ($deletedProducts->count() > 0) {
-                $response['deleted_products'] = [
-                    'message' => 'Sản phẩm đã bị xóa trước đó',
-                    'data' => $deletedProducts->map(function ($product) {
-                        return [
-                            'id' => $product['id'],
-                            'name' => $product['name'],
-                            'deleted_at' => Carbon::parse($product['deleted_at'])->format('d/m/Y H:i:s')
-                        ];
-                    })->values()->all(),
-                    'total_deleted' => $deletedProducts->count()
-                ];
+            // Nếu có từ khóa tìm kiếm và người dùng là admin
+            if ($search && $currentUser && $currentUser->isAdmin()) {
+                $query->withTrashed()
+                    ->when($search, function ($q) use ($search) {
+                        $q->where('name', 'LIKE', "%{$search}%")
+                            ->orWhere('slug', 'LIKE', "%{$search}%");
+                    });
+            } else {
+                // Nếu không có tìm kiếm hoặc không phải admin
+                $query->where('is_active', 1)
+                    ->whereNull('deleted_at')
+                    ->when($search, function ($q) use ($search) {
+                        $q->where('name', 'LIKE', "%{$search}%")
+                            ->orWhere('slug', 'LIKE', "%{$search}%");
+                    })
+                    ->orderBy('created_at', 'desc');
             }
 
-            return response()->json($response, 200);
+            $query->chunk(10, function ($products) use (&$result) {
+                $result = array_merge($result, $products->toArray());
+            });
+
+            $endTime = microtime(true);
+            $executionTime = $endTime - $startTime;
+
+            // Nếu đang tìm kiếm và là admin, phân loại kết quả
+            if ($search && $currentUser && $currentUser->isAdmin()) {
+                $productsCollection = collect($result);
+                $activeProducts = $productsCollection->whereNull('deleted_at');
+                $deletedProducts = $productsCollection->whereNotNull('deleted_at');
+
+                $response = [
+                    'success' => true,
+                    'message' => 'Tìm kiếm sản phẩm thành công',
+                    'products' => $activeProducts->values()->all(),
+                    'total_active' => $activeProducts->count(),
+                    'execution_time' => number_format($executionTime, 5)
+                ];
+
+                if ($deletedProducts->count() > 0) {
+                    $response['deleted_products'] = [
+                        'message' => 'Sản phẩm đã bị xóa trước đó',
+                        'data' => $deletedProducts->map(function ($product) {
+                            return [
+                                'id' => $product['id'],
+                                'name' => $product['name'],
+                                'deleted_at' => Carbon::parse($product['deleted_at'])->format('d/m/Y H:i:s')
+                            ];
+                        })->values()->all(),
+                        'total_deleted' => $deletedProducts->count()
+                    ];
+                }
+
+                return response()->json($response, 200);
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Lấy thành công sản phẩm',
+                'products' => $result,
+                'execution_time' => number_format($executionTime, 5)
+            ], 200);
+        } catch (\Exception $e) {
+            Log::error($e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Lỗi khi xử lý sản phẩm',
+                'error' => $e->getMessage()
+            ], 500);
         }
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Lấy thành công sản phẩm',
-            'products' => $result,
-            'execution_time' => number_format($executionTime, 5)
-        ], 200);
-
-    } catch (\Exception $e) {
-        Log::error($e->getMessage());
-        return response()->json([
-            'success' => false,
-            'message' => 'Lỗi khi xử lý sản phẩm',
-            'error' => $e->getMessage()
-        ], 500);
     }
-}
 }
