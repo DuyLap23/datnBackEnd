@@ -179,6 +179,9 @@ class OrderManagementController extends Controller
             'payment_method' => $order->payment_method,
             'payment_status' => $order->payment_status,
             'order_status' => $order->order_status,
+            'voucher_code' => $order->voucher_code !== null ? $order->voucher_code : ' ',
+            'voucher_discount' => $order->voucher_discount !== null
+                ? (int) $order->voucher_discount : 0,
             'note' => $order->note,
             'created_at' => $order->created_at,
             'updated_at' => $order->updated_at,
