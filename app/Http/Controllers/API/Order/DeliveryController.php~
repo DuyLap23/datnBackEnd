@@ -211,8 +211,6 @@ class DeliveryController extends Controller
         }
         $order->order_status = 'delivered';
         $order->delivered_at = now();
-        $order->payment_status = 'paid';
-
         $order->recipient_name = $request->input('recipient_name', null);
         $order->recipient_signature = $request->input('signature', null);
         $order->save();

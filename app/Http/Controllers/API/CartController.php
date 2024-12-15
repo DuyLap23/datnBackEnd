@@ -11,6 +11,7 @@ use App\Models\ProductVariant;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
+use Symfony\Component\HttpKernel\Exception\LockedHttpException;
 
 /**
  * @OA\Schema(
@@ -394,7 +395,7 @@ class CartController extends Controller
 
         // Xác thực dữ liệu đầu vào
         $validatedData = $request->validate([
-            'quantity' => 'required|integer|min:1|max:100', // Số lượng hợp lệ từ 1 đến 100
+            'quantity' => 'required|integer|min:1|max:100',
         ]);
 
         // Tìm kiếm sản phẩm trong giỏ hàng
@@ -402,7 +403,7 @@ class CartController extends Controller
             ->where('id', $cartItemId)
             ->with('product') // Đảm bảo tải sản phẩm liên kết
             ->first();
-
+Log::info('Cart item: ' . $cartItem);
         if (!$cartItem) {
             return response()->json(['message' => 'Giỏ hàng không tồn tại.'], 404);
         }
@@ -411,10 +412,8 @@ class CartController extends Controller
         if (!$cartItem->product || $cartItem->product->deleted_at) {
             return response()->json(['message' => 'Sản phẩm đã bị xóa'], 400);
         }
-
-        // Kiểm tra tồn kho của sản phẩm
-        $productVariant = ProductVariant::where('product_id', $cartItem->product_id)->first();
-
+        $productVariant = ProductVariant::where('id', $cartItem->product_variant_id)->first();
+        Log::info('Product variant: ' . $productVariant);
         if (!$productVariant || $productVariant->quantity < $validatedData['quantity']) {
             return response()->json(['message' => 'Số lượng sản phẩm không đủ.'], 400);
         }
@@ -426,6 +425,7 @@ class CartController extends Controller
 
         // Cập nhật số lượng
         $cartItem->quantity = $validatedData['quantity'];
+
         $cartItem->save();
 
         // Tính lại tổng tiền
@@ -446,6 +446,4 @@ class CartController extends Controller
             'total_price' => $totalPrice
         ], 200);
     }
-
-
 }
