@@ -630,14 +630,9 @@ class CategoryController extends Controller
         try {
             // Kiểm tra danh mục
             $category = Category::query()
-                ->with(['children'])
+                ->with(['children']) // Lấy danh mục con
                 ->where('id', $id)
-                ->where(function ($query) {
-                    $query->where('parent_id', 0)
-                        ->orWhereNull('parent_id');
-                })
-                ->latest('id')
-                ->get();
+                ->first(); // Chỉ lấy một danh mục
 
             if (!$category) {
                 return response()->json([
@@ -894,7 +889,7 @@ class CategoryController extends Controller
         DB::beginTransaction();
 
         $model = Category::findOrFail($id);
-        
+
         // Lấy hoặc tạo danh mục lưu trữ chung
         $archiveParentCategory = Category::firstOrCreate(
             ['slug' => 'danh-muc-luu-tru'],
@@ -920,7 +915,7 @@ class CategoryController extends Controller
             ->update(['category_id' => $archiveChildCategory->id]);
 
         // Cập nhật parent_id cho các danh mục con (nếu có)
-       
+
         Category::where('parent_id', $id)
             ->update(['parent_id' => $archiveChildCategory->id]);
 
