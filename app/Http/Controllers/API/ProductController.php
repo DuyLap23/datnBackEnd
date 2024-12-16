@@ -200,10 +200,6 @@ class ProductController extends Controller
         Product::with(
             [
                 'category',
-                // 'brand',
-                // 'tags',
-                // 'productVariants.productColor',
-                // 'productVariants.productSize',
                 'comments'
             ]
         )
@@ -657,7 +653,8 @@ class ProductController extends Controller
             $productData = $product->load([
                 'tags',
                 'productVariants.productColor',
-                'productVariants.productSize'
+                'productVariants.productSize',
+                'comments' // Thêm comments vào load quan hệ
             ]);
 
             // Lấy tên category và brand
@@ -681,6 +678,10 @@ class ProductController extends Controller
                     ];
                 });
 
+            // Lấy bình luận và tính trung bình sao
+            $comments = $product->comments()->get(); // Chỉ lấy bình luận được duyệt
+            $averageRating = $comments->avg('rating'); // Tính trung bình sao
+
             // Chuẩn bị kết quả trả về
             $result = [
                 'id' => $productData->id,
@@ -699,7 +700,16 @@ class ProductController extends Controller
                 'productImages' => $productData->productImages,
                 'productVariants' => $productData->productVariants,
                 'delete_at' => $productData->delete_at,
-                'related_products' => $relatedProducts, // Thêm sản phẩm liên quan
+                'related_products' => $relatedProducts,
+                'comments' => $comments->map(function ($comment) {
+                    return [
+                        'user_name' => $comment->user->name,
+                        'content' => $comment->content,
+                        'rating' => $comment->rating,
+                        'created_at' => $comment->created_at,
+                    ];
+                }), // Trả về danh sách bình luận
+                'average_rating' => $averageRating, // Trung bình sao
             ];
 
             return response()->json($result, 200);
@@ -716,6 +726,7 @@ class ProductController extends Controller
             ], 500);
         }
     }
+
 
     /**
      * @OA\Put(
